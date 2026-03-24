@@ -1,0 +1,24 @@
+@if (label()) {
+  <label class="input__label">{{ label() }}</label>
+}
+<div class="input__wrapper" [class.input__wrapper--focused]="isFocused()" [class.input__wrapper--error]="error()">
+  @if (icon(); as iconName) {
+    <span class="material-symbols-outlined input__icon">{{ iconName }}</span>
+  }
+  <input
+    class="input__field"
+    [type]="type()"
+    [placeholder]="placeholder()"
+    [disabled]="isDisabled || inputDisabled()"
+    [value]="value()"
+    (input)="onInput($event)"
+    (focus)="isFocused.set(true)"
+    (blur)="onBlur()"
+  />
+</div>
+@if (error(); as errorText) {
+  <span class="input__error">{{ errorText }}</span>
+}
+@if (!error() && hint(); as hintText) {
+  <span class="input__hint">{{ hintText }}</span>
+}

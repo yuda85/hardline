@@ -1,0 +1,11 @@
+.layout__main {
+  min-height: 100dvh;
+  padding: 1.5rem;
+  padding-bottom: calc(5rem + env(safe-area-inset-bottom));
+
+  @media (min-width: 1024px) {
+    margin-left: 240px;
+    padding: 2rem;
+    padding-bottom: 2rem;
+  }
+}

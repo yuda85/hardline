@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 .claude/skills/ui-ux-pro-max/scripts/search.py \"fitness gym workout tracker dark neon aggressive high-energy\" --design-system -p \"Hardline\")",
+      "Bash(python .claude/skills/ui-ux-pro-max/scripts/search.py \"fitness gym workout tracker dark neon aggressive high-energy\" --design-system -p \"Hardline\")",
+      "Bash(npm view:*)",
+      "Bash(python .claude/skills/ui-ux-pro-max/scripts/search.py \"dark dashboard fitness tracker cyan neon material design\" --design-system --persist -p \"Hardline\")",
+      "Bash(python .claude/skills/ui-ux-pro-max/scripts/search.py \"layout responsive form accessibility\" --stack html-tailwind)",
+      "Bash(npm install:*)",
+      "Bash(npx ng:*)",
+      "Bash(mkdir -p src/app/core/guards src/app/core/services src/app/core/models src/app/shared/components src/app/shared/pipes src/app/shared/directives src/app/features/auth src/app/features/profile src/app/features/nutrition src/app/features/workout src/app/features/dashboard src/app/data/repositories .github/workflows docs)",
+      "Bash(touch src/app/core/guards/.gitkeep src/app/core/services/.gitkeep src/app/core/models/.gitkeep src/app/shared/components/.gitkeep src/app/shared/pipes/.gitkeep src/app/shared/directives/.gitkeep src/app/features/auth/.gitkeep src/app/features/profile/.gitkeep src/app/features/nutrition/.gitkeep src/app/features/workout/.gitkeep src/app/features/dashboard/.gitkeep src/app/data/repositories/.gitkeep)",
+      "Bash(npm run:*)",
+      "Bash(python .claude/skills/ui-ux-pro-max/scripts/search.py \"button card input loading skeleton\" --domain ux)",
+      "Bash(python .claude/skills/ui-ux-pro-max/scripts/search.py \"button form input component\" --stack react)",
+      "Bash(python .claude/skills/ui-ux-pro-max/scripts/search.py \"login authentication sign-in google\" --domain ux)"
+    ]
+  }
+}

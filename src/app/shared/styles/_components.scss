@@ -1,0 +1,41 @@
+// Shared SCSS mixins for component patterns
+
+@mixin card-elevation($level: 1) {
+  border-radius: 1rem;
+  @if $level == 0 {
+    background-color: var(--surface);
+  } @else if $level == 1 {
+    background-color: var(--surface-container-low);
+  } @else if $level == 2 {
+    background-color: var(--surface-container-high);
+  }
+}
+
+@mixin interactive-feedback {
+  transition: all 200ms ease;
+  cursor: pointer;
+
+  &:hover {
+    opacity: 0.9;
+  }
+
+  &:active {
+    transform: scale(0.97);
+  }
+}
+
+@mixin touch-target($size: 44px) {
+  min-height: $size;
+  min-width: $size;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin pill-shape {
+  border-radius: 9999px;
+  padding: 0.25rem 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}

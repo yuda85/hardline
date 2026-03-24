@@ -1,0 +1,110 @@
+@use '../../styles/components' as c;
+
+:host {
+  display: inline-block;
+
+  &.btn--full {
+    display: block;
+    width: 100%;
+  }
+}
+
+.btn__inner {
+  @include c.touch-target;
+  @include c.interactive-feedback;
+  width: 100%;
+  border: none;
+  border-radius: 0.75rem;
+  font-family: var(--font-headline);
+  font-weight: 700;
+  gap: 0.5rem;
+  position: relative;
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+  }
+}
+
+// Sizes
+:host(.btn--sm) .btn__inner {
+  min-height: 36px;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.8125rem;
+}
+
+:host(.btn--md) .btn__inner {
+  min-height: 44px;
+  padding: 0.625rem 1.25rem;
+  font-size: 0.875rem;
+}
+
+:host(.btn--lg) .btn__inner {
+  min-height: 52px;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+}
+
+// Variants
+:host(.btn--primary) .btn__inner {
+  background: var(--primary);
+  color: var(--on-primary);
+}
+
+:host(.btn--secondary) .btn__inner {
+  background: var(--secondary-container);
+  color: var(--on-secondary-container);
+}
+
+:host(.btn--outline) .btn__inner {
+  background: transparent;
+  color: var(--on-surface);
+  border: 1px solid var(--outline-variant);
+
+  &:hover {
+    background: var(--surface-container-high);
+  }
+}
+
+:host(.btn--ghost) .btn__inner {
+  background: transparent;
+  color: var(--on-surface);
+
+  &:hover {
+    background: var(--surface-container-high);
+  }
+}
+
+// Icon
+.btn__icon {
+  font-size: 1.125rem;
+}
+
+// Loading
+.btn__spinner {
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  position: absolute;
+}
+
+.btn__label--hidden {
+  visibility: hidden;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn__spinner {
+    animation: none;
+    opacity: 0.5;
+  }
+}

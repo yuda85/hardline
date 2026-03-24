@@ -1,0 +1,24 @@
+<aside class="side-nav" [class.side-nav--collapsed]="collapsed()">
+  <div class="side-nav__brand">
+    @if (!collapsed()) {
+      <span class="side-nav__brand-text">Hardline</span>
+    } @else {
+      <span class="side-nav__brand-text">H</span>
+    }
+  </div>
+
+  <nav class="side-nav__items">
+    @for (item of items(); track item.route) {
+      <a
+        class="side-nav__item"
+        [routerLink]="item.route"
+        routerLinkActive="side-nav__item--active"
+      >
+        <span class="material-symbols-outlined side-nav__icon">{{ item.icon }}</span>
+        @if (!collapsed()) {
+          <span class="side-nav__label">{{ item.label }}</span>
+        }
+      </a>
+    }
+  </nav>
+</aside>

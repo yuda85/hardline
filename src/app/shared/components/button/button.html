@@ -1,0 +1,15 @@
+<button
+  [type]="type()"
+  [disabled]="disabled() || loading()"
+  class="btn__inner"
+>
+  @if (loading()) {
+    <span class="btn__spinner"></span>
+  }
+  @if (icon(); as iconName) {
+    <span class="material-symbols-outlined btn__icon">{{ iconName }}</span>
+  }
+  <span class="btn__label" [class.btn__label--hidden]="loading()">
+    <ng-content />
+  </span>
+</button>

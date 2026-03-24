@@ -1,0 +1,41 @@
+:host {
+  display: block;
+  border-radius: 1rem;
+  overflow: hidden;
+
+  &.card--elevation-0 {
+    background-color: var(--surface);
+  }
+  &.card--elevation-1 {
+    background-color: var(--surface-container-low);
+  }
+  &.card--elevation-2 {
+    background-color: var(--surface-container-high);
+  }
+
+  &.card--padding-none .card__body {
+    padding: 0;
+  }
+  &.card--padding-sm .card__body {
+    padding: 0.75rem;
+  }
+  &.card--padding-md .card__body {
+    padding: 1.25rem;
+  }
+  &.card--padding-lg .card__body {
+    padding: 1.5rem;
+  }
+
+  &.card--clickable {
+    cursor: pointer;
+    transition: all 200ms ease;
+
+    &:hover {
+      background-color: var(--surface-container-high);
+    }
+
+    &:active {
+      transform: scale(0.98);
+    }
+  }
+}

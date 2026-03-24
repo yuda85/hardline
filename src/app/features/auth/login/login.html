@@ -1,0 +1,29 @@
+<div class="login">
+  <div class="login__content">
+    <div class="login__brand">
+      <h1 class="login__title">Hardline</h1>
+      <p class="login__tagline">AI-powered fitness & nutrition</p>
+    </div>
+
+    <div class="login__actions">
+      <app-button
+        variant="primary"
+        size="lg"
+        [fullWidth]="true"
+        [loading]="loading()"
+        icon="login"
+        (click)="login()"
+      >
+        Sign in with Google
+      </app-button>
+
+      @if (error(); as errorMessage) {
+        <p class="login__error">{{ errorMessage }}</p>
+      }
+    </div>
+
+    <p class="login__footer">
+      Track workouts. Hit your macros. Get stronger.
+    </p>
+  </div>
+</div>

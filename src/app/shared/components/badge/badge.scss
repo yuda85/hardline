@@ -1,0 +1,38 @@
+:host {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 9999px;
+  white-space: nowrap;
+  font-family: var(--font-label);
+  font-weight: 600;
+
+  &.badge--sm {
+    padding: 0.125rem 0.625rem;
+    font-size: 0.6875rem;
+  }
+
+  &.badge--md {
+    padding: 0.25rem 0.75rem;
+    font-size: 0.75rem;
+  }
+
+  &.badge--primary {
+    background: rgba(60, 215, 255, 0.15);
+    color: var(--primary);
+  }
+
+  &.badge--tertiary {
+    background: rgba(255, 181, 149, 0.15);
+    color: var(--tertiary);
+  }
+
+  &.badge--error {
+    background: rgba(255, 180, 171, 0.15);
+    color: var(--error);
+  }
+
+  &.badge--surface {
+    background: var(--surface-container-high);
+    color: var(--on-surface-variant);
+  }
+}

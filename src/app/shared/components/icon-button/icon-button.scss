@@ -1,0 +1,61 @@
+@use '../../styles/components' as c;
+
+.icon-btn__inner {
+  @include c.touch-target;
+  @include c.interactive-feedback;
+  border: none;
+  border-radius: 50%;
+  padding: 0.5rem;
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+  }
+}
+
+:host(.icon-btn--sm) .icon-btn__inner {
+  min-height: 36px;
+  min-width: 36px;
+
+  .material-symbols-outlined {
+    font-size: 1rem;
+  }
+}
+
+:host(.icon-btn--md) .icon-btn__inner {
+  min-height: 44px;
+  min-width: 44px;
+
+  .material-symbols-outlined {
+    font-size: 1.25rem;
+  }
+}
+
+:host(.icon-btn--lg) .icon-btn__inner {
+  min-height: 52px;
+  min-width: 52px;
+
+  .material-symbols-outlined {
+    font-size: 1.5rem;
+  }
+}
+
+:host(.icon-btn--standard) .icon-btn__inner {
+  background: transparent;
+  color: var(--on-surface-variant);
+
+  &:hover {
+    background: var(--surface-container-high);
+  }
+}
+
+:host(.icon-btn--filled) .icon-btn__inner {
+  background: var(--primary);
+  color: var(--on-primary);
+}
+
+:host(.icon-btn--tonal) .icon-btn__inner {
+  background: var(--surface-container-high);
+  color: var(--on-surface);
+}
