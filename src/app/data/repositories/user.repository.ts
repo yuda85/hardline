@@ -25,6 +25,7 @@ export class UserRepository extends BaseRepository<UserProfile> {
         photoURL: user.photoURL,
         goals: user.goals ?? DEFAULT_USER_GOALS,
         preferences: user.preferences ?? DEFAULT_USER_PREFERENCES,
+        onboardingComplete: user.onboardingComplete ?? false,
         updatedAt: serverTimestamp(),
         createdAt: user.createdAt ?? serverTimestamp(),
       },

@@ -1,0 +1,73 @@
+<div class="flog">
+  <header class="flog__header">
+    <h1 class="flog__title">Food Log</h1>
+    <app-button variant="primary" size="sm" icon="add" (click)="showAddMeal.set(true)">Log meal</app-button>
+  </header>
+
+  <!-- Date nav -->
+  <div class="flog__date-nav">
+    <app-icon-button icon="chevron_left" ariaLabel="Previous day" (click)="prevDay()" />
+    <span class="flog__date">{{ formatDate(selectedDate()) }}</span>
+    <app-icon-button icon="chevron_right" ariaLabel="Next day" (click)="nextDay()" />
+  </div>
+
+  <!-- Macro summary -->
+  @if (goals(); as g) {
+    <app-macro-bars
+      [protein]="summary()?.consumedProtein ?? 0"
+      [proteinGoal]="g.dailyProtein"
+      [carbs]="summary()?.consumedCarbs ?? 0"
+      [carbsGoal]="g.dailyCarbs"
+      [fat]="summary()?.consumedFat ?? 0"
+      [fatGoal]="g.dailyFat"
+    />
+  }
+
+  <!-- Meals by type -->
+  @if (loading()) {
+    <app-card [elevation]="1" padding="md">
+      <app-skeleton width="60%" height="1rem" />
+      <div style="margin-top: 0.5rem"><app-skeleton width="40%" height="0.875rem" /></div>
+    </app-card>
+  } @else {
+    @for (type of mealTypes; track type) {
+      <div class="flog__section">
+        <div class="flog__section-header">
+          <h2 class="flog__section-title">{{ type }}</h2>
+          <span class="flog__section-cal">{{ getMealTypeCalories(type) }} kcal</span>
+        </div>
+
+        @for (meal of getMealsByType(type); track meal.id) {
+          <app-card [elevation]="2" padding="sm">
+            <div class="flog__meal">
+              <div class="flog__meal-info">
+                <div class="flog__meal-items">
+                  @for (item of meal.items; track $index) {
+                    <span class="flog__meal-item">{{ item.name }}</span>
+                  }
+                </div>
+                <div class="flog__meal-meta">
+                  <span>{{ formatTime(meal.timestamp) }}</span>
+                  @if (meal.source !== 'manual') {
+                    <app-badge variant="primary" size="sm">{{ meal.source }}</app-badge>
+                  }
+                </div>
+              </div>
+              <div class="flog__meal-macros">
+                <span class="flog__meal-cal">{{ meal.totalCalories }}</span>
+                <span class="flog__meal-detail">P{{ meal.totalProtein }} C{{ meal.totalCarbs }} F{{ meal.totalFat }}</span>
+              </div>
+              <app-icon-button icon="delete" ariaLabel="Remove" size="sm" (click)="removeMeal(meal.id)" />
+            </div>
+          </app-card>
+        } @empty {
+          <p class="flog__empty-type">No {{ type }} logged</p>
+        }
+      </div>
+    }
+  }
+</div>
+
+@if (showAddMeal()) {
+  <app-add-meal-energy (closed)="showAddMeal.set(false)" />
+}

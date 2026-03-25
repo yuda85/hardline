@@ -1,0 +1,171 @@
+import { FirestoreDoc } from './common.model';
+
+// ── Enums & Types ──
+
+export type Sex = 'male' | 'female';
+export type FitnessGoal = 'fat_loss' | 'maintenance' | 'muscle_gain';
+export type RateOfChange = 'slow' | 'moderate' | 'aggressive';
+export type ActivityLevel = 'sedentary' | 'light' | 'moderate' | 'active' | 'very_active';
+export type MacroPreference = 'balanced' | 'high_protein' | 'low_carb' | 'custom';
+export type MealSource = 'manual' | 'ai_text' | 'ai_image';
+export type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack';
+
+// ── Goal Settings ──
+
+export interface GoalSettings extends FirestoreDoc {
+  userId: string;
+  age: number;
+  sex: Sex;
+  heightCm: number;
+  weightKg: number;
+  goal: FitnessGoal;
+  rateOfChange: RateOfChange;
+  weeklyTrainingFrequency: number;
+  dailyStepsTarget: number;
+  activityLevel: ActivityLevel;
+  macroPreference: MacroPreference;
+  // Calculated values (stored for quick access)
+  bmr: number;
+  tdee: number;
+  dailyCalories: number;
+  dailyProtein: number;
+  dailyCarbs: number;
+  dailyFat: number;
+}
+
+export const DEFAULT_GOAL_SETTINGS: Omit<GoalSettings, 'userId' | keyof FirestoreDoc> = {
+  age: 30,
+  sex: 'male',
+  heightCm: 175,
+  weightKg: 80,
+  goal: 'maintenance',
+  rateOfChange: 'moderate',
+  weeklyTrainingFrequency: 4,
+  dailyStepsTarget: 8000,
+  activityLevel: 'moderate',
+  macroPreference: 'balanced',
+  bmr: 0,
+  tdee: 0,
+  dailyCalories: 2000,
+  dailyProtein: 150,
+  dailyCarbs: 200,
+  dailyFat: 67,
+};
+
+// ── Meals ──
+
+export interface MealItem {
+  name: string;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  quantity: number;
+  unit: string;
+}
+
+export interface Meal extends FirestoreDoc {
+  userId: string;
+  date: string;
+  mealType: MealType;
+  items: MealItem[];
+  totalCalories: number;
+  totalProtein: number;
+  totalCarbs: number;
+  totalFat: number;
+  source: MealSource;
+  confidence: number;
+  notes?: string;
+  timestamp: Date;
+}
+
+// ── Activity & Burn ──
+
+export interface CardioEntry extends FirestoreDoc {
+  userId: string;
+  date: string;
+  type: string;
+  durationMinutes: number;
+  distanceKm?: number;
+  avgHeartRate?: number;
+  caloriesBurned: number;
+  timestamp: Date;
+}
+
+export const CARDIO_TYPES = [
+  'Running',
+  'Walking',
+  'Cycling',
+  'Swimming',
+  'Rowing',
+  'Elliptical',
+  'Jump Rope',
+  'HIIT',
+  'Yoga',
+  'Other',
+] as const;
+
+export interface DailySteps extends FirestoreDoc {
+  userId: string;
+  date: string;
+  steps: number;
+  caloriesBurned: number;
+}
+
+export interface WeightEntry extends FirestoreDoc {
+  userId: string;
+  date: string;
+  weightKg: number;
+  notes?: string;
+}
+
+// ── Daily Summary ──
+
+export interface DailySummary extends FirestoreDoc {
+  userId: string;
+  date: string;
+  // Targets
+  targetCalories: number;
+  targetProtein: number;
+  targetCarbs: number;
+  targetFat: number;
+  // Consumed
+  consumedCalories: number;
+  consumedProtein: number;
+  consumedCarbs: number;
+  consumedFat: number;
+  mealCount: number;
+  // Burn
+  bmrEstimate: number;
+  stepsCalories: number;
+  workoutCalories: number;
+  cardioCalories: number;
+  totalCaloriesOut: number;
+  // Balance
+  netCalories: number;
+  deficitOrSurplus: number;
+  // Meta
+  steps: number;
+  weightKg?: number;
+  aiInsight?: string;
+}
+
+// ── Weekly Summary ──
+
+export interface WeeklySummary extends FirestoreDoc {
+  userId: string;
+  weekStart: string;
+  weekEnd: string;
+  avgCalorieIntake: number;
+  avgCaloriesBurned: number;
+  avgNetBalance: number;
+  avgProtein: number;
+  proteinAdherence: number;
+  workoutsCompleted: number;
+  workoutsTarget: number;
+  avgSteps: number;
+  cardioSessions: number;
+  startWeight?: number;
+  endWeight?: number;
+  weightChange?: number;
+}

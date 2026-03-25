@@ -1,0 +1,85 @@
+<input
+  #fileInput
+  type="file"
+  accept=".json"
+  style="display: none"
+  (change)="onFileSelected($event)"
+/>
+
+<div class="workouts">
+  <header class="workouts__header">
+    <h1 class="workouts__title">Workouts</h1>
+    <div class="workouts__header-actions">
+      <app-button variant="outline" size="sm" icon="upload" (click)="triggerImport()">Import</app-button>
+      <app-button variant="primary" size="sm" icon="add" (click)="editPlan('new', $event)">New plan</app-button>
+    </div>
+  </header>
+
+  @if (importError(); as err) {
+    <div class="workouts__error">{{ err }}</div>
+  }
+
+  @if (loading() && plans().length === 0) {
+    @for (i of [1, 2]; track i) {
+      <app-card [elevation]="1" padding="lg">
+        <app-skeleton width="60%" height="1.25rem" />
+        <div style="margin-top: 0.75rem"><app-skeleton width="80%" height="0.875rem" /></div>
+      </app-card>
+    }
+  } @else if (plans().length === 0) {
+    <div class="workouts__empty">
+      <span class="material-symbols-outlined workouts__empty-icon">exercise</span>
+      <p class="workouts__empty-text">No workout plans yet</p>
+      <div class="workouts__empty-actions">
+        <app-button variant="primary" icon="add" [loading]="seeding()" (click)="seedExamples()">
+          Load example plans
+        </app-button>
+      </div>
+    </div>
+  } @else {
+    <div class="workouts__list">
+      @for (plan of plans(); track plan.id) {
+        <div class="workouts__plan-card">
+          <!-- Plan header (tap to expand) -->
+          <div class="workouts__plan-header" (click)="togglePlan(plan.id!)">
+            <div class="workouts__plan-info">
+              <h3 class="workouts__plan-name">{{ plan.name }}</h3>
+              @if (plan.description) {
+                <p class="workouts__plan-desc">{{ plan.description }}</p>
+              }
+              <div class="workouts__plan-meta">
+                <app-badge variant="primary" size="sm">{{ plan.days?.length ?? 0 }} days</app-badge>
+              </div>
+            </div>
+            <div class="workouts__plan-header-actions">
+              <app-icon-button icon="download" ariaLabel="Export" size="sm" (click)="exportPlan(plan, $event)" />
+              <app-icon-button icon="edit" ariaLabel="Edit plan" size="sm" (click)="editPlan(plan.id!, $event)" />
+              <app-icon-button icon="delete" ariaLabel="Delete plan" size="sm" (click)="deletePlan(plan.id!, $event)" />
+              <span
+                class="material-symbols-outlined workouts__expand-icon"
+                [class.workouts__expand-icon--open]="expandedPlan() === plan.id"
+              >expand_more</span>
+            </div>
+          </div>
+
+          <!-- Expanded days -->
+          @if (expandedPlan() === plan.id && plan.days?.length) {
+            <div class="workouts__days">
+              @for (day of plan.days; track day.dayNumber) {
+                <div class="workouts__day" (click)="startDay(plan.id!, day.dayNumber)">
+                  <div class="workouts__day-number">{{ day.dayNumber }}</div>
+                  <div class="workouts__day-info">
+                    <span class="workouts__day-name">{{ day.name }}</span>
+                    <span class="workouts__day-meta">{{ getExerciseCount(day) }} exercises</span>
+                  </div>
+                  <span class="material-symbols-outlined workouts__day-play">play_arrow</span>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+  }
+</div>

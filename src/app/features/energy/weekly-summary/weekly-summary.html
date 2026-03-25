@@ -1,0 +1,79 @@
+<div class="ws">
+  <h1 class="ws__title">Weekly Summary</h1>
+
+  <div class="ws__week-nav">
+    <app-button variant="ghost" size="sm" icon="chevron_left" (click)="prevWeek()">Prev</app-button>
+    <span class="ws__week-label">{{ weekLabel() }}</span>
+    <app-button variant="ghost" size="sm" icon="chevron_right" (click)="nextWeek()">Next</app-button>
+  </div>
+
+  @if (weeklySummary(); as w) {
+    <div class="ws__grid">
+      <app-card [elevation]="2" padding="lg">
+        <div class="ws__stat">
+          <span class="ws__stat-value">{{ w.avgCalorieIntake }}</span>
+          <span class="ws__stat-label">Avg intake (kcal)</span>
+        </div>
+      </app-card>
+      <app-card [elevation]="2" padding="lg">
+        <div class="ws__stat">
+          <span class="ws__stat-value">{{ w.avgCaloriesBurned }}</span>
+          <span class="ws__stat-label">Avg burned (kcal)</span>
+        </div>
+      </app-card>
+      <app-card [elevation]="2" padding="lg">
+        <div class="ws__stat">
+          <span class="ws__stat-value" [class.ws__stat-value--deficit]="w.avgNetBalance < 0" [class.ws__stat-value--surplus]="w.avgNetBalance > 0">
+            {{ w.avgNetBalance }}
+          </span>
+          <span class="ws__stat-label">Avg net balance</span>
+        </div>
+      </app-card>
+      <app-card [elevation]="2" padding="lg">
+        <div class="ws__stat">
+          <span class="ws__stat-value">{{ w.avgProtein }}g</span>
+          <span class="ws__stat-label">Avg protein</span>
+        </div>
+      </app-card>
+    </div>
+
+    <app-card [elevation]="1" padding="lg">
+      <h2 class="ws__section">Adherence</h2>
+      <div class="ws__adherence">
+        <div class="ws__adherence-item">
+          <span class="ws__adherence-label">Protein target</span>
+          <app-badge [variant]="w.proteinAdherence >= 80 ? 'primary' : 'error'" size="md">{{ w.proteinAdherence }}%</app-badge>
+        </div>
+        <div class="ws__adherence-item">
+          <span class="ws__adherence-label">Workouts</span>
+          <app-badge [variant]="w.workoutsCompleted >= w.workoutsTarget ? 'primary' : 'surface'" size="md">{{ w.workoutsCompleted }} / {{ w.workoutsTarget }}</app-badge>
+        </div>
+        <div class="ws__adherence-item">
+          <span class="ws__adherence-label">Avg steps</span>
+          <span class="ws__adherence-value">{{ w.avgSteps }}</span>
+        </div>
+        <div class="ws__adherence-item">
+          <span class="ws__adherence-label">Cardio sessions</span>
+          <span class="ws__adherence-value">{{ w.cardioSessions }}</span>
+        </div>
+      </div>
+    </app-card>
+
+    @if (w.startWeight && w.endWeight) {
+      <app-card [elevation]="1" padding="lg">
+        <h2 class="ws__section">Weight</h2>
+        <div class="ws__weight">
+          <span>{{ w.startWeight }} kg → {{ w.endWeight }} kg</span>
+          <app-badge [variant]="(w.weightChange ?? 0) <= 0 ? 'primary' : 'tertiary'" size="md">
+            {{ (w.weightChange ?? 0) > 0 ? '+' : '' }}{{ w.weightChange }} kg
+          </app-badge>
+        </div>
+      </app-card>
+    }
+  } @else {
+    <app-card [elevation]="1" padding="lg">
+      <p class="ws__empty">No summary data for this week.</p>
+      <app-button variant="outline" size="sm" (click)="recalculate()">Generate summary</app-button>
+    </app-card>
+  }
+</div>

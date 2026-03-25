@@ -1,0 +1,146 @@
+<div class="profile">
+  <header class="profile__header">
+    <h1 class="profile__title">Profile</h1>
+    @if (!editing()) {
+      <app-button variant="outline" size="sm" icon="edit" (click)="startEditing()">Edit</app-button>
+    }
+  </header>
+
+  <!-- User info card -->
+  @if (user(); as u) {
+    <app-card [elevation]="1" padding="lg">
+      <div class="profile__user">
+        @if (u.photoURL) {
+          <img class="profile__avatar" [src]="u.photoURL" [alt]="u.displayName" />
+        } @else {
+          <div class="profile__avatar profile__avatar--placeholder">
+            <span class="material-symbols-outlined">person</span>
+          </div>
+        }
+        <div class="profile__user-info">
+          <h2 class="profile__name">{{ u.displayName }}</h2>
+          <p class="profile__email">{{ u.email }}</p>
+        </div>
+      </div>
+    </app-card>
+  }
+
+  @if (!editing()) {
+    <!-- View mode -->
+    <app-card [elevation]="1" padding="lg">
+      <h3 class="profile__section-title">Daily Nutrition Goals</h3>
+      @if (goals(); as g) {
+        <div class="profile__stats">
+          <div class="profile__stat">
+            <span class="profile__stat-value">{{ g.dailyCalories }}</span>
+            <span class="profile__stat-label">Calories</span>
+          </div>
+          <div class="profile__stat">
+            <span class="profile__stat-value">{{ g.dailyProtein }}g</span>
+            <span class="profile__stat-label">Protein</span>
+          </div>
+          <div class="profile__stat">
+            <span class="profile__stat-value">{{ g.dailyCarbs }}g</span>
+            <span class="profile__stat-label">Carbs</span>
+          </div>
+          <div class="profile__stat">
+            <span class="profile__stat-value">{{ g.dailyFat }}g</span>
+            <span class="profile__stat-label">Fat</span>
+          </div>
+        </div>
+      }
+    </app-card>
+
+    <app-card [elevation]="1" padding="lg">
+      <h3 class="profile__section-title">Fitness Goals</h3>
+      @if (goals(); as g) {
+        <div class="profile__stats">
+          <div class="profile__stat">
+            <span class="profile__stat-value">{{ g.weeklyWorkouts }}</span>
+            <span class="profile__stat-label">Workouts / week</span>
+          </div>
+          <div class="profile__stat">
+            <span class="profile__stat-value">{{ g.targetWeight ?? '—' }}</span>
+            <span class="profile__stat-label">Target weight</span>
+          </div>
+        </div>
+      }
+    </app-card>
+
+    <app-card [elevation]="1" padding="lg">
+      <h3 class="profile__section-title">Preferences</h3>
+      @if (preferences(); as p) {
+        <div class="profile__pref-row">
+          <span class="profile__pref-label">Unit system</span>
+          <app-badge variant="primary">{{ p.units === 'metric' ? 'Metric (kg, cm)' : 'Imperial (lbs, in)' }}</app-badge>
+        </div>
+      }
+    </app-card>
+  } @else {
+    <!-- Edit mode -->
+    <app-card [elevation]="1" padding="lg">
+      <h3 class="profile__section-title">Daily Nutrition Goals</h3>
+      <form [formGroup]="goalsForm" class="profile__edit-form">
+        <div class="profile__edit-row">
+          <div class="profile__edit-field">
+            <label for="edit-cal">Calories (kcal)</label>
+            <input id="edit-cal" type="number" formControlName="dailyCalories" />
+          </div>
+        </div>
+        <div class="profile__edit-row">
+          <div class="profile__edit-field">
+            <label for="edit-protein">Protein (g)</label>
+            <input id="edit-protein" type="number" formControlName="dailyProtein" />
+          </div>
+          <div class="profile__edit-field">
+            <label for="edit-carbs">Carbs (g)</label>
+            <input id="edit-carbs" type="number" formControlName="dailyCarbs" />
+          </div>
+          <div class="profile__edit-field">
+            <label for="edit-fat">Fat (g)</label>
+            <input id="edit-fat" type="number" formControlName="dailyFat" />
+          </div>
+        </div>
+        <div class="profile__edit-row">
+          <div class="profile__edit-field">
+            <label for="edit-workouts">Workouts / week</label>
+            <input id="edit-workouts" type="number" formControlName="weeklyWorkouts" />
+          </div>
+          <div class="profile__edit-field">
+            <label for="edit-weight">Target weight</label>
+            <input id="edit-weight" type="number" formControlName="targetWeight" placeholder="Optional" />
+          </div>
+        </div>
+      </form>
+    </app-card>
+
+    <app-card [elevation]="1" padding="lg">
+      <h3 class="profile__section-title">Preferences</h3>
+      <form [formGroup]="prefsForm">
+        <div class="profile__toggle-group">
+          <button
+            type="button"
+            class="profile__toggle"
+            [class.profile__toggle--active]="prefsForm.value.units === 'metric'"
+            (click)="prefsForm.patchValue({ units: 'metric' })"
+          >
+            Metric (kg, cm)
+          </button>
+          <button
+            type="button"
+            class="profile__toggle"
+            [class.profile__toggle--active]="prefsForm.value.units === 'imperial'"
+            (click)="prefsForm.patchValue({ units: 'imperial' })"
+          >
+            Imperial (lbs, in)
+          </button>
+        </div>
+      </form>
+    </app-card>
+
+    <div class="profile__edit-actions">
+      <app-button variant="outline" (click)="cancelEditing()">Cancel</app-button>
+      <app-button variant="primary" [loading]="saving()" (click)="save()">Save changes</app-button>
+    </div>
+  }
+</div>

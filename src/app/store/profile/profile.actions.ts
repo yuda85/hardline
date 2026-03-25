@@ -15,6 +15,14 @@ export namespace Profile {
     constructor(public preferences: Partial<UserPreferences>) {}
   }
 
+  export class CompleteOnboarding {
+    static readonly type = '[Profile] Complete Onboarding';
+    constructor(
+      public goals: UserGoals,
+      public preferences: UserPreferences,
+    ) {}
+  }
+
   export class Reset {
     static readonly type = '[Profile] Reset';
   }

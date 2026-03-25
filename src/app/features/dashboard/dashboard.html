@@ -1,0 +1,118 @@
+<div class="dash">
+  <header class="dash__header">
+    <div>
+      <p class="dash__greeting">{{ getGreeting() }}</p>
+      <h1 class="dash__name">{{ user()?.displayName }}</h1>
+    </div>
+  </header>
+
+  <div class="dash__grid">
+    <!-- Energy Balance card (wide) -->
+    <app-card class="dash__card dash__card--wide" [elevation]="1" padding="lg">
+      <h2 class="dash__card-title">Energy Balance</h2>
+      @if (energyLoading()) {
+        <app-skeleton width="100%" height="5rem" />
+      } @else if (goals(); as g) {
+        <div class="dash__energy-row">
+          <app-calorie-ring
+            [consumed]="summary()?.consumedCalories ?? 0"
+            [target]="g.dailyCalories"
+            size="md"
+          />
+          <app-macro-bars
+            [protein]="summary()?.consumedProtein ?? 0"
+            [proteinGoal]="g.dailyProtein"
+            [carbs]="summary()?.consumedCarbs ?? 0"
+            [carbsGoal]="g.dailyCarbs"
+            [fat]="summary()?.consumedFat ?? 0"
+            [fatGoal]="g.dailyFat"
+          />
+        </div>
+      } @else {
+        <p class="dash__setup-hint">Set up your goals to track energy balance</p>
+      }
+      <div class="dash__card-action">
+        <app-button variant="outline" size="sm" icon="bolt" (click)="goToEnergy()">View energy</app-button>
+      </div>
+    </app-card>
+
+    <!-- Net balance -->
+    @if (goals(); as g) {
+      <app-card class="dash__card dash__card--wide" [elevation]="0" padding="none">
+        <app-balance-card
+          [consumed]="summary()?.consumedCalories ?? 0"
+          [burned]="summary()?.totalCaloriesOut ?? g.bmr"
+        />
+      </app-card>
+    }
+
+    <!-- Calories remaining -->
+    <app-card class="dash__card" [elevation]="2" padding="lg">
+      <div class="dash__stat-card">
+        <span class="material-symbols-outlined dash__stat-icon dash__stat-icon--primary">local_fire_department</span>
+        <span class="dash__stat-value">{{ (goals()?.dailyCalories ?? 2000) - (summary()?.consumedCalories ?? 0) }}</span>
+        <span class="dash__stat-label">Calories left</span>
+      </div>
+    </app-card>
+
+    <!-- Protein -->
+    <app-card class="dash__card" [elevation]="2" padding="lg">
+      <div class="dash__stat-card">
+        <span class="material-symbols-outlined dash__stat-icon dash__stat-icon--tertiary">egg_alt</span>
+        <span class="dash__stat-value">{{ summary()?.consumedProtein ?? 0 }}<span class="dash__stat-unit">/{{ goals()?.dailyProtein ?? 150 }}g</span></span>
+        <span class="dash__stat-label">Protein</span>
+      </div>
+    </app-card>
+
+    <!-- Meals today -->
+    <app-card class="dash__card" [elevation]="2" padding="lg">
+      <div class="dash__stat-card">
+        <span class="material-symbols-outlined dash__stat-icon dash__stat-icon--secondary">restaurant</span>
+        <span class="dash__stat-value">{{ summary()?.mealCount ?? 0 }}</span>
+        <span class="dash__stat-label">Meals today</span>
+      </div>
+    </app-card>
+
+    <!-- Weekly goal -->
+    <app-card class="dash__card" [elevation]="2" padding="lg">
+      <div class="dash__stat-card">
+        <span class="material-symbols-outlined dash__stat-icon dash__stat-icon--primary">target</span>
+        <span class="dash__stat-value">{{ goals()?.weeklyTrainingFrequency ?? 4 }}</span>
+        <span class="dash__stat-label">Workouts / week goal</span>
+      </div>
+    </app-card>
+
+    <!-- Recent workouts (wide) -->
+    <app-card class="dash__card dash__card--wide" [elevation]="1" padding="lg">
+      <div class="dash__card-header">
+        <h2 class="dash__card-title">Recent Workouts</h2>
+        <app-button variant="ghost" size="sm" (click)="goToWorkouts()">View all</app-button>
+      </div>
+
+      @if (sessionsLoading()) {
+        <app-skeleton width="100%" height="3rem" />
+        <div style="margin-top: 0.5rem"><app-skeleton width="100%" height="3rem" /></div>
+      } @else if (recentSessions().length === 0) {
+        <div class="dash__empty">
+          <p>No workouts completed yet</p>
+          <app-button variant="outline" size="sm" icon="exercise" (click)="goToWorkouts()">Start a workout</app-button>
+        </div>
+      } @else {
+        <div class="dash__sessions">
+          @for (session of recentSessions(); track session.id) {
+            <div class="dash__session">
+              <div class="dash__session-info">
+                <span class="dash__session-date">{{ formatSessionDate(session.startedAt) }}</span>
+                <span class="dash__session-day">Day {{ session.dayNumber }}</span>
+              </div>
+              <div class="dash__session-stats">
+                <app-badge variant="primary" size="sm">{{ getSessionSets(session) }} sets</app-badge>
+                <app-badge variant="surface" size="sm">{{ getSessionVolume(session) | number }}kg vol</app-badge>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </app-card>
+  </div>
+</div>

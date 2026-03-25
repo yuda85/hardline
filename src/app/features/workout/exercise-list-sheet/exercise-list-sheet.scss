@@ -1,0 +1,119 @@
+.sheet__backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 99;
+}
+
+.sheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: var(--surface-container-low);
+  border-radius: 1.5rem 1.5rem 0 0;
+  padding: 1rem 1.25rem;
+  padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+  max-height: 70dvh;
+  overflow-y: auto;
+}
+
+.sheet__handle {
+  width: 40px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--outline-variant);
+  margin: 0 auto 1rem;
+}
+
+.sheet__title {
+  font-family: var(--font-headline);
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--on-surface);
+  margin-bottom: 0.75rem;
+}
+
+.sheet__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.sheet__group-label {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: var(--tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 0.5rem 0 0.25rem 2.5rem;
+}
+
+.sheet__item {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.75rem 0.625rem;
+  border-radius: 0.625rem;
+  cursor: pointer;
+  min-height: 48px;
+  transition: background 200ms ease;
+
+  &:hover {
+    background: var(--surface-container);
+  }
+
+  &--current {
+    background: rgba(60, 215, 255, 0.08);
+
+    .sheet__item-name {
+      color: var(--primary);
+    }
+  }
+
+  &--done {
+    opacity: 0.6;
+  }
+
+  &--grouped {
+    padding-left: 1.5rem;
+  }
+}
+
+.sheet__item-status {
+  width: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sheet__check {
+  font-size: 1.25rem;
+  color: var(--primary);
+  font-variation-settings: 'FILL' 1;
+}
+
+.sheet__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--outline-variant);
+}
+
+.sheet__item-info {
+  flex: 1;
+}
+
+.sheet__item-name {
+  display: block;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--on-surface);
+}
+
+.sheet__item-sets {
+  font-size: 0.6875rem;
+  color: var(--on-surface-variant);
+}

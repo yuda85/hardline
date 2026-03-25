@@ -1,0 +1,13 @@
+<div class="balance" [class.balance--deficit]="isDeficit()" [class.balance--surplus]="!isDeficit()">
+  <div class="balance__row">
+    <span class="balance__icon material-symbols-outlined">{{ isDeficit() ? 'trending_down' : 'trending_up' }}</span>
+    <div class="balance__info">
+      <span class="balance__value">{{ net() }} kcal</span>
+      <span class="balance__label">{{ label() }}</span>
+    </div>
+  </div>
+  <div class="balance__breakdown">
+    <span>In: {{ consumed() }}</span>
+    <span>Out: {{ burned() }}</span>
+  </div>
+</div>

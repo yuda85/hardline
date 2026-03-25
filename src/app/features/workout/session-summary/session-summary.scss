@@ -1,0 +1,110 @@
+.summary {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-width: 540px;
+  margin: 0 auto;
+}
+
+.summary__hero {
+  text-align: center;
+  padding: 1.5rem 0;
+}
+
+.summary__hero-icon {
+  font-size: 3.5rem;
+  color: var(--tertiary-container);
+  font-variation-settings: 'FILL' 1;
+  display: block;
+  margin-bottom: 0.75rem;
+}
+
+.summary__title {
+  font-family: var(--font-headline);
+  font-weight: 800;
+  font-size: clamp(1.5rem, 5vw, 2rem);
+  color: var(--on-surface);
+  margin-bottom: 0.25rem;
+}
+
+.summary__duration {
+  font-size: 0.9375rem;
+  color: var(--on-surface-variant);
+}
+
+.summary__stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+.summary__stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.125rem;
+}
+
+.summary__stat-value {
+  font-family: var(--font-headline);
+  font-weight: 800;
+  font-size: 1.75rem;
+  color: var(--primary);
+}
+
+.summary__stat-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--on-surface-variant);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.summary__section-title {
+  font-family: var(--font-headline);
+  font-weight: 700;
+  font-size: 0.875rem;
+  color: var(--primary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 1rem;
+}
+
+.summary__exercises {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.summary__group-label {
+  padding-top: 0.25rem;
+}
+
+.summary__exercise-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.375rem;
+}
+
+.summary__exercise-name {
+  font-weight: 600;
+  font-size: 0.9375rem;
+  color: var(--on-surface);
+}
+
+.summary__exercise-sets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+.summary__set-pill {
+  padding: 0.25rem 0.625rem;
+  border-radius: 9999px;
+  background: var(--surface-container-high);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--on-surface-variant);
+  font-family: var(--font-headline);
+}

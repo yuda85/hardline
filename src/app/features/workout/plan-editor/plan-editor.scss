@@ -1,0 +1,305 @@
+.editor {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  max-width: 640px;
+  padding-bottom: 3rem;
+}
+
+.editor__header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.editor__title {
+  flex: 1;
+  font-family: var(--font-headline);
+  font-weight: 800;
+  font-size: 1.25rem;
+  color: var(--on-surface);
+}
+
+// Templates
+.editor__templates {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+}
+
+.editor__template {
+  background: var(--surface-container-high);
+  border-radius: 1rem;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 200ms ease;
+  min-height: 120px;
+
+  &:hover {
+    background: var(--surface-container-highest);
+    transform: scale(1.02);
+  }
+}
+
+.editor__template-icon {
+  font-size: 2rem;
+  color: var(--primary);
+}
+
+.editor__template-name {
+  font-family: var(--font-headline);
+  font-weight: 700;
+  font-size: 0.9375rem;
+  color: var(--on-surface);
+}
+
+.editor__template-desc {
+  font-size: 0.75rem;
+  color: var(--on-surface-variant);
+}
+
+// Info
+.editor__info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.editor__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+
+  label {
+    font-size: 0.6875rem;
+    font-weight: 700;
+    color: var(--on-surface-variant);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  input {
+    background: var(--surface-container-highest);
+    border: 1px solid var(--outline-variant);
+    border-radius: 0.75rem;
+    padding: 0.75rem 1rem;
+    color: var(--on-surface);
+    font-size: 0.9375rem;
+    min-height: 44px;
+
+    &:focus { outline: none; border-color: var(--primary); }
+    &::placeholder { color: var(--on-surface-variant); opacity: 0.5; }
+  }
+}
+
+// Section
+.editor__section {
+  font-family: var(--font-headline);
+  font-weight: 700;
+  font-size: 0.8125rem;
+  color: var(--primary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+// Days
+.editor__days {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.editor__day {
+  background: var(--surface-container-high);
+  border-radius: 1rem;
+  overflow: hidden;
+}
+
+.editor__day-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  cursor: pointer;
+}
+
+.editor__drag-handle {
+  color: var(--on-surface-variant);
+  opacity: 0.4;
+  font-size: 1.25rem;
+  cursor: grab;
+  touch-action: none;
+}
+
+.editor__day-badge {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: var(--on-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-headline);
+  font-weight: 800;
+  font-size: 0.6875rem;
+  flex-shrink: 0;
+}
+
+.editor__day-name-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--on-surface);
+  font-weight: 600;
+  font-size: 0.9375rem;
+  padding: 0.25rem 0;
+  min-height: 32px;
+  min-width: 0;
+
+  &:focus { outline: none; }
+  &::placeholder { color: var(--on-surface-variant); opacity: 0.4; }
+}
+
+.editor__day-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.125rem;
+}
+
+.editor__expand {
+  color: var(--on-surface-variant);
+  transition: transform 200ms ease;
+  &--open { transform: rotate(180deg); }
+}
+
+// Day body
+.editor__day-body {
+  border-top: 1px solid var(--outline-variant);
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.editor__exercises {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+// Group
+.editor__group {
+  background: var(--surface-container);
+  border-radius: 0.75rem;
+  overflow: hidden;
+
+  &--superset {
+    border-left: 3px solid var(--tertiary);
+  }
+}
+
+.editor__group-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.75rem 0.25rem;
+}
+
+// Exercise
+.editor__exercise {
+  padding: 0.5rem 0.75rem;
+
+  &:not(:last-child) {
+    border-bottom: 1px solid var(--surface-container-highest);
+  }
+}
+
+.editor__exercise-header {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-height: 44px;
+}
+
+.editor__exercise-info {
+  flex: 1;
+  cursor: pointer;
+  min-width: 0;
+}
+
+.editor__exercise-name {
+  display: block;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--on-surface);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.editor__exercise-sets {
+  font-size: 0.6875rem;
+  color: var(--primary);
+  font-family: var(--font-headline);
+  font-weight: 700;
+}
+
+.editor__exercise-edit {
+  padding: 0.75rem 0 0.25rem;
+}
+
+.editor__add-to-superset {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  padding: 0.5rem;
+  background: none;
+  border: none;
+  color: var(--tertiary);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  min-height: 36px;
+
+  .material-symbols-outlined { font-size: 0.875rem; }
+}
+
+// Add buttons
+.editor__add-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+// Plan actions
+.editor__plan-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 0.5rem;
+}
+
+// CDK drag styles
+.cdk-drag-preview {
+  background: var(--surface-container-high);
+  border-radius: 0.75rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  opacity: 0.9;
+}
+
+.cdk-drag-placeholder {
+  opacity: 0.3;
+}
+
+.cdk-drag-animating {
+  transition: transform 200ms ease;
+}
+
+.cdk-drop-list-dragging .cdk-drag {
+  transition: transform 200ms ease;
+}

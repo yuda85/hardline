@@ -2,11 +2,21 @@ import { Injectable, inject } from '@angular/core';
 import { State, Action, StateContext, Selector, Store } from '@ngxs/store';
 import { tap, take } from 'rxjs/operators';
 import { Workout } from './workout.actions';
-import { WorkoutStateModel, WORKOUT_STATE_DEFAULTS } from './workout.model';
+import { Energy } from '../energy/energy.actions';
+import { WorkoutStateModel, WORKOUT_STATE_DEFAULTS, LastSessionData } from './workout.model';
 import { WorkoutRepository } from '../../data/repositories/workout.repository';
 import { SessionRepository } from '../../data/repositories/session.repository';
+import { PRRepository } from '../../data/repositories/pr.repository';
+import { OneRepMaxService } from '../../core/services/one-rep-max.service';
 import { AuthState } from '../auth/auth.state';
-import { WorkoutSession, WorkoutSessionExercise, WorkoutSet } from '../../core/models';
+import {
+  WorkoutPlan,
+  WorkoutSession,
+  SessionExerciseGroup,
+  SessionExercise,
+  SessionSet,
+  PersonalRecord,
+} from '../../core/models';
 
 @State<WorkoutStateModel>({
   name: 'workout',
@@ -16,7 +26,14 @@ import { WorkoutSession, WorkoutSessionExercise, WorkoutSet } from '../../core/m
 export class WorkoutState {
   private readonly workoutRepo = inject(WorkoutRepository);
   private readonly sessionRepo = inject(SessionRepository);
+  private readonly prRepo = inject(PRRepository);
+  private readonly oneRMService = inject(OneRepMaxService);
   private readonly store = inject(Store);
+
+  @Selector()
+  static plans(state: WorkoutStateModel): WorkoutPlan[] {
+    return state.plans;
+  }
 
   @Selector()
   static activeSession(state: WorkoutStateModel): WorkoutSession | null {
@@ -24,7 +41,7 @@ export class WorkoutState {
   }
 
   @Selector()
-  static activePlan(state: WorkoutStateModel) {
+  static activePlan(state: WorkoutStateModel): WorkoutPlan | null {
     return state.activePlan;
   }
 
@@ -38,13 +55,96 @@ export class WorkoutState {
     return state.loading;
   }
 
+  @Selector()
+  static lastSessionData(state: WorkoutStateModel): LastSessionData {
+    return state.lastSessionData;
+  }
+
+  @Selector()
+  static prs(state: WorkoutStateModel): Record<string, PersonalRecord> {
+    return state.prs;
+  }
+
+  @Action(Workout.FetchPlans)
+  fetchPlans(ctx: StateContext<WorkoutStateModel>) {
+    const uid = this.store.selectSnapshot(AuthState.uid);
+    if (!uid) return;
+
+    ctx.patchState({ loading: true });
+    return this.workoutRepo.getByUser(uid).pipe(
+      take(1),
+      tap(plans => ctx.patchState({ plans, loading: false })),
+    );
+  }
+
+  @Action(Workout.SavePlan)
+  async savePlan(ctx: StateContext<WorkoutStateModel>, action: Workout.SavePlan) {
+    await this.workoutRepo.create(action.plan);
+    ctx.dispatch(new Workout.FetchPlans());
+  }
+
+  @Action(Workout.UpdatePlan)
+  async updatePlan(ctx: StateContext<WorkoutStateModel>, action: Workout.UpdatePlan) {
+    await this.workoutRepo.update(action.planId, action.changes);
+    ctx.dispatch(new Workout.FetchPlans());
+  }
+
+  @Action(Workout.DeletePlan)
+  async deletePlan(ctx: StateContext<WorkoutStateModel>, action: Workout.DeletePlan) {
+    await this.workoutRepo.remove(action.planId);
+    ctx.dispatch(new Workout.FetchPlans());
+  }
+
   @Action(Workout.LoadPlan)
   loadPlan(ctx: StateContext<WorkoutStateModel>, action: Workout.LoadPlan) {
     ctx.patchState({ loading: true });
     return this.workoutRepo.getById(action.planId).pipe(
       take(1),
-      tap(plan => {
-        ctx.patchState({ activePlan: plan ?? null, loading: false });
+      tap(plan => ctx.patchState({ activePlan: plan ?? null, loading: false })),
+    );
+  }
+
+  @Action(Workout.LoadLastSession)
+  loadLastSession(ctx: StateContext<WorkoutStateModel>, action: Workout.LoadLastSession) {
+    const uid = this.store.selectSnapshot(AuthState.uid);
+    if (!uid) return;
+
+    return this.sessionRepo.getHistory(uid, 20).pipe(
+      take(1),
+      tap(sessions => {
+        const match = sessions.find(
+          s => s.planId === action.planId && s.dayNumber === action.dayNumber && s.completedAt,
+        );
+        if (!match) return;
+
+        const data: LastSessionData = {};
+        for (const group of match.exerciseGroups) {
+          for (const ex of group.exercises) {
+            data[ex.exerciseId] = ex.sets
+              .filter(s => s.completed)
+              .map(s => ({ weight: s.weight, reps: s.actualReps }));
+          }
+        }
+        ctx.patchState({ lastSessionData: data });
+      }),
+    );
+  }
+
+  @Action(Workout.LoadPRs)
+  loadPRs(ctx: StateContext<WorkoutStateModel>) {
+    const uid = this.store.selectSnapshot(AuthState.uid);
+    if (!uid) return;
+
+    return this.prRepo.getAllForUser(uid).pipe(
+      take(1),
+      tap(records => {
+        const prs: Record<string, PersonalRecord> = {};
+        for (const pr of records) {
+          if (!prs[pr.exerciseId] || pr.oneRepMax > prs[pr.exerciseId].oneRepMax) {
+            prs[pr.exerciseId] = pr;
+          }
+        }
+        ctx.patchState({ prs });
       }),
     );
   }
@@ -56,9 +156,9 @@ export class WorkoutState {
 
     ctx.patchState({ loading: true });
 
-    // Load the plan first
-    const plan = ctx.getState().activePlan;
-    if (!plan) {
+    // Load plan if not already loaded
+    let plan = ctx.getState().activePlan;
+    if (!plan || plan.id !== action.planId) {
       await new Promise<void>(resolve => {
         this.workoutRepo
           .getById(action.planId)
@@ -68,36 +168,60 @@ export class WorkoutState {
             resolve();
           });
       });
+      plan = ctx.getState().activePlan;
     }
 
-    const currentPlan = ctx.getState().activePlan;
-    if (!currentPlan) {
+    if (!plan) {
       ctx.patchState({ loading: false });
       return;
     }
 
-    const exercises: WorkoutSessionExercise[] = currentPlan.exercises.map(e => ({
-      exerciseId: e.exerciseId,
-      exerciseName: e.exerciseName,
-      sets: Array.from({ length: e.sets }, (): WorkoutSet => ({
-        reps: 0,
-        weight: 0,
-        completed: false,
-      })),
+    const day = plan.days.find(d => d.dayNumber === action.dayNumber);
+    if (!day) {
+      ctx.patchState({ loading: false });
+      return;
+    }
+
+    // Build session from day template
+    const exerciseGroups: SessionExerciseGroup[] = day.exerciseGroups.map(group => ({
+      type: group.type,
+      restSeconds: group.restSeconds,
+      exercises: group.exercises.map(
+        (ex): SessionExercise => ({
+          exerciseId: ex.exerciseId,
+          exerciseName: ex.exerciseName,
+          sets: ex.sets.map(
+            (s): SessionSet => ({
+              targetReps: s.targetReps,
+              actualReps: 0,
+              weight: 0,
+              completed: false,
+            }),
+          ),
+        }),
+      ),
     }));
 
     const session: Omit<WorkoutSession, 'id' | 'createdAt' | 'updatedAt'> = {
       userId: uid,
       planId: action.planId,
+      dayNumber: action.dayNumber,
       startedAt: new Date(),
-      exercises,
+      exerciseGroups,
     };
 
     const sessionId = await this.sessionRepo.create(session);
+
     ctx.patchState({
       activeSession: { ...session, id: sessionId } as WorkoutSession,
       loading: false,
     });
+
+    // Load last session and PRs in parallel
+    ctx.dispatch([
+      new Workout.LoadLastSession(action.planId, action.dayNumber),
+      new Workout.LoadPRs(),
+    ]);
   }
 
   @Action(Workout.CompleteSet)
@@ -105,20 +229,72 @@ export class WorkoutState {
     const state = ctx.getState();
     if (!state.activeSession) return;
 
-    const exercises = state.activeSession.exercises.map((ex, ei) => {
-      if (ei !== action.exerciseIndex) return ex;
-      const sets = ex.sets.map((s, si) => {
-        if (si !== action.setIndex) return s;
-        return { reps: action.reps, weight: action.weight, completed: true, completedAt: new Date() };
+    const groups = state.activeSession.exerciseGroups.map((group, gi) => {
+      if (gi !== action.groupIndex) return group;
+      const exercises = group.exercises.map((ex, ei) => {
+        if (ei !== action.exerciseIndex) return ex;
+        const sets = ex.sets.map((s, si) => {
+          if (si !== action.setIndex) return s;
+          return {
+            ...s,
+            actualReps: action.actualReps,
+            weight: action.weight,
+            completed: true,
+            completedAt: new Date(),
+          };
+        });
+        return { ...ex, sets };
       });
-      return { ...ex, sets };
+      return { ...group, exercises };
     });
 
-    const updatedSession = { ...state.activeSession, exercises };
+    const updatedSession = { ...state.activeSession, exerciseGroups: groups };
     ctx.patchState({ activeSession: updatedSession });
 
     if (state.activeSession.id) {
-      await this.sessionRepo.update(state.activeSession.id, { exercises });
+      await this.sessionRepo.update(state.activeSession.id, { exerciseGroups: groups });
+    }
+
+    // Check for PR
+    const exercise = groups[action.groupIndex]?.exercises[action.exerciseIndex];
+    if (exercise && action.weight > 0 && action.actualReps > 0 && action.actualReps <= 10) {
+      const result = await this.oneRMService.checkAndUpdatePR(
+        exercise.exerciseId,
+        exercise.exerciseName,
+        action.weight,
+        action.actualReps,
+      );
+      if (result.isNewPR) {
+        ctx.dispatch(new Workout.LoadPRs());
+      }
+    }
+  }
+
+  @Action(Workout.AddSet)
+  async addSet(ctx: StateContext<WorkoutStateModel>, action: Workout.AddSet) {
+    const state = ctx.getState();
+    if (!state.activeSession) return;
+
+    const groups = state.activeSession.exerciseGroups.map((group, gi) => {
+      if (gi !== action.groupIndex) return group;
+      const exercises = group.exercises.map((ex, ei) => {
+        if (ei !== action.exerciseIndex) return ex;
+        const newSet: SessionSet = {
+          targetReps: ex.sets.length > 0 ? ex.sets[ex.sets.length - 1].targetReps : 10,
+          actualReps: 0,
+          weight: 0,
+          completed: false,
+        };
+        return { ...ex, sets: [...ex.sets, newSet] };
+      });
+      return { ...group, exercises };
+    });
+
+    const updatedSession = { ...state.activeSession, exerciseGroups: groups };
+    ctx.patchState({ activeSession: updatedSession });
+
+    if (state.activeSession.id) {
+      await this.sessionRepo.update(state.activeSession.id, { exerciseGroups: groups });
     }
   }
 
@@ -128,7 +304,10 @@ export class WorkoutState {
     if (!session?.id) return;
 
     await this.sessionRepo.update(session.id, { completedAt: new Date() });
-    ctx.patchState({ activeSession: null });
+    ctx.patchState({ activeSession: null, lastSessionData: {} });
+
+    // Trigger energy balance recalculation to include this workout's burn
+    ctx.dispatch(new Energy.RecalculateDailySummary());
   }
 
   @Action(Workout.AbandonSession)
@@ -137,7 +316,7 @@ export class WorkoutState {
     if (session?.id) {
       await this.sessionRepo.remove(session.id);
     }
-    ctx.patchState({ activeSession: null });
+    ctx.patchState({ activeSession: null, lastSessionData: {} });
   }
 
   @Action(Workout.Reset)

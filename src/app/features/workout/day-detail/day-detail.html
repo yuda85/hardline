@@ -1,0 +1,88 @@
+@if (day(); as d) {
+  <div class="detail">
+    <header class="detail__header">
+      <app-icon-button icon="arrow_back" ariaLabel="Back to workouts" (click)="goBack()" />
+      <div class="detail__header-info">
+        <div class="detail__day-badge">Day {{ d.dayNumber }}</div>
+        <h1 class="detail__title">{{ d.name }}</h1>
+        <div class="detail__stats">
+          <span>{{ totalExercises() }} exercises</span>
+          <span>{{ totalSets() }} sets</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Equipment needed -->
+    @if (equipment().length) {
+      <app-card [elevation]="1" padding="md">
+        <h2 class="detail__section-title">
+          <span class="material-symbols-outlined">fitness_center</span>
+          Equipment needed
+        </h2>
+        <div class="detail__equipment">
+          @for (item of equipment(); track item) {
+            <app-badge variant="surface" size="md">{{ item }}</app-badge>
+          }
+        </div>
+      </app-card>
+    }
+
+    <!-- Exercise list -->
+    <div class="detail__exercises">
+      <h2 class="detail__section-title">
+        <span class="material-symbols-outlined">format_list_bulleted</span>
+        Exercises
+      </h2>
+
+      @for (group of d.exerciseGroups; track $index) {
+        @if (group.type !== 'single') {
+          <div class="detail__group-header">
+            <app-badge variant="tertiary" size="sm">{{ group.type }}</app-badge>
+            <span class="detail__group-rest">
+              <span class="material-symbols-outlined">timer</span>
+              {{ formatRest(group.restSeconds) }} rest
+            </span>
+          </div>
+        }
+
+        @for (ex of group.exercises; track $index) {
+          <div class="detail__exercise" [class.detail__exercise--grouped]="group.type !== 'single'">
+            <div class="detail__exercise-main">
+              <span class="detail__exercise-name">{{ ex.exerciseName }}</span>
+              <span class="detail__exercise-sets">{{ formatSets(ex.sets) }}</span>
+            </div>
+
+            @if (group.type === 'single') {
+              <span class="detail__exercise-rest">
+                <span class="material-symbols-outlined">timer</span>
+                {{ formatRest(group.restSeconds) }}
+              </span>
+            }
+
+            @if (ex.notes) {
+              <p class="detail__exercise-notes">
+                <span class="material-symbols-outlined">info</span>
+                {{ ex.notes }}
+              </p>
+            }
+          </div>
+        }
+      }
+    </div>
+
+    <!-- Start button -->
+    <div class="detail__action">
+      <app-button
+        variant="primary"
+        size="lg"
+        [fullWidth]="true"
+        icon="play_arrow"
+        (click)="startWorkout()"
+      >
+        Start Workout
+      </app-button>
+    </div>
+  </div>
+} @else if (loading()) {
+  <div class="detail__loading">Loading...</div>
+}

@@ -5,7 +5,8 @@ import { Profile } from './profile.actions';
 import { ProfileStateModel, PROFILE_STATE_DEFAULTS } from './profile.model';
 import { UserRepository } from '../../data/repositories/user.repository';
 import { AuthState } from '../auth/auth.state';
-import { UserGoals, UserPreferences } from '../../core/models';
+import { UserGoals, UserPreferences, UserProfile } from '../../core/models';
+import { Auth } from '../auth/auth.actions';
 
 @State<ProfileStateModel>({
   name: 'profile',
@@ -81,6 +82,33 @@ export class ProfileState {
 
     await this.userRepo.update(uid, { preferences: updated });
     ctx.patchState({ preferences: updated });
+  }
+
+  @Action(Profile.CompleteOnboarding)
+  async completeOnboarding(ctx: StateContext<ProfileStateModel>, action: Profile.CompleteOnboarding) {
+    const uid = this.store.selectSnapshot(AuthState.uid);
+    if (!uid) return;
+
+    await this.userRepo.update(uid, {
+      goals: action.goals,
+      preferences: action.preferences,
+      onboardingComplete: true,
+    });
+
+    ctx.patchState({ goals: action.goals, preferences: action.preferences });
+
+    // Update the auth user to reflect onboarding complete
+    const currentUser = this.store.selectSnapshot(AuthState.user);
+    if (currentUser) {
+      ctx.dispatch(
+        new Auth.SetUser({
+          ...currentUser,
+          goals: action.goals,
+          preferences: action.preferences,
+          onboardingComplete: true,
+        }),
+      );
+    }
   }
 
   @Action(Profile.Reset)

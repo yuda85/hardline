@@ -1,0 +1,66 @@
+<div class="am__backdrop" (click)="close()"></div>
+<div class="am">
+  <div class="am__header">
+    <h2 class="am__title">Log meal</h2>
+    <app-icon-button icon="close" ariaLabel="Close" (click)="close()" />
+  </div>
+
+  <!-- Meal type -->
+  <div class="am__type-tabs">
+    @for (type of mealTypes; track type.value) {
+      <button
+        class="am__type-tab"
+        [class.am__type-tab--active]="selectedMealType() === type.value"
+        (click)="selectedMealType.set(type.value)"
+      >{{ type.label }}</button>
+    }
+  </div>
+
+  <form [formGroup]="form" class="am__form">
+    <div formArrayName="items" class="am__items">
+      @for (item of items.controls; track $index; let i = $index) {
+        <div class="am__item" [formGroupName]="$index">
+          <div class="am__item-header">
+            <span class="am__item-num">{{ i + 1 }}</span>
+            @if (items.length > 1) {
+              <app-icon-button icon="delete" ariaLabel="Remove" size="sm" (click)="removeItem(i)" />
+            }
+          </div>
+          <div class="am__field am__field--full">
+            <label>Food name</label>
+            <input type="text" formControlName="name" placeholder="e.g. Chicken breast" />
+          </div>
+          <div class="am__row">
+            <div class="am__field">
+              <label>Calories</label>
+              <input type="number" inputmode="numeric" formControlName="calories" />
+            </div>
+            <div class="am__field">
+              <label>Protein (g)</label>
+              <input type="number" inputmode="numeric" formControlName="protein" />
+            </div>
+          </div>
+          <div class="am__row">
+            <div class="am__field">
+              <label>Carbs (g)</label>
+              <input type="number" inputmode="numeric" formControlName="carbs" />
+            </div>
+            <div class="am__field">
+              <label>Fat (g)</label>
+              <input type="number" inputmode="numeric" formControlName="fat" />
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+
+    <button type="button" class="am__add-item" (click)="addItem()">
+      <span class="material-symbols-outlined">add</span> Add item
+    </button>
+  </form>
+
+  <div class="am__actions">
+    <app-button variant="outline" (click)="close()">Cancel</app-button>
+    <app-button variant="primary" [loading]="saving()" (click)="save()">Save meal</app-button>
+  </div>
+</div>

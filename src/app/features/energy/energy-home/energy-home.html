@@ -1,0 +1,89 @@
+<div class="ehome">
+  <header class="ehome__header">
+    <h1 class="ehome__title">Energy Balance</h1>
+    <app-icon-button icon="settings" ariaLabel="Goals & Targets" (click)="goToGoals()" />
+  </header>
+
+  @if (!goals()) {
+    <app-card [elevation]="1" padding="lg">
+      <div class="ehome__setup">
+        <span class="material-symbols-outlined ehome__setup-icon">tune</span>
+        <p>Set up your goals to get started</p>
+        <app-button variant="primary" icon="arrow_forward" (click)="goToGoals()">Set up goals</app-button>
+      </div>
+    </app-card>
+  } @else {
+    <div class="ehome__grid">
+      <!-- Calorie ring + macros -->
+      <app-card class="ehome__card ehome__card--wide" [elevation]="1" padding="lg">
+        <div class="ehome__intake">
+          <app-calorie-ring
+            [consumed]="summary()?.consumedCalories ?? 0"
+            [target]="goals()!.dailyCalories"
+            size="lg"
+          />
+          <div class="ehome__intake-macros">
+            <app-macro-bars
+              [protein]="summary()?.consumedProtein ?? 0"
+              [proteinGoal]="goals()!.dailyProtein"
+              [carbs]="summary()?.consumedCarbs ?? 0"
+              [carbsGoal]="goals()!.dailyCarbs"
+              [fat]="summary()?.consumedFat ?? 0"
+              [fatGoal]="goals()!.dailyFat"
+            />
+          </div>
+        </div>
+      </app-card>
+
+      <!-- Net balance -->
+      <app-card class="ehome__card ehome__card--wide" [elevation]="0" padding="none">
+        <app-balance-card
+          [consumed]="summary()?.consumedCalories ?? 0"
+          [burned]="summary()?.totalCaloriesOut ?? goals()!.bmr"
+        />
+      </app-card>
+
+      <!-- Steps -->
+      <app-card class="ehome__card" [elevation]="2" padding="lg" [clickable]="true" (click)="goToActivity()">
+        <div class="ehome__stat">
+          <span class="material-symbols-outlined ehome__stat-icon">directions_walk</span>
+          <span class="ehome__stat-value">{{ steps()?.steps ?? 0 }}</span>
+          <span class="ehome__stat-label">/ {{ goals()!.dailyStepsTarget }} steps</span>
+        </div>
+      </app-card>
+
+      <!-- Burn breakdown -->
+      <app-card class="ehome__card" [elevation]="2" padding="lg" [clickable]="true" (click)="goToDaily()">
+        <div class="ehome__stat">
+          <span class="material-symbols-outlined ehome__stat-icon ehome__stat-icon--tertiary">local_fire_department</span>
+          <span class="ehome__stat-value">{{ summary()?.totalCaloriesOut ?? goals()!.bmr }}</span>
+          <span class="ehome__stat-label">kcal burned</span>
+        </div>
+      </app-card>
+
+      <!-- Meals today -->
+      <app-card class="ehome__card" [elevation]="2" padding="lg" [clickable]="true" (click)="goToFood()">
+        <div class="ehome__stat">
+          <span class="material-symbols-outlined ehome__stat-icon">restaurant</span>
+          <span class="ehome__stat-value">{{ summary()?.mealCount ?? 0 }}</span>
+          <span class="ehome__stat-label">meals logged</span>
+        </div>
+      </app-card>
+
+      <!-- Weekly -->
+      <app-card class="ehome__card" [elevation]="2" padding="lg" [clickable]="true" (click)="goToWeekly()">
+        <div class="ehome__stat">
+          <span class="material-symbols-outlined ehome__stat-icon ehome__stat-icon--secondary">calendar_month</span>
+          <span class="ehome__stat-value">Weekly</span>
+          <span class="ehome__stat-label">summary</span>
+        </div>
+      </app-card>
+    </div>
+
+    <!-- Quick actions -->
+    <div class="ehome__actions">
+      <app-button variant="primary" icon="add" (click)="goToFood()">Log meal</app-button>
+      <app-button variant="outline" icon="directions_run" (click)="goToActivity()">Log activity</app-button>
+    </div>
+  }
+</div>

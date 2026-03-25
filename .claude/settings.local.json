@@ -13,7 +13,16 @@
       "Bash(npm run:*)",
       "Bash(python .claude/skills/ui-ux-pro-max/scripts/search.py \"button card input loading skeleton\" --domain ux)",
       "Bash(python .claude/skills/ui-ux-pro-max/scripts/search.py \"button form input component\" --stack react)",
-      "Bash(python .claude/skills/ui-ux-pro-max/scripts/search.py \"login authentication sign-in google\" --domain ux)"
+      "Bash(python .claude/skills/ui-ux-pro-max/scripts/search.py \"login authentication sign-in google\" --domain ux)",
+      "Bash(python .claude/skills/ui-ux-pro-max/scripts/search.py \"list detail card exercise equipment\" --domain ux)",
+      "Bash(python .claude/skills/ui-ux-pro-max/scripts/search.py \"card list detail preview\" --stack html-tailwind)",
+      "Bash(python .claude/skills/ui-ux-pro-max/scripts/search.py \"dashboard widget card bento grid\" --domain style -n 2)",
+      "Bash(python .claude/skills/ui-ux-pro-max/scripts/search.py \"drag drop reorder list builder form\" --domain ux)",
+      "Bash(python .claude/skills/ui-ux-pro-max/scripts/search.py \"form builder tab search filter\" --stack html-tailwind)",
+      "Bash(python .claude/skills/ui-ux-pro-max/scripts/search.py \"mobile touch gesture interaction\" --domain ux)",
+      "Bash(python .claude/skills/ui-ux-pro-max/scripts/search.py \"dashboard calorie tracker health fitness progress\" --design-system --persist -p \"Hardline\" --page \"energy-balance\")",
+      "Bash(python .claude/skills/ui-ux-pro-max/scripts/search.py \"food log meal list form input\" --domain ux -n 3)",
+      "Bash(python .claude/skills/ui-ux-pro-max/scripts/search.py \"summary stats progress chart\" --domain ux -n 3)"
     ]
   }
 }

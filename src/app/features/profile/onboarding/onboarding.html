@@ -1,0 +1,103 @@
+<div class="onboarding">
+  <div class="onboarding__content">
+    <div class="onboarding__header">
+      <h1 class="onboarding__title">Set up your profile</h1>
+      <p class="onboarding__subtitle">
+        @if (user(); as u) {
+          Welcome, {{ u.displayName }}
+        }
+      </p>
+      <div class="onboarding__progress">
+        <div class="onboarding__progress-bar" [style.width.%]="(step() / totalSteps) * 100"></div>
+      </div>
+      <p class="onboarding__step-label">Step {{ step() }} of {{ totalSteps }}</p>
+    </div>
+
+    @if (step() === 1) {
+      <form class="onboarding__form" [formGroup]="goalsForm">
+        <h2 class="onboarding__section-title">Daily nutrition goals</h2>
+
+        <div class="onboarding__field">
+          <label class="onboarding__label" for="calories">Daily calories (kcal)</label>
+          <input
+            id="calories"
+            class="onboarding__input"
+            type="number"
+            formControlName="dailyCalories"
+            placeholder="2000"
+          />
+        </div>
+
+        <div class="onboarding__row">
+          <div class="onboarding__field">
+            <label class="onboarding__label" for="protein">Protein (g)</label>
+            <input id="protein" class="onboarding__input" type="number" formControlName="dailyProtein" placeholder="150" />
+          </div>
+          <div class="onboarding__field">
+            <label class="onboarding__label" for="carbs">Carbs (g)</label>
+            <input id="carbs" class="onboarding__input" type="number" formControlName="dailyCarbs" placeholder="200" />
+          </div>
+          <div class="onboarding__field">
+            <label class="onboarding__label" for="fat">Fat (g)</label>
+            <input id="fat" class="onboarding__input" type="number" formControlName="dailyFat" placeholder="70" />
+          </div>
+        </div>
+
+        <h2 class="onboarding__section-title">Fitness goals</h2>
+
+        <div class="onboarding__row">
+          <div class="onboarding__field">
+            <label class="onboarding__label" for="workouts">Workouts per week</label>
+            <input id="workouts" class="onboarding__input" type="number" formControlName="weeklyWorkouts" placeholder="4" />
+          </div>
+          <div class="onboarding__field">
+            <label class="onboarding__label" for="weight">Target weight (optional)</label>
+            <input id="weight" class="onboarding__input" type="number" formControlName="targetWeight" placeholder="—" />
+          </div>
+        </div>
+      </form>
+    }
+
+    @if (step() === 2) {
+      <form class="onboarding__form" [formGroup]="prefsForm">
+        <h2 class="onboarding__section-title">Preferences</h2>
+
+        <div class="onboarding__field">
+          <label class="onboarding__label">Unit system</label>
+          <div class="onboarding__toggle-group">
+            <button
+              type="button"
+              class="onboarding__toggle"
+              [class.onboarding__toggle--active]="prefsForm.value.units === 'metric'"
+              (click)="prefsForm.patchValue({ units: 'metric' })"
+            >
+              Metric (kg, cm)
+            </button>
+            <button
+              type="button"
+              class="onboarding__toggle"
+              [class.onboarding__toggle--active]="prefsForm.value.units === 'imperial'"
+              (click)="prefsForm.patchValue({ units: 'imperial' })"
+            >
+              Imperial (lbs, in)
+            </button>
+          </div>
+        </div>
+      </form>
+    }
+
+    <div class="onboarding__actions">
+      @if (step() > 1) {
+        <app-button variant="outline" (click)="prevStep()">Back</app-button>
+      }
+      @if (step() < totalSteps) {
+        <app-button variant="primary" (click)="nextStep()">Continue</app-button>
+      }
+      @if (step() === totalSteps) {
+        <app-button variant="primary" [loading]="saving()" (click)="complete()">
+          Finish setup
+        </app-button>
+      }
+    </div>
+  </div>
+</div>

@@ -1,0 +1,37 @@
+<div class="sheet__backdrop" (click)="closed.emit()"></div>
+<div class="sheet">
+  <div class="sheet__handle"></div>
+  <h3 class="sheet__title">Exercises</h3>
+
+  <div class="sheet__list">
+    @for (group of groups(); track $index; let gi = $index) {
+      @if (group.type !== 'single') {
+        <div class="sheet__group-label">
+          {{ group.type === 'superset' ? 'Superset' : 'Circuit' }}
+        </div>
+      }
+
+      @for (ex of group.exercises; track $index; let ei = $index) {
+        <div
+          class="sheet__item"
+          [class.sheet__item--current]="isCurrentExercise(gi, ei)"
+          [class.sheet__item--done]="isExerciseDone(ex)"
+          [class.sheet__item--grouped]="group.type !== 'single'"
+          (click)="selected.emit({ groupIndex: gi, exerciseIndex: ei })"
+        >
+          <div class="sheet__item-status">
+            @if (isExerciseDone(ex)) {
+              <span class="material-symbols-outlined sheet__check">check_circle</span>
+            } @else {
+              <span class="sheet__dot"></span>
+            }
+          </div>
+          <div class="sheet__item-info">
+            <span class="sheet__item-name">{{ ex.exerciseName }}</span>
+            <span class="sheet__item-sets">{{ completedSets(ex) }} / {{ ex.sets.length }} sets</span>
+          </div>
+        </div>
+      }
+    }
+  </div>
+</div>

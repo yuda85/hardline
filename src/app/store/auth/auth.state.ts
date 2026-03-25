@@ -46,6 +46,11 @@ export class AuthState {
     return state.error;
   }
 
+  @Selector()
+  static onboardingComplete(state: AuthStateModel): boolean {
+    return state.user?.onboardingComplete ?? false;
+  }
+
   @Action(Auth.Init)
   init(ctx: StateContext<AuthStateModel>) {
     return this.authService.authState$.pipe(
@@ -86,6 +91,7 @@ export class AuthState {
         photoURL: firebaseUser.photoURL,
         goals: DEFAULT_USER_GOALS,
         preferences: DEFAULT_USER_PREFERENCES,
+        onboardingComplete: false,
       };
 
       await this.userRepo.createOrUpdate(profile);

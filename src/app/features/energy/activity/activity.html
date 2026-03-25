@@ -1,0 +1,118 @@
+<div class="act">
+  <h1 class="act__title">Activity & Burn</h1>
+
+  <!-- Burn breakdown -->
+  <app-card [elevation]="1" padding="lg">
+    <h2 class="act__section">Burn Breakdown</h2>
+    <div class="act__burn-grid">
+      <div class="act__burn-item">
+        <span class="act__burn-label">BMR</span>
+        <span class="act__burn-value">{{ goals()?.bmr ?? 0 }}</span>
+      </div>
+      <div class="act__burn-item">
+        <span class="act__burn-label">Steps</span>
+        <span class="act__burn-value">{{ summary()?.stepsCalories ?? 0 }}</span>
+      </div>
+      <div class="act__burn-item">
+        <span class="act__burn-label">Workouts</span>
+        <span class="act__burn-value">{{ summary()?.workoutCalories ?? 0 }}</span>
+      </div>
+      <div class="act__burn-item">
+        <span class="act__burn-label">Cardio</span>
+        <span class="act__burn-value">{{ summary()?.cardioCalories ?? 0 }}</span>
+      </div>
+    </div>
+    <div class="act__burn-total">
+      Total: <strong>{{ summary()?.totalCaloriesOut ?? goals()?.bmr ?? 0 }} kcal</strong>
+    </div>
+  </app-card>
+
+  <!-- Steps -->
+  <app-card [elevation]="1" padding="lg">
+    <h2 class="act__section">Steps</h2>
+    <div class="act__steps">
+      <input
+        type="number"
+        inputmode="numeric"
+        class="act__steps-input"
+        [ngModel]="stepsInput()"
+        (ngModelChange)="stepsInput.set($event)"
+        placeholder="0"
+      />
+      <span class="act__steps-target">/ {{ goals()?.dailyStepsTarget ?? 8000 }}</span>
+      <app-button variant="primary" size="sm" (click)="updateSteps()">Save</app-button>
+    </div>
+  </app-card>
+
+  <!-- Workout sessions (auto) -->
+  @if (workoutSessions().length > 0) {
+    <app-card [elevation]="1" padding="lg">
+      <h2 class="act__section">Workout Sessions</h2>
+      @for (session of workoutSessions(); track session.id) {
+        <div class="act__workout">
+          <span class="material-symbols-outlined act__workout-icon">exercise</span>
+          <div class="act__workout-info">
+            <span class="act__workout-name">Day {{ session.dayNumber }}</span>
+          </div>
+          <app-badge variant="primary" size="sm">~{{ getWorkoutCalories(session) }} kcal</app-badge>
+        </div>
+      }
+    </app-card>
+  }
+
+  <!-- Cardio -->
+  <app-card [elevation]="1" padding="lg">
+    <div class="act__cardio-header">
+      <h2 class="act__section">Cardio</h2>
+      <app-button variant="outline" size="sm" icon="add" (click)="showAddCardio.set(true)">Add</app-button>
+    </div>
+
+    @for (entry of cardio(); track entry.id) {
+      <div class="act__cardio-entry">
+        <div class="act__cardio-info">
+          <span class="act__cardio-type">{{ entry.type }}</span>
+          <span class="act__cardio-detail">{{ entry.durationMinutes }}min</span>
+        </div>
+        <app-badge variant="tertiary" size="sm">{{ entry.caloriesBurned }} kcal</app-badge>
+        <app-icon-button icon="delete" ariaLabel="Remove" size="sm" (click)="removeCardio(entry.id)" />
+      </div>
+    } @empty {
+      <p class="act__empty">No cardio logged</p>
+    }
+  </app-card>
+
+  <!-- Add cardio form -->
+  @if (showAddCardio()) {
+    <app-card [elevation]="2" padding="lg">
+      <h3 class="act__section act__section--primary">Log Cardio</h3>
+      <div class="act__cardio-form">
+        <div class="act__field">
+          <label>Type</label>
+          <select [ngModel]="cardioType()" (ngModelChange)="cardioType.set($event)">
+            @for (type of cardioTypes; track type) {
+              <option [value]="type">{{ type }}</option>
+            }
+          </select>
+        </div>
+        <div class="act__row">
+          <div class="act__field">
+            <label>Duration (min)</label>
+            <input type="number" inputmode="numeric" [ngModel]="cardioDuration()" (ngModelChange)="cardioDuration.set($event)" />
+          </div>
+          <div class="act__field">
+            <label>Calories burned</label>
+            <input type="number" inputmode="numeric" [ngModel]="cardioCalories()" (ngModelChange)="cardioCalories.set($event)" />
+          </div>
+        </div>
+        <div class="act__field">
+          <label>Distance (km, optional)</label>
+          <input type="number" inputmode="decimal" [ngModel]="cardioDistance()" (ngModelChange)="cardioDistance.set($event)" placeholder="—" />
+        </div>
+        <div class="act__form-actions">
+          <app-button variant="outline" size="sm" (click)="showAddCardio.set(false)">Cancel</app-button>
+          <app-button variant="primary" size="sm" [loading]="savingCardio()" (click)="saveCardio()">Save</app-button>
+        </div>
+      </div>
+    </app-card>
+  }
+</div>

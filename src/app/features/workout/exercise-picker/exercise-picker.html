@@ -1,0 +1,95 @@
+<div class="picker__backdrop" (click)="closed.emit()"></div>
+<div class="picker">
+  <div class="picker__handle"></div>
+
+  <div class="picker__header">
+    <h3 class="picker__title">Add Exercise</h3>
+    <app-icon-button icon="close" ariaLabel="Close" (click)="closed.emit()" />
+  </div>
+
+  <!-- Search -->
+  <div class="picker__search">
+    <span class="material-symbols-outlined picker__search-icon">search</span>
+    <input
+      type="text"
+      class="picker__search-input"
+      placeholder="Search by name or tag..."
+      [ngModel]="searchQuery()"
+      (ngModelChange)="searchQuery.set($event)"
+    />
+  </div>
+
+  <!-- Muscle group tabs -->
+  @if (!filterMuscleGroup()) {
+    <div class="picker__tabs-wrapper">
+      <div class="picker__tabs">
+        @for (group of muscleGroups; track group.value) {
+          <button
+            class="picker__tab"
+            [class.picker__tab--active]="selectedGroup() === group.value"
+            (click)="selectedGroup.set(group.value)"
+          >
+            {{ group.label }}
+          </button>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Exercise list -->
+  <div class="picker__list">
+    @for (exercise of filteredExercises(); track exercise.id) {
+      <div class="picker__item" (click)="selectExercise(exercise)">
+        <div class="picker__item-info">
+          <span class="picker__item-name">{{ exercise.name }}</span>
+          <span class="picker__item-meta">{{ exercise.equipment }} · {{ exercise.muscleGroup }}</span>
+        </div>
+        <span class="material-symbols-outlined picker__item-add">add_circle</span>
+      </div>
+    } @empty {
+      <p class="picker__empty">No exercises found</p>
+    }
+  </div>
+
+  <!-- Create custom -->
+  @if (!showCreateForm()) {
+    <button class="picker__create-btn" (click)="showCreateForm.set(true)">
+      <span class="material-symbols-outlined">add</span>
+      Create custom exercise
+    </button>
+  } @else {
+    <div class="picker__create-form">
+      <h4 class="picker__create-title">New Exercise</h4>
+      <div class="picker__create-field">
+        <label>Name</label>
+        <input type="text" [ngModel]="newName()" (ngModelChange)="newName.set($event)" placeholder="e.g. Cable Lateral Raise" />
+      </div>
+      <div class="picker__create-row">
+        <div class="picker__create-field">
+          <label>Muscle Group</label>
+          <select [ngModel]="newMuscleGroup()" (ngModelChange)="newMuscleGroup.set($event)">
+            @for (g of muscleGroups.slice(1); track g.value) {
+              <option [value]="g.value">{{ g.label }}</option>
+            }
+          </select>
+        </div>
+        <div class="picker__create-field">
+          <label>Equipment</label>
+          <select [ngModel]="newEquipment()" (ngModelChange)="newEquipment.set($event)">
+            @for (eq of equipmentOptions; track eq) {
+              <option [value]="eq">{{ eq }}</option>
+            }
+          </select>
+        </div>
+      </div>
+      <div class="picker__create-field">
+        <label>Tags (comma-separated)</label>
+        <input type="text" [ngModel]="newTags()" (ngModelChange)="newTags.set($event)" placeholder="lateral raise, side raise, isolation" />
+      </div>
+      <div class="picker__create-actions">
+        <app-button variant="outline" size="sm" (click)="showCreateForm.set(false)">Cancel</app-button>
+        <app-button variant="primary" size="sm" [disabled]="!newName().trim()" (click)="createExercise()">Add</app-button>
+      </div>
+    </div>
+  }
+</div>

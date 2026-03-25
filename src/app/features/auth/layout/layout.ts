@@ -21,11 +21,12 @@ export class LayoutComponent {
 
   protected readonly navItems: NavItem[] = [
     { icon: 'grid_view', label: 'Dashboard', route: '/dashboard' },
-    { icon: 'restaurant', label: 'Nutrition', route: '/nutrition' },
+    { icon: 'bolt', label: 'Energy', route: '/energy' },
     { icon: 'exercise', label: 'Workouts', route: '/workouts' },
     { icon: 'format_list_bulleted', label: 'Builder', route: '/builder' },
     { icon: 'psychology', label: 'Coach', route: '/coach' },
     { icon: 'leaderboard', label: 'Insights', route: '/insights' },
+    { icon: 'person', label: 'Profile', route: '/profile' },
   ];
 
   protected logout() {

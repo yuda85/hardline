@@ -1,0 +1,16 @@
+<div class="ring" [class]="'ring--' + size()">
+  <svg viewBox="0 0 100 100" class="ring__svg">
+    <circle cx="50" cy="50" r="42" class="ring__bg" />
+    <circle
+      cx="50" cy="50" r="42"
+      class="ring__fill"
+      [class.ring__fill--over]="isOver()"
+      [style.stroke-dasharray]="strokeDash().array"
+      [style.stroke-dashoffset]="strokeDash().offset"
+    />
+  </svg>
+  <div class="ring__text">
+    <span class="ring__value" [class.ring__value--over]="isOver()">{{ remaining() }}</span>
+    <span class="ring__label">{{ isOver() ? 'over' : 'left' }}</span>
+  </div>
+</div>

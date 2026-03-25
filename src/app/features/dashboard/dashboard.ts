@@ -1,26 +1,94 @@
-import { Component } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
+import { Router } from '@angular/router';
+import { Store } from '@ngxs/store';
+import { take } from 'rxjs/operators';
+import { DecimalPipe } from '@angular/common';
+import { EnergyState } from '../../store/energy/energy.state';
+import { AuthState } from '../../store/auth/auth.state';
+import { Energy } from '../../store/energy/energy.actions';
+import { SessionRepository } from '../../data/repositories/session.repository';
+import { CardComponent, ButtonComponent, BadgeComponent, SkeletonComponent } from '../../shared/components';
+import { CalorieRingComponent } from '../energy/shared/calorie-ring/calorie-ring';
+import { MacroBarsComponent } from '../energy/shared/macro-bars/macro-bars';
+import { BalanceCardComponent } from '../energy/shared/balance-card/balance-card';
+import { WorkoutSession } from '../../core/models';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  template: `
-    <h1 class="dashboard__title">Dashboard</h1>
-    <p class="dashboard__subtitle">Your fitness overview — coming soon.</p>
-  `,
-  styles: `
-    :host {
-      display: block;
-    }
-    .dashboard__title {
-      font-family: var(--font-headline);
-      font-weight: 800;
-      font-size: clamp(1.75rem, 4vw, 2.5rem);
-      color: var(--on-surface);
-      margin-bottom: 0.5rem;
-    }
-    .dashboard__subtitle {
-      color: var(--on-surface-variant);
-    }
-  `,
+  imports: [DecimalPipe, CardComponent, ButtonComponent, BadgeComponent, SkeletonComponent, CalorieRingComponent, MacroBarsComponent, BalanceCardComponent],
+  templateUrl: './dashboard.html',
+  styleUrl: './dashboard.scss',
 })
-export class DashboardComponent {}
+export class DashboardComponent implements OnInit {
+  private readonly store = inject(Store);
+  private readonly router = inject(Router);
+  private readonly sessionRepo = inject(SessionRepository);
+
+  protected readonly user = this.store.selectSignal(AuthState.user);
+  protected readonly goals = this.store.selectSignal(EnergyState.goalSettings);
+  protected readonly summary = this.store.selectSignal(EnergyState.dailySummary);
+  protected readonly energyLoading = this.store.selectSignal(EnergyState.loading);
+
+  protected readonly recentSessions = signal<WorkoutSession[]>([]);
+  protected readonly sessionsLoading = signal(true);
+
+  ngOnInit() {
+    this.store.dispatch(new Energy.LoadGoalSettings());
+    const today = new Date().toISOString().split('T')[0];
+    this.store.dispatch(new Energy.FetchDayData(today));
+    this.loadRecentSessions();
+  }
+
+  protected goToEnergy() { this.router.navigate(['/energy']); }
+  protected goToWorkouts() { this.router.navigate(['/workouts']); }
+
+  protected getGreeting(): string {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good morning';
+    if (hour < 18) return 'Good afternoon';
+    return 'Good evening';
+  }
+
+  protected formatSessionDate(date: Date | unknown): string {
+    if (!date) return '';
+    const d = date instanceof Date ? date : new Date(date as string);
+    const now = new Date();
+    const diffDays = Math.floor((now.getTime() - d.getTime()) / 86400000);
+    if (diffDays === 0) return 'Today';
+    if (diffDays === 1) return 'Yesterday';
+    if (diffDays < 7) return `${diffDays} days ago`;
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }
+
+  protected getSessionVolume(session: WorkoutSession): number {
+    let volume = 0;
+    for (const g of session.exerciseGroups ?? []) {
+      for (const ex of g.exercises) {
+        for (const set of ex.sets) {
+          if (set.completed) volume += set.weight * set.actualReps;
+        }
+      }
+    }
+    return volume;
+  }
+
+  protected getSessionSets(session: WorkoutSession): number {
+    let count = 0;
+    for (const g of session.exerciseGroups ?? []) {
+      for (const ex of g.exercises) {
+        count += ex.sets.filter(s => s.completed).length;
+      }
+    }
+    return count;
+  }
+
+  private loadRecentSessions() {
+    const uid = this.store.selectSnapshot(AuthState.uid);
+    if (!uid) { this.sessionsLoading.set(false); return; }
+    this.sessionRepo.getHistory(uid, 5).pipe(take(1)).subscribe(sessions => {
+      this.recentSessions.set(sessions.filter(s => s.completedAt));
+      this.sessionsLoading.set(false);
+    });
+  }
+}

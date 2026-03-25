@@ -1,0 +1,209 @@
+@if (loading()) {
+  <div class="active__loading">
+    <div class="active__spinner"></div>
+    <p>Starting workout...</p>
+  </div>
+} @else if (session(); as s) {
+  <div class="active">
+    <header class="active__header">
+      <app-icon-button icon="close" ariaLabel="Quit workout" (click)="showAbandonConfirm.set(true)" />
+      <div class="active__timer">
+        <span class="material-symbols-outlined">timer</span>
+        {{ formattedTime() }}
+      </div>
+      <div class="active__progress-text">{{ totalProgress() }}%</div>
+    </header>
+
+    <div class="active__progress-bar">
+      <div class="active__progress-fill" [style.width.%]="totalProgress()"></div>
+    </div>
+
+    @if (newPR(); as prMsg) {
+      <div class="active__pr-banner">
+        <span class="material-symbols-outlined">emoji_events</span>
+        {{ prMsg }}
+      </div>
+    }
+
+    @if (currentExercise(); as exercise) {
+      <div class="active__exercise">
+        <span class="active__exercise-count">
+          Exercise {{ flatExerciseIndex() + 1 }} of {{ totalExerciseCount() }}
+          @if (currentGroup()?.type !== 'single') {
+            <app-badge variant="tertiary" size="sm">{{ currentGroup()?.type }}</app-badge>
+          }
+        </span>
+
+        <h1 class="active__exercise-name">{{ exercise.exerciseName }}</h1>
+
+        @if (exercisePR(); as pr) {
+          <div class="active__pr-chip">
+            <span class="material-symbols-outlined">emoji_events</span>
+            PR: {{ pr.oneRepMax }}kg ({{ pr.weight }}kg x {{ pr.reps }})
+          </div>
+        }
+
+        <!-- Completed sets log -->
+        @if (completedSetsCount() > 0) {
+          <div class="active__completed-log">
+            @for (set of exercise.sets; track $index) {
+              @if (set.completed) {
+                <div class="active__completed-row">
+                  <span class="active__completed-num">{{ $index + 1 }}</span>
+                  <span class="active__completed-data">{{ set.weight }}kg x {{ set.actualReps }}</span>
+                  @if (set.weight > 0 && set.actualReps > 0 && set.actualReps <= 10) {
+                    <span class="active__completed-1rm">~{{ calculate1RM(set.weight, set.actualReps) }}kg 1RM</span>
+                  }
+                </div>
+              }
+            }
+          </div>
+        }
+
+        <!-- Set dots + add set -->
+        <div class="active__sets">
+          <div class="active__sets-header">
+            <span class="active__sets-label">Sets</span>
+            <button class="active__add-set" (click)="addSet()">
+              <span class="material-symbols-outlined">add</span> Add set
+            </button>
+          </div>
+          <div class="active__sets-dots">
+            @for (set of exercise.sets; track $index) {
+              <div
+                class="active__set-dot"
+                [class.active__set-dot--done]="set.completed"
+                [class.active__set-dot--current]="!set.completed && $index === completedSetsCount()"
+              >
+                @if (set.completed) {
+                  <span class="material-symbols-outlined">check</span>
+                } @else {
+                  {{ $index + 1 }}
+                }
+              </div>
+            }
+          </div>
+        </div>
+
+        @if (resting()) {
+          <div class="active__rest">
+            <div class="active__rest-circle">
+              <span class="active__rest-time">{{ restTimeLeft() }}</span>
+              <span class="active__rest-label">REST</span>
+            </div>
+            <div class="active__rest-actions">
+              <app-button variant="outline" size="md" (click)="addRestTime()">+15s</app-button>
+              <app-button variant="primary" size="md" (click)="skipRest()">Skip</app-button>
+            </div>
+          </div>
+        } @else if (!isExerciseDone()) {
+          <div class="active__log">
+            @if (currentSet(); as set) {
+              <div class="active__target">Target: {{ set.targetReps }} reps</div>
+            }
+            <div class="active__log-fields">
+              <div class="active__log-field">
+                <label>Weight (kg)</label>
+                <input
+                  type="number"
+                  inputmode="decimal"
+                  [ngModel]="weight()"
+                  (ngModelChange)="weight.set($event)"
+                  placeholder="0"
+                />
+                @if (lastData(); as last) {
+                  @if (last[completedSetsCount()]; as prev) {
+                    <span class="active__last-hint">Last: {{ prev.weight }}kg</span>
+                  }
+                }
+              </div>
+              <div class="active__log-field">
+                <label>Reps</label>
+                <input
+                  type="number"
+                  inputmode="numeric"
+                  [ngModel]="reps()"
+                  (ngModelChange)="reps.set($event)"
+                  [placeholder]="currentSet()?.targetReps ?? 0"
+                />
+                @if (lastData(); as last) {
+                  @if (last[completedSetsCount()]; as prev) {
+                    <span class="active__last-hint">Last: {{ prev.reps }}</span>
+                  }
+                }
+              </div>
+            </div>
+            <app-button
+              variant="primary"
+              size="lg"
+              [fullWidth]="true"
+              icon="check"
+              (click)="completeSet()"
+            >
+              Complete set {{ completedSetsCount() + 1 }}
+            </app-button>
+          </div>
+        } @else if (isAllDone()) {
+          <div class="active__done">
+            <span class="material-symbols-outlined active__done-icon">check_circle</span>
+            <p class="active__done-text">All exercises done!</p>
+            <app-button variant="primary" size="lg" [fullWidth]="true" icon="flag" (click)="showFinishConfirm.set(true)">
+              Finish workout
+            </app-button>
+          </div>
+        } @else {
+          <div class="active__done">
+            <span class="material-symbols-outlined active__done-icon">check_circle</span>
+            <p class="active__done-text">Exercise complete!</p>
+            <app-button variant="primary" size="lg" [fullWidth]="true" (click)="nextExercise()">
+              Next exercise
+            </app-button>
+          </div>
+        }
+      </div>
+
+      <div class="active__bottom-nav">
+        <app-button variant="ghost" size="sm" icon="chevron_left" (click)="prevExercise()">Prev</app-button>
+        <app-button variant="outline" size="sm" icon="format_list_bulleted" (click)="showExerciseList.set(true)">
+          Exercises
+        </app-button>
+        <app-button variant="ghost" size="sm" icon="chevron_right" (click)="nextExercise()">Next</app-button>
+      </div>
+    }
+  </div>
+
+  @if (showExerciseList()) {
+    <app-exercise-list-sheet
+      [groups]="s.exerciseGroups"
+      [currentGroupIndex]="currentGroupIndex()"
+      [currentExerciseIndex]="currentExerciseIndex()"
+      (closed)="showExerciseList.set(false)"
+      (selected)="navigateTo($event)"
+    />
+  }
+
+  @if (showFinishConfirm()) {
+    <div class="active__dialog-backdrop" (click)="showFinishConfirm.set(false)"></div>
+    <div class="active__dialog">
+      <h3 class="active__dialog-title">Finish Workout?</h3>
+      <p class="active__dialog-text">Save this session to your workout history.</p>
+      <div class="active__dialog-actions">
+        <app-button variant="outline" (click)="showFinishConfirm.set(false)">Cancel</app-button>
+        <app-button variant="primary" icon="save" (click)="finishWorkout()">Save &amp; Finish</app-button>
+      </div>
+    </div>
+  }
+
+  @if (showAbandonConfirm()) {
+    <div class="active__dialog-backdrop" (click)="showAbandonConfirm.set(false)"></div>
+    <div class="active__dialog">
+      <h3 class="active__dialog-title">Quit Workout?</h3>
+      <p class="active__dialog-text">What do you want to do with this session?</p>
+      <div class="active__dialog-actions active__dialog-actions--stack">
+        <app-button variant="primary" icon="save" [fullWidth]="true" (click)="finishWorkout()">Save &amp; Finish</app-button>
+        <app-button variant="outline" icon="delete" [fullWidth]="true" (click)="abandonWorkout()">Discard session</app-button>
+        <app-button variant="ghost" [fullWidth]="true" (click)="showAbandonConfirm.set(false)">Continue workout</app-button>
+      </div>
+    </div>
+  }
+}

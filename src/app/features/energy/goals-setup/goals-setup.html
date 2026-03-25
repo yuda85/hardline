@@ -1,0 +1,139 @@
+<div class="goals">
+  <header class="goals__header">
+    <h1 class="goals__title">Goals & Targets</h1>
+    <app-button variant="primary" size="sm" icon="save" [loading]="saving()" (click)="save()">Save</app-button>
+  </header>
+
+  <form [formGroup]="form" class="goals__form">
+    <!-- Body stats -->
+    <app-card [elevation]="1" padding="lg">
+      <h2 class="goals__section">Body Stats</h2>
+      <div class="goals__grid">
+        <div class="goals__field">
+          <label>Age</label>
+          <input type="number" inputmode="numeric" formControlName="age" />
+        </div>
+        <div class="goals__field">
+          <label>Sex</label>
+          <select formControlName="sex">
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+          </select>
+        </div>
+        <div class="goals__field">
+          <label>Height (cm)</label>
+          <input type="number" inputmode="numeric" formControlName="heightCm" />
+        </div>
+        <div class="goals__field">
+          <label>Weight (kg)</label>
+          <input type="number" inputmode="decimal" formControlName="weightKg" />
+        </div>
+      </div>
+    </app-card>
+
+    <!-- Goal -->
+    <app-card [elevation]="1" padding="lg">
+      <h2 class="goals__section">Goal</h2>
+      <div class="goals__toggle-group">
+        @for (opt of goalOptions; track opt.value) {
+          <button
+            type="button"
+            class="goals__toggle"
+            [class.goals__toggle--active]="form.value.goal === opt.value"
+            (click)="form.patchValue({ goal: opt.value })"
+          >{{ opt.label }}</button>
+        }
+      </div>
+
+      @if (form.value.goal !== 'maintenance') {
+        <label class="goals__field-label">Rate of change</label>
+        <div class="goals__toggle-group">
+          @for (opt of rateOptions; track opt.value) {
+            <button
+              type="button"
+              class="goals__toggle"
+              [class.goals__toggle--active]="form.value.rateOfChange === opt.value"
+              (click)="form.patchValue({ rateOfChange: opt.value })"
+            >{{ opt.label }}</button>
+          }
+        </div>
+      }
+    </app-card>
+
+    <!-- Activity -->
+    <app-card [elevation]="1" padding="lg">
+      <h2 class="goals__section">Activity</h2>
+      <div class="goals__field">
+        <label>Activity level</label>
+        <select formControlName="activityLevel">
+          @for (opt of activityOptions; track opt.value) {
+            <option [value]="opt.value">{{ opt.label }}</option>
+          }
+        </select>
+      </div>
+      <div class="goals__grid">
+        <div class="goals__field">
+          <label>Workouts / week</label>
+          <input type="number" inputmode="numeric" formControlName="weeklyTrainingFrequency" />
+        </div>
+        <div class="goals__field">
+          <label>Daily steps target</label>
+          <input type="number" inputmode="numeric" formControlName="dailyStepsTarget" />
+        </div>
+      </div>
+    </app-card>
+
+    <!-- Macro preference -->
+    <app-card [elevation]="1" padding="lg">
+      <h2 class="goals__section">Macro Split</h2>
+      <div class="goals__toggle-group">
+        @for (opt of macroOptions; track opt.value) {
+          <button
+            type="button"
+            class="goals__toggle"
+            [class.goals__toggle--active]="form.value.macroPreference === opt.value"
+            (click)="form.patchValue({ macroPreference: opt.value })"
+          >{{ opt.label }}</button>
+        }
+      </div>
+    </app-card>
+  </form>
+
+  <!-- Live preview -->
+  <app-card [elevation]="2" padding="lg">
+    <h2 class="goals__section goals__section--primary">Calculated Targets</h2>
+    <div class="goals__calc-grid">
+      <div class="goals__calc-item">
+        <span class="goals__calc-label">BMR</span>
+        <span class="goals__calc-value">{{ preview().bmr }}</span>
+        <span class="goals__calc-unit">kcal</span>
+      </div>
+      <div class="goals__calc-item">
+        <span class="goals__calc-label">TDEE</span>
+        <span class="goals__calc-value">{{ preview().tdee }}</span>
+        <span class="goals__calc-unit">kcal</span>
+      </div>
+      <div class="goals__calc-item goals__calc-item--highlight">
+        <span class="goals__calc-label">Daily Target</span>
+        <span class="goals__calc-value">{{ preview().dailyCalories }}</span>
+        <span class="goals__calc-unit">kcal</span>
+      </div>
+    </div>
+
+    <div class="goals__macro-preview">
+      <app-macro-bars
+        [protein]="preview().dailyProtein"
+        [proteinGoal]="preview().dailyProtein"
+        [carbs]="preview().dailyCarbs"
+        [carbsGoal]="preview().dailyCarbs"
+        [fat]="preview().dailyFat"
+        [fatGoal]="preview().dailyFat"
+      />
+      <div class="goals__macro-numbers">
+        <span>P: {{ preview().dailyProtein }}g</span>
+        <span>C: {{ preview().dailyCarbs }}g</span>
+        <span>F: {{ preview().dailyFat }}g</span>
+      </div>
+    </div>
+  </app-card>
+</div>

@@ -1,0 +1,66 @@
+@if (session(); as s) {
+  <div class="summary">
+    <div class="summary__hero">
+      <span class="material-symbols-outlined summary__hero-icon">emoji_events</span>
+      <h1 class="summary__title">Workout Complete!</h1>
+      @if (duration()) {
+        <p class="summary__duration">{{ duration() }}</p>
+      }
+    </div>
+
+    <div class="summary__stats">
+      <app-card [elevation]="2" padding="md">
+        <div class="summary__stat">
+          <span class="summary__stat-value">{{ totalSets() }}</span>
+          <span class="summary__stat-label">Sets</span>
+        </div>
+      </app-card>
+      <app-card [elevation]="2" padding="md">
+        <div class="summary__stat">
+          <span class="summary__stat-value">{{ totalReps() }}</span>
+          <span class="summary__stat-label">Reps</span>
+        </div>
+      </app-card>
+      <app-card [elevation]="2" padding="md">
+        <div class="summary__stat">
+          <span class="summary__stat-value">{{ totalVolume() | number }}</span>
+          <span class="summary__stat-label">Volume (kg)</span>
+        </div>
+      </app-card>
+    </div>
+
+    <app-card [elevation]="1" padding="lg">
+      <h3 class="summary__section-title">Exercise Breakdown</h3>
+      <div class="summary__exercises">
+        @for (group of s.exerciseGroups; track $index) {
+          @if (group.type !== 'single') {
+            <div class="summary__group-label">
+              <app-badge variant="tertiary" size="sm">{{ group.type }}</app-badge>
+            </div>
+          }
+          @for (ex of group.exercises; track $index) {
+            <div class="summary__exercise">
+              <div class="summary__exercise-header">
+                <span class="summary__exercise-name">{{ ex.exerciseName }}</span>
+                @if (getPR(ex.exerciseId); as pr) {
+                  <app-badge variant="tertiary" size="sm">1RM: {{ pr.oneRepMax }}kg</app-badge>
+                }
+              </div>
+              <div class="summary__exercise-sets">
+                @for (set of ex.sets; track $index) {
+                  @if (set.completed) {
+                    <span class="summary__set-pill">{{ set.weight }}kg x {{ set.actualReps }}</span>
+                  }
+                }
+              </div>
+            </div>
+          }
+        }
+      </div>
+    </app-card>
+
+    <app-button variant="primary" size="lg" [fullWidth]="true" icon="arrow_forward" (click)="goToWorkouts()">
+      Back to workouts
+    </app-button>
+  </div>
+}

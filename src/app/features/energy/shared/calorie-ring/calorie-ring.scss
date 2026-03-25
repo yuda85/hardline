@@ -1,0 +1,66 @@
+.ring {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  &--sm { width: 72px; height: 72px; }
+  &--md { width: 100px; height: 100px; }
+  &--lg { width: 140px; height: 140px; }
+}
+
+.ring__svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.ring__bg {
+  fill: none;
+  stroke: var(--surface-container-high);
+  stroke-width: 7;
+}
+
+.ring__fill {
+  fill: none;
+  stroke: var(--primary);
+  stroke-width: 7;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 500ms ease;
+
+  &--over {
+    stroke: var(--error);
+  }
+}
+
+.ring__text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.ring__value {
+  font-family: var(--font-headline);
+  font-weight: 800;
+  line-height: 1;
+  color: var(--on-surface);
+
+  .ring--sm & { font-size: 0.875rem; }
+  .ring--md & { font-size: 1.25rem; }
+  .ring--lg & { font-size: 1.75rem; }
+
+  &--over { color: var(--error); }
+}
+
+.ring__label {
+  font-size: 0.5625rem;
+  color: var(--on-surface-variant);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+
+  .ring--lg & { font-size: 0.6875rem; }
+}

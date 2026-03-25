@@ -41,8 +41,9 @@ export abstract class BaseRepository<T extends FirestoreDoc> {
   }
 
   async create(data: Omit<T, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
+    const cleaned = this.stripUndefined(data) as Record<string, unknown>;
     const docRef = await addDoc(this.collectionRef, {
-      ...data,
+      ...cleaned,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     });
@@ -51,10 +52,28 @@ export abstract class BaseRepository<T extends FirestoreDoc> {
 
   async update(id: string, data: Partial<T>): Promise<void> {
     const { id: _id, createdAt: _ca, ...rest } = data as Record<string, unknown>;
+    const cleaned = this.stripUndefined(rest) as Record<string, unknown>;
     await updateDoc(this.docRef(id), {
-      ...rest,
+      ...cleaned,
       updatedAt: serverTimestamp(),
     });
+  }
+
+  /** Recursively remove undefined values (Firestore rejects them) */
+  private stripUndefined(obj: unknown): unknown {
+    if (obj === null || obj === undefined) return null;
+    if (obj instanceof Date) return obj;
+    if (Array.isArray(obj)) return obj.map(item => this.stripUndefined(item));
+    if (typeof obj === 'object') {
+      const result: Record<string, unknown> = {};
+      for (const [key, value] of Object.entries(obj as Record<string, unknown>)) {
+        if (value !== undefined) {
+          result[key] = this.stripUndefined(value);
+        }
+      }
+      return result;
+    }
+    return obj;
   }
 
   async remove(id: string): Promise<void> {

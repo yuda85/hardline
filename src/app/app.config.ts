@@ -14,7 +14,7 @@ import { routes } from './app.routes';
 import { environment } from '../environments/environment';
 import { AuthState } from './store/auth/auth.state';
 import { ProfileState } from './store/profile/profile.state';
-import { NutritionState } from './store/nutrition/nutrition.state';
+import { EnergyState } from './store/energy/energy.state';
 import { WorkoutState } from './store/workout/workout.state';
 
 export const appConfig: ApplicationConfig = {
@@ -26,7 +26,7 @@ export const appConfig: ApplicationConfig = {
     provideFirestore(() => getFirestore()),
     provideStorage(() => getStorage()),
     provideStore(
-      [AuthState, ProfileState, NutritionState, WorkoutState],
+      [AuthState, ProfileState, EnergyState, WorkoutState],
       { developmentMode: !environment.production },
       withNgxsStoragePlugin({ keys: ['auth.user'] }),
       ...(environment.production

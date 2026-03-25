@@ -7,6 +7,7 @@ export interface UserProfile extends FirestoreDoc {
   photoURL: string | null;
   goals: UserGoals;
   preferences: UserPreferences;
+  onboardingComplete: boolean;
 }
 
 export interface UserGoals {
