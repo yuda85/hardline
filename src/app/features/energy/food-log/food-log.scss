@@ -18,6 +18,40 @@
   color: var(--on-surface);
 }
 
+// Calorie bar
+.flog__calorie-bar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: var(--surface-container-low);
+  border-radius: 1rem;
+  padding: 0.875rem 1.25rem;
+}
+
+.flog__calorie-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.flog__calorie-consumed {
+  font-family: var(--font-headline);
+  font-weight: 800;
+  font-size: 1.25rem;
+  color: var(--on-surface);
+}
+
+.flog__calorie-unit {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--on-surface-variant);
+}
+
+.flog__calorie-target {
+  font-size: 0.75rem;
+  color: var(--on-surface-variant);
+}
+
 .flog__date-nav {
   display: flex;
   align-items: center;

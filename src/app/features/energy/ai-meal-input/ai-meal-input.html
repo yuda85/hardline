@@ -1,0 +1,74 @@
+<div class="ai">
+  <div class="ai__field">
+    <span class="material-symbols-outlined ai__icon">neurology</span>
+    <textarea
+      class="ai__textarea"
+      [ngModel]="text()"
+      (ngModelChange)="text.set($event)"
+      placeholder="Describe what you ate... e.g. '2 eggs, toast with butter, coffee with milk'"
+      rows="2"
+      [disabled]="loading()"
+    ></textarea>
+    <app-button
+      variant="primary"
+      size="sm"
+      [loading]="loading()"
+      [disabled]="!text().trim()"
+      (click)="analyze()"
+    >
+      Analyze
+    </app-button>
+  </div>
+
+  @if (error(); as err) {
+    <p class="ai__error">{{ err }}</p>
+  }
+
+  @if (preview(); as items) {
+    <app-card [elevation]="2" padding="md">
+      <div class="ai__preview">
+        <h3 class="ai__preview-title">
+          <span class="material-symbols-outlined">fact_check</span>
+          AI Analysis
+        </h3>
+
+        <div class="ai__preview-items">
+          @for (item of items; track $index) {
+            <div class="ai__preview-item">
+              <span class="ai__preview-name">{{ item.name }}</span>
+              <span class="ai__preview-macros">
+                {{ item.calories }} kcal &middot;
+                P {{ item.protein }}g &middot;
+                C {{ item.carbs }}g &middot;
+                F {{ item.fat }}g
+              </span>
+            </div>
+          }
+        </div>
+
+        <div class="ai__preview-total">
+          <span>Total:</span>
+          <strong>{{ items | aiTotal:'calories' }} kcal</strong>
+        </div>
+
+        <!-- Meal type selector -->
+        <div class="ai__type-tabs">
+          @for (type of mealTypes; track type.value) {
+            <button
+              class="ai__type-tab"
+              [class.ai__type-tab--active]="selectedMealType() === type.value"
+              (click)="selectedMealType.set(type.value)"
+            >{{ type.label }}</button>
+          }
+        </div>
+
+        <div class="ai__preview-actions">
+          <app-button variant="outline" size="sm" (click)="cancel()">Cancel</app-button>
+          <app-button variant="primary" size="sm" [loading]="saving()" (click)="confirm()">
+            Add to log
+          </app-button>
+        </div>
+      </div>
+    </app-card>
+  }
+</div>

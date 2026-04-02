@@ -123,14 +123,16 @@
 - [x] **Old Nutrition module deleted**, all references updated
 - [x] **Nav updated:** "Nutrition" → "Energy" with bolt icon
 
-### Step 10: Deployment
+### Step 10: Deployment (Firebase Hosting)
 - [x] Production build passes (694 kB initial, 186 kB transferred)
-- [x] `build:prod` script with `--base-href /Hardline/`
-- [x] GitHub Actions workflow auto-deploys on push to main
-- [x] 404.html SPA routing trick configured
-- [x] PWA manifest + service worker configured for `/Hardline/`
-- [ ] Add GitHub Pages domain to Firebase Auth authorized domains
-- [ ] Push to main branch to trigger first deployment
+- [x] Switched from GitHub Pages to Firebase Hosting
+- [x] `firebase.json` with SPA rewrites + cache headers
+- [x] `.firebaserc` linked to `hardline-a1a5e`
+- [x] GitHub Actions workflow updated for Firebase deploy
+- [x] PWA manifest + service worker configured for root `/`
+- [x] Base href set to `/` (no more `/Hardline/` prefix)
+- [ ] Set up Firebase service account secret in GitHub repo
+- [ ] First deploy: `npm run deploy` or push to main
 
 ---
 
@@ -148,3 +150,4 @@
 - [ ] better mechanizem for goals in nutrition - calories with macro auto update, BMR calc, etc
 - [ ] cloud functions for security ai
 - [ ] security
+- [ ] each plan should have total sets for each muscle group

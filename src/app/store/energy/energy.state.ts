@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { State, Action, StateContext, Selector, Store } from '@ngxs/store';
-import { tap, take } from 'rxjs/operators';
-import { forkJoin, of } from 'rxjs';
+import { tap, take, switchMap } from 'rxjs/operators';
+import { forkJoin, from, of } from 'rxjs';
 import { Energy } from './energy.actions';
 import { EnergyStateModel, ENERGY_STATE_DEFAULTS } from './energy.model';
 import { GoalSettingsRepository } from '../../data/repositories/goal-settings.repository';
@@ -129,13 +129,8 @@ export class EnergyState {
 
     ctx.patchState({ loading: true });
 
-    const start = new Date(action.date);
-    start.setHours(0, 0, 0, 0);
-    const end = new Date(action.date);
-    end.setHours(23, 59, 59, 999);
-
     return forkJoin({
-      meals: this.mealRepo.getByDateRange(uid, start, end).pipe(take(1)),
+      meals: this.mealRepo.getByDate(uid, action.date).pipe(take(1)),
       cardio: this.cardioRepo.getByDate(uid, action.date).pipe(take(1)),
       steps: this.stepsRepo.getByDate(uid, action.date).pipe(take(1)),
       summary: this.dailySummaryRepo.getByDate(uid, action.date).pipe(take(1)),
@@ -153,65 +148,65 @@ export class EnergyState {
   }
 
   @Action(Energy.AddMeal)
-  async addMeal(ctx: StateContext<EnergyStateModel>, action: Energy.AddMeal) {
+  addMeal(ctx: StateContext<EnergyStateModel>, action: Energy.AddMeal) {
     const uid = this.store.selectSnapshot(AuthState.uid);
     if (!uid) return;
 
-    await this.mealRepo.create({
+    return from(this.mealRepo.create({
       userId: uid,
       ...action.meal,
       timestamp: new Date(),
-    });
-
-    const date = ctx.getState().selectedDate;
-    ctx.dispatch(new Energy.FetchDayData(date));
-    ctx.dispatch(new Energy.RecalculateDailySummary());
+    })).pipe(
+      switchMap(() => ctx.dispatch(new Energy.FetchDayData(ctx.getState().selectedDate))),
+      switchMap(() => ctx.dispatch(new Energy.RecalculateDailySummary())),
+    );
   }
 
   @Action(Energy.RemoveMeal)
-  async removeMeal(ctx: StateContext<EnergyStateModel>, action: Energy.RemoveMeal) {
-    await this.mealRepo.remove(action.mealId);
-    const date = ctx.getState().selectedDate;
-    ctx.dispatch(new Energy.FetchDayData(date));
-    ctx.dispatch(new Energy.RecalculateDailySummary());
+  removeMeal(ctx: StateContext<EnergyStateModel>, action: Energy.RemoveMeal) {
+    return from(this.mealRepo.remove(action.mealId)).pipe(
+      switchMap(() => ctx.dispatch(new Energy.FetchDayData(ctx.getState().selectedDate))),
+      switchMap(() => ctx.dispatch(new Energy.RecalculateDailySummary())),
+    );
   }
 
   @Action(Energy.AddCardio)
-  async addCardio(ctx: StateContext<EnergyStateModel>, action: Energy.AddCardio) {
+  addCardio(ctx: StateContext<EnergyStateModel>, action: Energy.AddCardio) {
     const uid = this.store.selectSnapshot(AuthState.uid);
     if (!uid) return;
 
-    await this.cardioRepo.create({
+    return from(this.cardioRepo.create({
       userId: uid,
       ...action.entry,
       timestamp: new Date(),
-    });
-
-    const date = ctx.getState().selectedDate;
-    ctx.dispatch(new Energy.FetchDayData(date));
-    ctx.dispatch(new Energy.RecalculateDailySummary());
+    })).pipe(
+      switchMap(() => ctx.dispatch(new Energy.FetchDayData(ctx.getState().selectedDate))),
+      switchMap(() => ctx.dispatch(new Energy.RecalculateDailySummary())),
+    );
   }
 
   @Action(Energy.RemoveCardio)
-  async removeCardio(ctx: StateContext<EnergyStateModel>, action: Energy.RemoveCardio) {
-    await this.cardioRepo.remove(action.entryId);
-    const date = ctx.getState().selectedDate;
-    ctx.dispatch(new Energy.FetchDayData(date));
-    ctx.dispatch(new Energy.RecalculateDailySummary());
+  removeCardio(ctx: StateContext<EnergyStateModel>, action: Energy.RemoveCardio) {
+    return from(this.cardioRepo.remove(action.entryId)).pipe(
+      switchMap(() => ctx.dispatch(new Energy.FetchDayData(ctx.getState().selectedDate))),
+      switchMap(() => ctx.dispatch(new Energy.RecalculateDailySummary())),
+    );
   }
 
   @Action(Energy.UpdateSteps)
-  async updateSteps(ctx: StateContext<EnergyStateModel>, action: Energy.UpdateSteps) {
+  updateSteps(ctx: StateContext<EnergyStateModel>, action: Energy.UpdateSteps) {
     const uid = this.store.selectSnapshot(AuthState.uid);
     if (!uid) return;
 
     const caloriesBurned = this.calcService.estimateStepCalories(action.steps);
-    await this.stepsRepo.upsert(uid, action.date, action.steps, caloriesBurned);
-
-    ctx.patchState({
-      todaysSteps: { userId: uid, date: action.date, steps: action.steps, caloriesBurned } as DailySteps,
-    });
-    ctx.dispatch(new Energy.RecalculateDailySummary());
+    return from(this.stepsRepo.upsert(uid, action.date, action.steps, caloriesBurned)).pipe(
+      tap(() => {
+        ctx.patchState({
+          todaysSteps: { userId: uid, date: action.date, steps: action.steps, caloriesBurned } as DailySteps,
+        });
+      }),
+      switchMap(() => ctx.dispatch(new Energy.RecalculateDailySummary())),
+    );
   }
 
   @Action(Energy.RecalculateDailySummary)
@@ -228,7 +223,7 @@ export class EnergyState {
     // Get workout sessions for this date
     return this.sessionRepo.getHistory(uid, 50).pipe(
       take(1),
-      tap(async sessions => {
+      switchMap(sessions => {
         const daySessions = sessions.filter(s => {
           return toDateString(s.startedAt) === date && s.completedAt;
         });
@@ -244,8 +239,11 @@ export class EnergyState {
           state.dailySummary?.weightKg,
         );
 
-        await this.dailySummaryRepo.upsert(uid, date, summary);
-        ctx.patchState({ dailySummary: summary as DailySummary });
+        return from(this.dailySummaryRepo.upsert(uid, date, summary)).pipe(
+          tap(() => {
+            ctx.patchState({ dailySummary: summary as DailySummary });
+          }),
+        );
       }),
     );
   }
@@ -272,7 +270,7 @@ export class EnergyState {
 
     return this.dailySummaryRepo.getByDateRange(uid, action.weekStart, action.weekEnd).pipe(
       take(1),
-      tap(async dailySummaries => {
+      switchMap(dailySummaries => {
         const summary = this.calcService.buildWeeklySummary(
           uid,
           action.weekStart,
@@ -281,8 +279,11 @@ export class EnergyState {
           goals?.weeklyTrainingFrequency ?? 4,
         );
 
-        await this.weeklySummaryRepo.upsert(uid, action.weekStart, summary);
-        ctx.patchState({ weeklySummary: summary as WeeklySummary });
+        return from(this.weeklySummaryRepo.upsert(uid, action.weekStart, summary)).pipe(
+          tap(() => {
+            ctx.patchState({ weeklySummary: summary as WeeklySummary });
+          }),
+        );
       }),
     );
   }

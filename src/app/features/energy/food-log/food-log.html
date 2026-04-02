@@ -11,8 +11,21 @@
     <app-icon-button icon="chevron_right" ariaLabel="Next day" (click)="nextDay()" />
   </div>
 
-  <!-- Macro summary -->
+  <!-- Calorie summary -->
   @if (goals(); as g) {
+    <div class="flog__calorie-bar">
+      <app-calorie-ring
+        [consumed]="summary()?.consumedCalories ?? 0"
+        [target]="g.dailyCalories"
+        size="sm"
+      />
+      <div class="flog__calorie-info">
+        <span class="flog__calorie-consumed">{{ summary()?.consumedCalories ?? 0 }} <span class="flog__calorie-unit">kcal eaten</span></span>
+        <span class="flog__calorie-target">of {{ g.dailyCalories }} kcal target</span>
+      </div>
+    </div>
+
+    <!-- Macro bars -->
     <app-macro-bars
       [protein]="summary()?.consumedProtein ?? 0"
       [proteinGoal]="g.dailyProtein"
@@ -22,6 +35,9 @@
       [fatGoal]="g.dailyFat"
     />
   }
+
+  <!-- AI quick log -->
+  <app-ai-meal-input-energy (mealAdded)="showAddMeal.set(false)" />
 
   <!-- Meals by type -->
   @if (loading()) {

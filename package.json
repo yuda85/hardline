@@ -8,7 +8,7 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "build:prod": "ng build --configuration production --base-href /Hardline/",
-    "deploy": "npx angular-cli-ghpages --dir=dist/Hardline/browser"
+    "deploy": "npm run build:prod && npx angular-cli-ghpages --dir=dist/Hardline/browser"
   },
   "private": true,
   "packageManager": "npm@11.6.4",

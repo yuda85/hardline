@@ -1,6 +1,5 @@
-import { Injectable, inject } from '@angular/core';
-import { FirebaseApp } from '@angular/fire/app';
-import { getAI, getGenerativeModel, GoogleAIBackend } from 'firebase/ai';
+import { Injectable } from '@angular/core';
+import { environment } from '../../../environments/environment';
 import { MealItem } from '../models';
 
 interface AIMealResponse {
@@ -14,6 +13,8 @@ interface AIMealResponse {
     unit: string;
   }[];
 }
+
+const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
 
 const MEAL_PARSE_PROMPT = `You are a nutrition analysis assistant. Given a text description of food, extract structured nutritional information.
 
@@ -42,38 +43,55 @@ Return this exact JSON structure:
 
 @Injectable({ providedIn: 'root' })
 export class AIService {
-  private readonly firebaseApp = inject(FirebaseApp);
-
   async parseTextToMeal(text: string): Promise<{ items: MealItem[]; confidence: number }> {
-    const ai = getAI(this.firebaseApp, { backend: new GoogleAIBackend() });
-    const model = getGenerativeModel(ai, { model: 'gemini-2.0-flash-lite' });
+    const response = await fetch(OPENAI_API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${environment.openaiApiKey}`,
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [
+          { role: 'system', content: MEAL_PARSE_PROMPT },
+          { role: 'user', content: `Food description: ${text}` },
+        ],
+        temperature: 0.2,
+        max_tokens: 1024,
+      }),
+    });
 
-    const result = await model.generateContent([
-      { text: MEAL_PARSE_PROMPT },
-      { text: `Food description: ${text}` },
-    ]);
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(
+        error?.error?.message ?? `API error: ${response.status}`,
+      );
+    }
 
-    const responseText = result.response.text();
+    const data = await response.json();
+    const responseText: string | undefined = data?.choices?.[0]?.message?.content;
+
+    if (!responseText) {
+      throw new Error('No response from AI');
+    }
+
     const parsed = this.extractJSON(responseText);
     const validated = this.validateMealResponse(parsed);
 
     return {
       items: validated.items,
-      confidence: 0.85,
+      confidence: 0.9,
     };
   }
 
   private extractJSON(text: string): unknown {
-    // Try direct parse first
     try {
       return JSON.parse(text);
     } catch {
-      // Try extracting from markdown code block
       const jsonMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
       if (jsonMatch) {
         return JSON.parse(jsonMatch[1].trim());
       }
-      // Try finding JSON object
       const objectMatch = text.match(/\{[\s\S]*\}/);
       if (objectMatch) {
         return JSON.parse(objectMatch[0]);

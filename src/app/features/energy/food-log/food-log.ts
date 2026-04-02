@@ -5,13 +5,16 @@ import { EnergyState } from '../../../store/energy/energy.state';
 import { AuthState } from '../../../store/auth/auth.state';
 import { ButtonComponent, CardComponent, IconButtonComponent, BadgeComponent, SkeletonComponent } from '../../../shared/components';
 import { MacroBarsComponent } from '../shared/macro-bars/macro-bars';
+import { CalorieRingComponent } from '../shared/calorie-ring/calorie-ring';
 import { AddMealEnergyComponent } from '../add-meal/add-meal';
+import { AIMealInputEnergyComponent } from '../ai-meal-input/ai-meal-input';
 import { MealType } from '../../../core/models/energy.model';
+import { toDate } from '../../../core/services/date.util';
 
 @Component({
   selector: 'app-food-log',
   standalone: true,
-  imports: [ButtonComponent, CardComponent, IconButtonComponent, BadgeComponent, SkeletonComponent, MacroBarsComponent, AddMealEnergyComponent],
+  imports: [ButtonComponent, CardComponent, IconButtonComponent, BadgeComponent, SkeletonComponent, MacroBarsComponent, CalorieRingComponent, AddMealEnergyComponent, AIMealInputEnergyComponent],
   templateUrl: './food-log.html',
   styleUrl: './food-log.scss',
 })
@@ -75,7 +78,7 @@ export class FoodLogComponent implements OnInit {
 
   protected formatTime(timestamp: Date | unknown): string {
     if (!timestamp) return '';
-    const date = timestamp instanceof Date ? timestamp : new Date(timestamp as string);
+    const date = toDate(timestamp);
     return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
   }
 }
