@@ -1,0 +1,13 @@
+@if (milestones().length > 0) {
+  <div class="badges">
+    <h3 class="badges__title">Milestones</h3>
+    <div class="badges__grid">
+      @for (m of milestones(); track m.label) {
+        <div class="badge" [class.badge--weight]="m.type === 'weight'" [class.badge--streak]="m.type === 'streak'">
+          <span class="material-symbols-outlined badge__icon">{{ m.icon }}</span>
+          <span class="badge__label">{{ m.label }}</span>
+        </div>
+      }
+    </div>
+  </div>
+}

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { where, orderBy, limit } from '@angular/fire/firestore';
+import { where, orderBy, limit, QueryConstraint } from '@angular/fire/firestore';
 import { BaseRepository } from './base.repository';
 import { WeightEntry } from '../../core/models/energy.model';
 
@@ -20,6 +20,15 @@ export class WeightRepository extends BaseRepository<WeightEntry> {
       where('userId', '==', userId),
       orderBy('date', 'desc'),
       limit(count),
+    ]);
+  }
+
+  getByDateRange(userId: string, startDate: string, endDate: string): Observable<WeightEntry[]> {
+    return this.queryDocs([
+      where('userId', '==', userId),
+      where('date', '>=', startDate),
+      where('date', '<=', endDate),
+      orderBy('date', 'asc'),
     ]);
   }
 }

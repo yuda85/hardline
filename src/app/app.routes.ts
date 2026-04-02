@@ -99,6 +99,30 @@ export const routes: Routes = [
         ],
       },
       {
+        path: 'weight',
+        children: [
+          {
+            path: '',
+            loadComponent: () =>
+              import('./features/weight/weight-home/weight-home').then(m => m.WeightHomeComponent),
+          },
+          {
+            path: 'history',
+            loadComponent: () =>
+              import('./features/weight/weight-history/weight-history').then(
+                m => m.WeightHistoryComponent,
+              ),
+          },
+          {
+            path: 'settings',
+            loadComponent: () =>
+              import('./features/weight/weight-settings/weight-settings').then(
+                m => m.WeightSettingsComponent,
+              ),
+          },
+        ],
+      },
+      {
         path: 'profile',
         loadComponent: () =>
           import('./features/profile/profile-page/profile-page').then(m => m.ProfilePageComponent),

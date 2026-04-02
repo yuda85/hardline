@@ -1,0 +1,59 @@
+<div class="wp__backdrop" (click)="skip()"></div>
+
+<div class="wp">
+  <!-- Drag Handle -->
+  <div class="wp__handle"></div>
+
+  <!-- Header -->
+  <div class="wp__header">
+    <div class="wp__icon-box">
+      <span class="material-symbols-outlined wp__icon">monitor_weight</span>
+    </div>
+    <div class="wp__header-text">
+      <h2 class="wp__title">Log today's weight</h2>
+      <p class="wp__subtitle">Precision entry for performance tracking</p>
+    </div>
+  </div>
+
+  <!-- Form -->
+  <form [formGroup]="form" class="wp__form">
+    <div class="wp__field">
+      <label for="wp-weight">Current Mass (KG)</label>
+      <div class="wp__weight-input-wrap">
+        <input
+          id="wp-weight"
+          type="number"
+          inputmode="decimal"
+          step="0.1"
+          formControlName="weight"
+          placeholder="00.0"
+        />
+        <span class="wp__unit">KG</span>
+      </div>
+    </div>
+
+    <div class="wp__field">
+      <label for="wp-notes">Session Context</label>
+      <textarea
+        id="wp-notes"
+        formControlName="notes"
+        placeholder="e.g., Post-fasting, morning measurement..."
+        rows="3"
+      ></textarea>
+    </div>
+  </form>
+
+  <!-- Actions -->
+  <div class="wp__actions">
+    <button class="wp__skip" (click)="skip()">Skip</button>
+    <button class="wp__save" [disabled]="form.invalid || saving()" (click)="save()">
+      @if (saving()) {
+        <span class="wp__save-loading"></span>
+      }
+      Save Entry
+    </button>
+  </div>
+
+  <!-- Safe area spacer -->
+  <div class="wp__safe-area"></div>
+</div>

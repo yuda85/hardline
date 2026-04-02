@@ -22,7 +22,15 @@
       "Bash(python .claude/skills/ui-ux-pro-max/scripts/search.py \"mobile touch gesture interaction\" --domain ux)",
       "Bash(python .claude/skills/ui-ux-pro-max/scripts/search.py \"dashboard calorie tracker health fitness progress\" --design-system --persist -p \"Hardline\" --page \"energy-balance\")",
       "Bash(python .claude/skills/ui-ux-pro-max/scripts/search.py \"food log meal list form input\" --domain ux -n 3)",
-      "Bash(python .claude/skills/ui-ux-pro-max/scripts/search.py \"summary stats progress chart\" --domain ux -n 3)"
+      "Bash(python .claude/skills/ui-ux-pro-max/scripts/search.py \"summary stats progress chart\" --domain ux -n 3)",
+      "Bash(xargs ls:*)",
+      "Bash(python3 .claude/skills/ui-ux-pro-max/scripts/search.py \"fitness health dark dashboard weight tracking\" --design-system -p \"Hardline Weight Tracker\")",
+      "Bash(python3 .claude/skills/ui-ux-pro-max/scripts/search.py \"line chart trend weight progress\" --domain chart -n 5)",
+      "Bash(python3 .claude/skills/ui-ux-pro-max/scripts/search.py \"modal dialog animation accessibility gamification\" --domain ux -n 5)",
+      "Bash(npm test:*)",
+      "Bash(python3 .claude/skills/ui-ux-pro-max/scripts/search.py \"fitness health weight tracking dashboard dark mode gamification\" --design-system --persist -p \"Hardline Weight Tracker\")",
+      "Bash(python3 .claude/skills/ui-ux-pro-max/scripts/search.py \"gamification streak badges progress celebration\" --domain ux -n 5)",
+      "Bash(python3 .claude/skills/ui-ux-pro-max/scripts/search.py \"modal bottom sheet dialog form input\" --domain ux -n 5)"
     ]
   }
 }

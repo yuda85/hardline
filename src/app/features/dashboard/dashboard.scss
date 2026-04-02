@@ -99,6 +99,67 @@
   justify-content: flex-end;
 }
 
+// Weight progress
+.dash__weight {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.dash__weight-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  .dash__card-title {
+    margin-bottom: 0;
+  }
+}
+
+.dash__weight-body {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.dash__weight-value {
+  font-family: var(--font-headline);
+  font-weight: 800;
+  font-size: 1.75rem;
+  color: var(--on-surface);
+  line-height: 1;
+}
+
+.dash__weight-bar-wrap {
+  flex: 1;
+  min-width: 120px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.dash__weight-bar {
+  height: 6px;
+  background: var(--surface-container-high);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.dash__weight-bar-fill {
+  height: 100%;
+  background: var(--primary);
+  border-radius: 3px;
+  transition: width 500ms ease;
+  min-width: 2%;
+}
+
+.dash__weight-bar-label {
+  font-size: 0.625rem;
+  color: var(--on-surface-variant);
+  font-weight: 600;
+}
+
 // Stat cards
 .dash__stat-card {
   display: flex;

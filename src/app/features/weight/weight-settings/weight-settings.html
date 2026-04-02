@@ -1,0 +1,46 @@
+<div class="wset">
+  <header class="wset__header">
+    <app-icon-button icon="arrow_back" ariaLabel="Back" (click)="goBack()" />
+    <h1 class="wset__title">Weight Settings</h1>
+  </header>
+
+  <form [formGroup]="form" class="wset__form">
+    <app-card [elevation]="1" padding="md">
+      <div class="wset__section">
+        <h3 class="wset__section-title">Goal weight</h3>
+        <p class="wset__section-hint">Set your target weight to track progress</p>
+        <div class="wset__field">
+          <label for="ws-target">Target weight (kg)</label>
+          <input
+            id="ws-target"
+            type="number"
+            inputmode="decimal"
+            step="0.1"
+            formControlName="targetWeight"
+            placeholder="e.g. 75.0"
+          />
+        </div>
+      </div>
+    </app-card>
+
+    <app-card [elevation]="1" padding="md">
+      <div class="wset__section">
+        <h3 class="wset__section-title">Morning reminder</h3>
+        <p class="wset__section-hint">Get reminded to weigh in each morning</p>
+        <div class="wset__field">
+          <label for="ws-reminder">Reminder time</label>
+          <input
+            id="ws-reminder"
+            type="time"
+            formControlName="reminderTime"
+          />
+        </div>
+      </div>
+    </app-card>
+  </form>
+
+  <div class="wset__actions">
+    <app-button variant="outline" (click)="goBack()">Cancel</app-button>
+    <app-button variant="primary" [loading]="saving()" (click)="save()">Save</app-button>
+  </div>
+</div>

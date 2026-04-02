@@ -1,4 +1,5 @@
 import { ApplicationConfig, provideBrowserGlobalErrorListeners, isDevMode } from '@angular/core';
+import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { provideRouter } from '@angular/router';
 import { provideFirebaseApp, initializeApp } from '@angular/fire/app';
 import { provideAuth, getAuth } from '@angular/fire/auth';
@@ -16,17 +17,19 @@ import { AuthState } from './store/auth/auth.state';
 import { ProfileState } from './store/profile/profile.state';
 import { EnergyState } from './store/energy/energy.state';
 import { WorkoutState } from './store/workout/workout.state';
+import { WeightState } from './store/weight/weight.state';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
+    provideAnimationsAsync(),
     provideRouter(routes),
     provideFirebaseApp(() => initializeApp(environment.firebase)),
     provideAuth(() => getAuth()),
     provideFirestore(() => getFirestore()),
     provideStorage(() => getStorage()),
     provideStore(
-      [AuthState, ProfileState, EnergyState, WorkoutState],
+      [AuthState, ProfileState, EnergyState, WorkoutState, WeightState],
       { developmentMode: !environment.production },
       withNgxsStoragePlugin({ keys: ['auth.user'] }),
       ...(environment.production

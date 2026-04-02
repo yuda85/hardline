@@ -21,4 +21,11 @@
       </a>
     }
   </nav>
+
+  <button class="side-nav__item side-nav__logout" (click)="logoutClicked.emit()">
+    <span class="material-symbols-outlined side-nav__icon">logout</span>
+    @if (!collapsed()) {
+      <span class="side-nav__label">Log out</span>
+    }
+  </button>
 </aside>

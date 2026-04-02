@@ -1,0 +1,66 @@
+.chart__svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.chart__grid {
+  stroke: var(--surface-container-high);
+  stroke-width: 0.5;
+  stroke-dasharray: 2 2;
+}
+
+.chart__line {
+  fill: none;
+  stroke: var(--primary);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.chart__trend {
+  fill: none;
+  stroke: var(--tertiary);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 4 3;
+  opacity: 0.7;
+}
+
+.chart__dot {
+  fill: var(--primary);
+  stroke: var(--surface);
+  stroke-width: 1.5;
+}
+
+.chart__y-label {
+  font-size: 6px;
+  fill: var(--on-surface-variant);
+  font-family: var(--font-body);
+}
+
+.chart__x-label {
+  font-size: 6px;
+  fill: var(--on-surface-variant);
+  font-family: var(--font-body);
+}
+
+.chart__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 2rem 1rem;
+  color: var(--on-surface-variant);
+
+  .material-symbols-outlined {
+    font-size: 2rem;
+    opacity: 0.4;
+  }
+
+  p {
+    font-size: 0.8125rem;
+  }
+}

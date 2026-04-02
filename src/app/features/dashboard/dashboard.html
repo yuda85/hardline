@@ -46,6 +46,32 @@
       </app-card>
     }
 
+    <!-- Weight progress -->
+    @if (latestWeight(); as w) {
+      <app-card class="dash__card dash__card--wide" [elevation]="1" padding="md" [clickable]="true" (click)="goToWeight()">
+        <div class="dash__weight">
+          <div class="dash__weight-header">
+            <span class="material-symbols-outlined dash__stat-icon dash__stat-icon--primary">monitor_weight</span>
+            <h2 class="dash__card-title">Weight</h2>
+          </div>
+          <div class="dash__weight-body">
+            <span class="dash__weight-value">{{ w }}kg</span>
+            @if (weightProgress(); as wp) {
+              <div class="dash__weight-bar-wrap">
+                <div class="dash__weight-bar">
+                  <div class="dash__weight-bar-fill" [style.width.%]="wp.progressPct"></div>
+                </div>
+                <span class="dash__weight-bar-label">{{ wp.progressPct }}% to goal &middot; {{ wp.remainingKg }}kg to go</span>
+              </div>
+            }
+            @if (weightStreak() > 0) {
+              <app-badge variant="tertiary" size="sm">{{ weightStreak() }}d streak</app-badge>
+            }
+          </div>
+        </div>
+      </app-card>
+    }
+
     <!-- Calories remaining -->
     <app-card class="dash__card" [elevation]="2" padding="lg">
       <div class="dash__stat-card">

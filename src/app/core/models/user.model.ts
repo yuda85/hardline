@@ -1,4 +1,5 @@
 import { FirestoreDoc } from './common.model';
+import { Sex, FitnessGoal, RateOfChange, ActivityLevel, MacroPreference } from './energy.model';
 
 export interface UserProfile extends FirestoreDoc {
   uid: string;
@@ -17,10 +18,19 @@ export interface UserGoals {
   dailyFat: number;
   targetWeight: number | null;
   weeklyWorkouts: number;
+  currentWeight: number;
+  heightCm: number;
+  age: number;
+  sex: Sex;
+  fitnessGoal: FitnessGoal;
+  rateOfChange: RateOfChange;
+  activityLevel: ActivityLevel;
+  macroPreference: MacroPreference;
 }
 
 export interface UserPreferences {
   units: 'metric' | 'imperial';
+  weighInReminderTime?: string; // HH:mm format, e.g. '07:00'
 }
 
 export const DEFAULT_USER_GOALS: UserGoals = {
@@ -30,6 +40,14 @@ export const DEFAULT_USER_GOALS: UserGoals = {
   dailyFat: 70,
   targetWeight: null,
   weeklyWorkouts: 4,
+  currentWeight: 80,
+  heightCm: 175,
+  age: 30,
+  sex: 'male',
+  fitnessGoal: 'maintenance',
+  rateOfChange: 'moderate',
+  activityLevel: 'moderate',
+  macroPreference: 'balanced',
 };
 
 export const DEFAULT_USER_PREFERENCES: UserPreferences = {

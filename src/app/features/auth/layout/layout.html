@@ -1,7 +1,11 @@
-<app-side-nav [items]="navItems" />
+<app-side-nav [items]="navItems" (logoutClicked)="logout()" />
 
 <main class="layout__main">
   <router-outlet />
 </main>
 
-<app-bottom-nav [items]="navItems" />
+<app-bottom-nav [items]="navItems" (logoutClicked)="logout()" />
+
+@if (showWeightPrompt()) {
+  <app-weight-prompt (saved)="onWeightSaved($event)" (skipped)="onWeightSkipped()" />
+}

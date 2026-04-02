@@ -76,6 +76,17 @@
   }
 }
 
+:host(.btn--gradient) .btn__inner {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-container) 100%);
+  color: var(--on-primary);
+  font-weight: 800;
+  box-shadow: 0 4px 16px rgba(60, 215, 255, 0.1);
+}
+
+:host(.btn--pill) .btn__inner {
+  border-radius: 9999px;
+}
+
 // Icon
 .btn__icon {
   font-size: 1.125rem;

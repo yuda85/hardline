@@ -1,4 +1,4 @@
-import { Component, input } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { NavItem } from '../nav.model';
 
@@ -11,4 +11,5 @@ import { NavItem } from '../nav.model';
 })
 export class BottomNavComponent {
   readonly items = input.required<NavItem[]>();
+  readonly logoutClicked = output();
 }

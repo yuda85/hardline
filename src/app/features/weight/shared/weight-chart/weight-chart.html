@@ -1,0 +1,38 @@
+@if (dataPoints().length === 0) {
+  <div class="chart__empty">
+    <span class="material-symbols-outlined">show_chart</span>
+    <p>No weight data yet</p>
+  </div>
+} @else {
+  <svg viewBox="0 0 300 150" class="chart__svg" role="img" aria-label="Weight trend chart">
+    <!-- Grid lines -->
+    @for (y of gridLines(); track y) {
+      <line [attr.x1]="30" [attr.y1]="y" [attr.x2]="270" [attr.y2]="y" class="chart__grid" />
+    }
+
+    <!-- Trend line -->
+    @if (trendLine()) {
+      <polyline [attr.points]="trendLine()" class="chart__trend" />
+    }
+
+    <!-- Data line -->
+    @if (dataLine()) {
+      <polyline [attr.points]="dataLine()" class="chart__line" />
+    }
+
+    <!-- Data points -->
+    @for (c of circles(); track $index) {
+      <circle [attr.cx]="c.cx" [attr.cy]="c.cy" r="3.5" class="chart__dot" />
+    }
+
+    <!-- Y-axis labels -->
+    @for (label of yLabels(); track label.label) {
+      <text [attr.x]="26" [attr.y]="label.y" class="chart__y-label" text-anchor="end" dominant-baseline="middle">{{ label.label }}</text>
+    }
+
+    <!-- X-axis labels -->
+    @for (label of xLabels(); track label.label) {
+      <text [attr.x]="label.x" [attr.y]="145" class="chart__x-label" text-anchor="middle">{{ label.label }}</text>
+    }
+  </svg>
+}

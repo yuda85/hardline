@@ -26,6 +26,19 @@
     padding: 1.5rem;
   }
 
+  &.card--accent-primary {
+    border-left: 4px solid var(--primary-container);
+  }
+
+  &.card--accent-muted {
+    border-left: 4px solid rgba(53, 53, 52, 0.3);
+    transition: border-color 200ms ease;
+
+    &:hover {
+      border-left-color: rgba(60, 215, 255, 0.4);
+    }
+  }
+
   &.card--clickable {
     cursor: pointer;
     transition: all 200ms ease;

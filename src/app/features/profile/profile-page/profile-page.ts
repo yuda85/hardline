@@ -5,6 +5,9 @@ import { AuthState } from '../../../store/auth/auth.state';
 import { ProfileState } from '../../../store/profile/profile.state';
 import { Profile } from '../../../store/profile/profile.actions';
 import { ButtonComponent, CardComponent, BadgeComponent } from '../../../shared/components';
+import {
+  Sex, FitnessGoal, RateOfChange, ActivityLevel, MacroPreference,
+} from '../../../core/models/energy.model';
 
 @Component({
   selector: 'app-profile-page',
@@ -25,16 +28,52 @@ export class ProfilePageComponent implements OnInit {
 
   protected readonly goalsForm = this.fb.nonNullable.group({
     dailyCalories: [2000, [Validators.required, Validators.min(800), Validators.max(10000)]],
-    dailyProtein: [150, [Validators.required, Validators.min(20), Validators.max(500)]],
-    dailyCarbs: [200, [Validators.required, Validators.min(20), Validators.max(1000)]],
-    dailyFat: [70, [Validators.required, Validators.min(10), Validators.max(400)]],
+    dailyProtein: [150, [Validators.required, Validators.min(0), Validators.max(500)]],
+    dailyCarbs: [200, [Validators.required, Validators.min(0), Validators.max(1000)]],
+    dailyFat: [70, [Validators.required, Validators.min(0), Validators.max(400)]],
     targetWeight: [null as number | null],
-    weeklyWorkouts: [4, [Validators.required, Validators.min(1), Validators.max(14)]],
+    weeklyWorkouts: [4, [Validators.required, Validators.min(0), Validators.max(14)]],
+    currentWeight: [80, [Validators.required, Validators.min(30), Validators.max(300)]],
+    heightCm: [175, [Validators.required, Validators.min(100), Validators.max(250)]],
+    age: [30, [Validators.required, Validators.min(14), Validators.max(100)]],
+    sex: ['male' as Sex],
+    fitnessGoal: ['maintenance' as FitnessGoal],
+    rateOfChange: ['moderate' as RateOfChange],
+    activityLevel: ['moderate' as ActivityLevel],
+    macroPreference: ['balanced' as MacroPreference],
   });
 
   protected readonly prefsForm = this.fb.nonNullable.group({
     units: ['metric' as 'metric' | 'imperial'],
   });
+
+  protected readonly goalLabels: Record<FitnessGoal, string> = {
+    fat_loss: 'Cutting',
+    maintenance: 'Maintaining',
+    muscle_gain: 'Bulking',
+  };
+
+  protected readonly activityLabels: Record<ActivityLevel, string> = {
+    sedentary: 'Sedentary',
+    light: 'Lightly Active',
+    moderate: 'Moderately Active',
+    active: 'Active',
+    very_active: 'Very Active',
+  };
+
+  protected readonly goalOptions: { value: FitnessGoal; label: string }[] = [
+    { value: 'fat_loss', label: 'Cutting' },
+    { value: 'maintenance', label: 'Maintaining' },
+    { value: 'muscle_gain', label: 'Bulking' },
+  ];
+
+  protected readonly activityOptions: { value: ActivityLevel; label: string }[] = [
+    { value: 'sedentary', label: 'Sedentary' },
+    { value: 'light', label: 'Lightly Active' },
+    { value: 'moderate', label: 'Moderately Active' },
+    { value: 'active', label: 'Active' },
+    { value: 'very_active', label: 'Very Active' },
+  ];
 
   ngOnInit() {
     this.store.dispatch(new Profile.FetchGoals()).subscribe(() => {
@@ -56,13 +95,22 @@ export class ProfilePageComponent implements OnInit {
 
     this.saving.set(true);
 
+    const v = this.goalsForm.getRawValue();
     const goalsUpdate = {
-      dailyCalories: this.goalsForm.value.dailyCalories!,
-      dailyProtein: this.goalsForm.value.dailyProtein!,
-      dailyCarbs: this.goalsForm.value.dailyCarbs!,
-      dailyFat: this.goalsForm.value.dailyFat!,
-      targetWeight: this.goalsForm.value.targetWeight ?? null,
-      weeklyWorkouts: this.goalsForm.value.weeklyWorkouts!,
+      dailyCalories: v.dailyCalories,
+      dailyProtein: v.dailyProtein,
+      dailyCarbs: v.dailyCarbs,
+      dailyFat: v.dailyFat,
+      targetWeight: v.targetWeight ?? null,
+      weeklyWorkouts: v.weeklyWorkouts,
+      currentWeight: v.currentWeight,
+      heightCm: v.heightCm,
+      age: v.age,
+      sex: v.sex,
+      fitnessGoal: v.fitnessGoal,
+      rateOfChange: v.rateOfChange,
+      activityLevel: v.activityLevel,
+      macroPreference: v.macroPreference,
     };
 
     const prefsUpdate = {
@@ -87,6 +135,14 @@ export class ProfilePageComponent implements OnInit {
         dailyFat: g.dailyFat,
         targetWeight: g.targetWeight,
         weeklyWorkouts: g.weeklyWorkouts,
+        currentWeight: g.currentWeight ?? 80,
+        heightCm: g.heightCm ?? 175,
+        age: g.age ?? 30,
+        sex: g.sex ?? 'male',
+        fitnessGoal: g.fitnessGoal ?? 'maintenance',
+        rateOfChange: g.rateOfChange ?? 'moderate',
+        activityLevel: g.activityLevel ?? 'moderate',
+        macroPreference: g.macroPreference ?? 'balanced',
       });
     }
     const p = this.preferences();

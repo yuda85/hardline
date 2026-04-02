@@ -1,0 +1,77 @@
+.pred {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.pred__header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pred__icon {
+  font-size: 1.25rem;
+  color: var(--tertiary);
+}
+
+.pred__title {
+  font-family: var(--font-headline);
+  font-weight: 700;
+  font-size: 0.8125rem;
+  color: var(--on-surface);
+}
+
+.pred__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.pred__main {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.pred__arrow {
+  font-family: var(--font-headline);
+  font-weight: 800;
+  font-size: 1.25rem;
+
+  &--gain { color: var(--error); }
+  &--loss { color: #22c55e; }
+}
+
+.pred__projected {
+  font-size: 0.8125rem;
+  color: var(--on-surface-variant);
+}
+
+.pred__detail {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pred__calories {
+  font-size: 0.75rem;
+  color: var(--on-surface-variant);
+}
+
+.pred--empty {
+  align-items: center;
+  padding: 0.5rem 0;
+}
+
+.pred__empty-icon {
+  font-size: 1.5rem;
+  color: var(--on-surface-variant);
+  opacity: 0.4;
+}
+
+.pred__empty-text {
+  font-size: 0.75rem;
+  color: var(--on-surface-variant);
+  text-align: center;
+}

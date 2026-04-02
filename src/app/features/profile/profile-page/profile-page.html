@@ -28,6 +28,54 @@
   @if (!editing()) {
     <!-- View mode -->
     <app-card [elevation]="1" padding="lg">
+      <h3 class="profile__section-title">Body Stats</h3>
+      @if (goals(); as g) {
+        <div class="profile__stats">
+          <div class="profile__stat">
+            <span class="profile__stat-value">{{ g.currentWeight }}</span>
+            <span class="profile__stat-label">Weight (kg)</span>
+          </div>
+          <div class="profile__stat">
+            <span class="profile__stat-value">{{ g.heightCm }}</span>
+            <span class="profile__stat-label">Height (cm)</span>
+          </div>
+          <div class="profile__stat">
+            <span class="profile__stat-value">{{ g.age }}</span>
+            <span class="profile__stat-label">Age</span>
+          </div>
+          <div class="profile__stat">
+            <span class="profile__stat-value">{{ g.sex }}</span>
+            <span class="profile__stat-label">Sex</span>
+          </div>
+        </div>
+      }
+    </app-card>
+
+    <app-card [elevation]="1" padding="lg">
+      <h3 class="profile__section-title">Goal & Activity</h3>
+      @if (goals(); as g) {
+        <div class="profile__stats">
+          <div class="profile__stat">
+            <span class="profile__stat-value">{{ g.fitnessGoal ? goalLabels[g.fitnessGoal] : '—' }}</span>
+            <span class="profile__stat-label">Goal</span>
+          </div>
+          <div class="profile__stat">
+            <span class="profile__stat-value">{{ g.activityLevel ? activityLabels[g.activityLevel] : '—' }}</span>
+            <span class="profile__stat-label">Activity</span>
+          </div>
+          <div class="profile__stat">
+            <span class="profile__stat-value">{{ g.weeklyWorkouts }}</span>
+            <span class="profile__stat-label">Workouts / week</span>
+          </div>
+          <div class="profile__stat">
+            <span class="profile__stat-value">{{ g.targetWeight ?? '—' }}</span>
+            <span class="profile__stat-label">Target weight</span>
+          </div>
+        </div>
+      }
+    </app-card>
+
+    <app-card [elevation]="1" padding="lg">
       <h3 class="profile__section-title">Daily Nutrition Goals</h3>
       @if (goals(); as g) {
         <div class="profile__stats">
@@ -52,22 +100,6 @@
     </app-card>
 
     <app-card [elevation]="1" padding="lg">
-      <h3 class="profile__section-title">Fitness Goals</h3>
-      @if (goals(); as g) {
-        <div class="profile__stats">
-          <div class="profile__stat">
-            <span class="profile__stat-value">{{ g.weeklyWorkouts }}</span>
-            <span class="profile__stat-label">Workouts / week</span>
-          </div>
-          <div class="profile__stat">
-            <span class="profile__stat-value">{{ g.targetWeight ?? '—' }}</span>
-            <span class="profile__stat-label">Target weight</span>
-          </div>
-        </div>
-      }
-    </app-card>
-
-    <app-card [elevation]="1" padding="lg">
       <h3 class="profile__section-title">Preferences</h3>
       @if (preferences(); as p) {
         <div class="profile__pref-row">
@@ -78,6 +110,82 @@
     </app-card>
   } @else {
     <!-- Edit mode -->
+    <app-card [elevation]="1" padding="lg">
+      <h3 class="profile__section-title">Body Stats</h3>
+      <form [formGroup]="goalsForm" class="profile__edit-form">
+        <div class="profile__edit-row">
+          <div class="profile__edit-field">
+            <label for="edit-weight">Weight (kg)</label>
+            <input id="edit-weight" type="number" formControlName="currentWeight" />
+          </div>
+          <div class="profile__edit-field">
+            <label for="edit-height">Height (cm)</label>
+            <input id="edit-height" type="number" formControlName="heightCm" />
+          </div>
+        </div>
+        <div class="profile__edit-row">
+          <div class="profile__edit-field">
+            <label for="edit-age">Age</label>
+            <input id="edit-age" type="number" formControlName="age" />
+          </div>
+          <div class="profile__edit-field">
+            <label>Sex</label>
+            <div class="profile__toggle-group">
+              <button
+                type="button"
+                class="profile__toggle"
+                [class.profile__toggle--active]="goalsForm.value.sex === 'male'"
+                (click)="goalsForm.patchValue({ sex: 'male' })"
+              >Male</button>
+              <button
+                type="button"
+                class="profile__toggle"
+                [class.profile__toggle--active]="goalsForm.value.sex === 'female'"
+                (click)="goalsForm.patchValue({ sex: 'female' })"
+              >Female</button>
+            </div>
+          </div>
+        </div>
+      </form>
+    </app-card>
+
+    <app-card [elevation]="1" padding="lg">
+      <h3 class="profile__section-title">Goal & Activity</h3>
+      <form [formGroup]="goalsForm" class="profile__edit-form">
+        <div class="profile__edit-field">
+          <label>Goal</label>
+          <div class="profile__toggle-group">
+            @for (opt of goalOptions; track opt.value) {
+              <button
+                type="button"
+                class="profile__toggle"
+                [class.profile__toggle--active]="goalsForm.value.fitnessGoal === opt.value"
+                (click)="goalsForm.patchValue({ fitnessGoal: opt.value })"
+              >{{ opt.label }}</button>
+            }
+          </div>
+        </div>
+        <div class="profile__edit-field">
+          <label>Activity level</label>
+          <select formControlName="activityLevel" class="profile__select">
+            @for (opt of activityOptions; track opt.value) {
+              <option [value]="opt.value">{{ opt.label }}</option>
+            }
+          </select>
+        </div>
+        <div class="profile__edit-row">
+          <div class="profile__edit-field">
+            <label for="edit-workouts">Workouts / week</label>
+            <input id="edit-workouts" type="number" formControlName="weeklyWorkouts" />
+          </div>
+          <div class="profile__edit-field">
+            <label for="edit-target">Target weight</label>
+            <input id="edit-target" type="number" formControlName="targetWeight" placeholder="Optional" />
+          </div>
+        </div>
+      </form>
+    </app-card>
+
     <app-card [elevation]="1" padding="lg">
       <h3 class="profile__section-title">Daily Nutrition Goals</h3>
       <form [formGroup]="goalsForm" class="profile__edit-form">
@@ -99,16 +207,6 @@
           <div class="profile__edit-field">
             <label for="edit-fat">Fat (g)</label>
             <input id="edit-fat" type="number" formControlName="dailyFat" />
-          </div>
-        </div>
-        <div class="profile__edit-row">
-          <div class="profile__edit-field">
-            <label for="edit-workouts">Workouts / week</label>
-            <input id="edit-workouts" type="number" formControlName="weeklyWorkouts" />
-          </div>
-          <div class="profile__edit-field">
-            <label for="edit-weight">Target weight</label>
-            <input id="edit-weight" type="number" formControlName="targetWeight" placeholder="Optional" />
           </div>
         </div>
       </form>

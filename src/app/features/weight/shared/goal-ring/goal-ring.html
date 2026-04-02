@@ -1,0 +1,32 @@
+@if (hasGoal()) {
+  <div class="goal" [class]="'goal--' + size()">
+    <svg viewBox="0 0 100 100" class="goal__svg">
+      <circle cx="50" cy="50" r="42" class="goal__bg" />
+      <circle
+        cx="50" cy="50" r="42"
+        class="goal__fill"
+        [class.goal__fill--complete]="isComplete()"
+        [style.stroke-dasharray]="strokeDash().array"
+        [style.stroke-dashoffset]="strokeDash().offset"
+      />
+    </svg>
+    <div class="goal__text">
+      <span class="goal__value" [class.goal__value--complete]="isComplete()">{{ progressPct() }}%</span>
+      @if (isComplete()) {
+        <span class="goal__label">reached</span>
+      } @else {
+        <span class="goal__label">{{ remainingKg() }}kg to go</span>
+      }
+    </div>
+  </div>
+} @else {
+  <div class="goal goal--empty" [class]="'goal--' + size()">
+    <svg viewBox="0 0 100 100" class="goal__svg">
+      <circle cx="50" cy="50" r="42" class="goal__bg" />
+    </svg>
+    <div class="goal__text">
+      <span class="material-symbols-outlined goal__empty-icon">flag</span>
+      <span class="goal__label">Set a goal</span>
+    </div>
+  </div>
+}

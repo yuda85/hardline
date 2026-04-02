@@ -1,0 +1,118 @@
+<div class="whome">
+  <header class="whome__header">
+    <h1 class="whome__title">Weight</h1>
+    <app-icon-button icon="settings" ariaLabel="Weight settings" (click)="goToSettings()" />
+  </header>
+
+  @if (loading()) {
+    <div class="whome__grid">
+      <app-card class="whome__card whome__card--wide" [elevation]="1" padding="lg">
+        <app-skeleton variant="rect" width="100%" height="150px" />
+      </app-card>
+      <app-card class="whome__card" [elevation]="2" padding="lg">
+        <app-skeleton variant="circle" width="100px" height="100px" />
+      </app-card>
+      <app-card class="whome__card" [elevation]="2" padding="lg">
+        <app-skeleton variant="rect" width="100%" height="60px" />
+      </app-card>
+    </div>
+  } @else if (entries().length === 0) {
+    <app-card [elevation]="1" padding="lg">
+      <div class="whome__empty">
+        <span class="material-symbols-outlined whome__empty-icon">monitor_weight</span>
+        <p>Start tracking your weight</p>
+        <p class="whome__empty-hint">Log your first weigh-in to see trends, predictions, and progress</p>
+      </div>
+    </app-card>
+  } @else {
+    <!-- Today's weight -->
+    @if (latestWeight(); as w) {
+      <app-card class="whome__today" [elevation]="1" padding="md">
+        <div class="whome__today-row">
+          <div class="whome__today-main">
+            <span class="whome__today-value">{{ w }}</span>
+            <span class="whome__today-unit">kg</span>
+          </div>
+          @if (todayEntry()) {
+            <span class="whome__today-status whome__today-status--done">Today</span>
+          } @else {
+            <span class="whome__today-status">Latest</span>
+          }
+        </div>
+      </app-card>
+    }
+
+    <div class="whome__grid">
+      <!-- Chart + range toggle -->
+      <app-card class="whome__card whome__card--wide" [elevation]="1" padding="md">
+        <div class="whome__chart-header">
+          <h3 class="whome__section-title">Trend</h3>
+          <div class="whome__range-tabs">
+            @for (r of ranges; track r.value) {
+              <button
+                class="whome__range-tab"
+                [class.whome__range-tab--active]="viewRange() === r.value"
+                (click)="setRange(r.value)"
+              >{{ r.label }}</button>
+            }
+          </div>
+        </div>
+        <app-weight-chart
+          [dataPoints]="chartPoints()"
+          [trendPoints]="trendPoints()"
+        />
+      </app-card>
+
+      <!-- Goal progress ring -->
+      <app-card class="whome__card" [elevation]="2" padding="lg">
+        <div class="whome__ring-wrap">
+          <h3 class="whome__section-title">Goal</h3>
+          <app-goal-ring
+            [currentWeight]="latestWeight() ?? 0"
+            [startWeight]="startWeight() ?? 0"
+            [targetWeight]="goals()?.targetWeight ?? null"
+            size="lg"
+          />
+          @if (goalProgress(); as gp) {
+            <span class="whome__ring-remaining">{{ gp.remainingKg }}kg to go</span>
+          }
+        </div>
+      </app-card>
+
+      <!-- Streak -->
+      <app-card class="whome__card" [elevation]="2" padding="lg">
+        <div class="whome__stat">
+          <span class="material-symbols-outlined whome__stat-icon whome__stat-icon--streak">local_fire_department</span>
+          <span class="whome__stat-value">{{ streak() }}</span>
+          <span class="whome__stat-label">day streak</span>
+        </div>
+      </app-card>
+
+      <!-- Prediction -->
+      <app-prediction-card
+        class="whome__card whome__card--wide"
+        [dailySummaries]="recentDailySummaries()"
+        [currentWeight]="latestWeight()"
+      />
+
+      <!-- Weekly recap -->
+      <app-weekly-recap
+        class="whome__card whome__card--wide"
+        [entries]="entries()"
+        [streak]="streak()"
+      />
+    </div>
+
+    <!-- Milestones -->
+    <app-milestone-badge
+      [entries]="entries()"
+      [streak]="streak()"
+      [targetWeight]="goals()?.targetWeight ?? null"
+    />
+
+    <!-- Actions -->
+    <div class="whome__actions">
+      <app-button variant="outline" icon="history" (click)="goToHistory()">View history</app-button>
+    </div>
+  }
+</div>

@@ -1,0 +1,37 @@
+@if (prediction(); as pred) {
+  <app-card [elevation]="1" padding="md">
+    <div class="pred">
+      <div class="pred__header">
+        <span class="material-symbols-outlined pred__icon">trending_{{ pred.direction === 'gain' ? 'up' : 'down' }}</span>
+        <h3 class="pred__title">Weight prediction</h3>
+      </div>
+
+      <div class="pred__body">
+        <div class="pred__main">
+          <span class="pred__arrow pred__arrow--{{ pred.direction }}">
+            {{ pred.direction === 'gain' ? '+' : '-' }}{{ pred.predictedChangeKg }}kg
+          </span>
+          @if (predictedWeight(); as pw) {
+            <span class="pred__projected">~{{ pw }}kg projected</span>
+          }
+        </div>
+
+        <div class="pred__detail">
+          <span class="pred__calories">
+            Avg {{ pred.avgDailySurplus > 0 ? '+' : '' }}{{ pred.avgDailySurplus }} kcal/day
+          </span>
+          <app-badge [variant]="pred.daysAnalyzed >= 7 ? 'primary' : 'surface'" size="sm">
+            {{ pred.daysAnalyzed }}d data
+          </app-badge>
+        </div>
+      </div>
+    </div>
+  </app-card>
+} @else {
+  <app-card [elevation]="1" padding="md">
+    <div class="pred pred--empty">
+      <span class="material-symbols-outlined pred__empty-icon">analytics</span>
+      <p class="pred__empty-text">Log meals for 3+ days to see weight predictions</p>
+    </div>
+  </app-card>
+}

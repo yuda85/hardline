@@ -9,4 +9,8 @@
       <span class="bottom-nav__label">{{ item.label }}</span>
     </a>
   }
+  <button class="bottom-nav__item bottom-nav__logout" (click)="logoutClicked.emit()">
+    <span class="material-symbols-outlined bottom-nav__icon">logout</span>
+    <span class="bottom-nav__label">Log out</span>
+  </button>
 </nav>

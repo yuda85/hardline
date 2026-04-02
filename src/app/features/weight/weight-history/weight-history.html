@@ -1,0 +1,47 @@
+<div class="whist">
+  <header class="whist__header">
+    <app-icon-button icon="arrow_back" ariaLabel="Back" (click)="goBack()" />
+    <h1 class="whist__title">Weight History</h1>
+  </header>
+
+  @if (sortedEntries().length === 0) {
+    <app-card [elevation]="1" padding="lg">
+      <div class="whist__empty">
+        <span class="material-symbols-outlined">history</span>
+        <p>No weight entries yet</p>
+      </div>
+    </app-card>
+  } @else {
+    @for (group of groupedByMonth(); track group.month) {
+      <div class="whist__month">
+        <h2 class="whist__month-title">{{ formatMonth(group.month) }}</h2>
+        <div class="whist__entries">
+          @for (entry of group.entries; track entry.id) {
+            <div class="whist__entry">
+              <div class="whist__entry-date">{{ formatDate(entry.date) }}</div>
+              <div class="whist__entry-weight">{{ entry.weightKg }}kg</div>
+              @if (entry.change !== null) {
+                <div
+                  class="whist__entry-change"
+                  [class.whist__entry-change--gain]="entry.change > 0"
+                  [class.whist__entry-change--loss]="entry.change < 0"
+                >
+                  {{ entry.change > 0 ? '+' : '' }}{{ entry.change }}
+                </div>
+              } @else {
+                <div class="whist__entry-change">—</div>
+              }
+              @if (entry.notes) {
+                <div class="whist__entry-notes">{{ entry.notes }}</div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <div class="whist__load-more">
+      <app-button variant="outline" (click)="loadMore()">Load more</app-button>
+    </div>
+  }
+</div>

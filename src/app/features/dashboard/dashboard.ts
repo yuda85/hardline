@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { Router } from '@angular/router';
 import { Store } from '@ngxs/store';
 import { take } from 'rxjs/operators';
@@ -6,6 +6,10 @@ import { DecimalPipe } from '@angular/common';
 import { EnergyState } from '../../store/energy/energy.state';
 import { AuthState } from '../../store/auth/auth.state';
 import { Energy } from '../../store/energy/energy.actions';
+import { Weight } from '../../store/weight/weight.actions';
+import { WeightState } from '../../store/weight/weight.state';
+import { computeGoalProgress } from '../../store/weight/weight.state';
+import { ProfileState } from '../../store/profile/profile.state';
 import { SessionRepository } from '../../data/repositories/session.repository';
 import { CardComponent, ButtonComponent, BadgeComponent, SkeletonComponent } from '../../shared/components';
 import { CalorieRingComponent } from '../energy/shared/calorie-ring/calorie-ring';
@@ -30,6 +34,19 @@ export class DashboardComponent implements OnInit {
   protected readonly summary = this.store.selectSignal(EnergyState.dailySummary);
   protected readonly energyLoading = this.store.selectSignal(EnergyState.loading);
 
+  protected readonly latestWeight = this.store.selectSignal(WeightState.latestWeight);
+  protected readonly startWeight = this.store.selectSignal(WeightState.startWeight);
+  protected readonly profileGoals = this.store.selectSignal(ProfileState.goals);
+  protected readonly weightStreak = this.store.selectSignal(WeightState.currentStreak);
+
+  protected readonly weightProgress = computed(() => {
+    const current = this.latestWeight();
+    const start = this.startWeight();
+    const target = this.profileGoals()?.targetWeight ?? null;
+    if (current === null || start === null) return null;
+    return computeGoalProgress(current, start, target);
+  });
+
   protected readonly recentSessions = signal<WorkoutSession[]>([]);
   protected readonly sessionsLoading = signal(true);
 
@@ -37,11 +54,13 @@ export class DashboardComponent implements OnInit {
     this.store.dispatch(new Energy.LoadGoalSettings());
     const today = new Date().toISOString().split('T')[0];
     this.store.dispatch(new Energy.FetchDayData(today));
+    this.store.dispatch(new Weight.LoadHistory());
     this.loadRecentSessions();
   }
 
   protected goToEnergy() { this.router.navigate(['/energy']); }
   protected goToWorkouts() { this.router.navigate(['/workouts']); }
+  protected goToWeight() { this.router.navigate(['/weight']); }
 
   protected getGreeting(): string {
     const hour = new Date().getHours();

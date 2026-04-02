@@ -85,6 +85,15 @@
   text-overflow: ellipsis;
 }
 
+.side-nav__logout {
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin-top: 0.5rem;
+  border-top: 1px solid var(--outline-variant);
+  padding-top: 1rem;
+}
+
 .side-nav--collapsed .side-nav__item {
   justify-content: center;
   padding: 0.75rem;
