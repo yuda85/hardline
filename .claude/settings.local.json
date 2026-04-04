@@ -34,7 +34,9 @@
       "Bash(cat /Users/yehudab/dev/hardline/src/app/data/repositories/*.ts)",
       "Bash(wc -l /Users/yehudab/dev/hardline/src/app/features/energy/**/*.ts /Users/yehudab/dev/hardline/src/app/features/energy/**/*.html /Users/yehudab/dev/hardline/src/app/features/energy/**/*.scss)",
       "Bash(ls /Users/yehudab/dev/hardline/dist/Hardline/browser/chunk-*)",
-      "Bash(curl -s -w '\\\\n%{http_code}' https://api.openai.com/v1/chat/completions -H 'Content-Type: application/json' -H 'Authorization: Bearer __CMDSUB_OUTPUT__')"
+      "Bash(curl -s -w '\\\\n%{http_code}' https://api.openai.com/v1/chat/completions -H 'Content-Type: application/json' -H 'Authorization: Bearer __CMDSUB_OUTPUT__')",
+      "Bash(gh auth:*)",
+      "Bash(gh secret:*)"
     ]
   }
 }

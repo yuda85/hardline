@@ -2,7 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [main]
+    branches: [master]
 
 permissions:
   contents: read
@@ -26,6 +26,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - name: Inject API key
+        run: sed -i "s|__OPENAI_API_KEY__|${{ secrets.OPENAI_API_KEY }}|g" src/environments/environment.prod.ts
       - run: npx ng build --configuration production --base-href /Hardline/
       - name: Copy index.html to 404.html for SPA routing
         run: cp dist/Hardline/browser/index.html dist/Hardline/browser/404.html
