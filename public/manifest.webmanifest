@@ -6,8 +6,8 @@
   "orientation": "portrait-primary",
   "theme_color": "#131313",
   "background_color": "#131313",
-  "scope": "/Hardline/",
-  "start_url": "/Hardline/",
+  "scope": "/hardline/",
+  "start_url": "/hardline/",
   "icons": [
     {
       "src": "icons/icon-72x72.png",

@@ -28,11 +28,11 @@ jobs:
       - run: npm ci
       - name: Inject API key
         run: sed -i "s|__OPENAI_API_KEY__|${{ secrets.OPENAI_API_KEY }}|g" src/environments/environment.prod.ts
-      - run: npx ng build --configuration production --base-href /Hardline/
+      - run: npx ng build --configuration production --base-href /hardline/
       - name: Copy index.html to 404.html for SPA routing
-        run: cp dist/Hardline/browser/index.html dist/Hardline/browser/404.html
+        run: cp dist/hardline/browser/index.html dist/hardline/browser/404.html
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: dist/Hardline/browser
+          path: dist/hardline/browser
       - id: deployment
         uses: actions/deploy-pages@v4
