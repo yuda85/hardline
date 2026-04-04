@@ -19,6 +19,7 @@
   font-weight: 700;
   gap: 0.5rem;
   position: relative;
+  white-space: nowrap;
 
   &:disabled {
     opacity: 0.4;
