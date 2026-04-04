@@ -6,6 +6,7 @@ import { DecimalPipe } from '@angular/common';
 import { EnergyState } from '../../store/energy/energy.state';
 import { AuthState } from '../../store/auth/auth.state';
 import { Energy } from '../../store/energy/energy.actions';
+import { Profile } from '../../store/profile/profile.actions';
 import { Weight } from '../../store/weight/weight.actions';
 import { WeightState } from '../../store/weight/weight.state';
 import { computeGoalProgress } from '../../store/weight/weight.state';
@@ -51,10 +52,13 @@ export class DashboardComponent implements OnInit {
   protected readonly sessionsLoading = signal(true);
 
   ngOnInit() {
-    this.store.dispatch(new Energy.LoadGoalSettings());
+    this.store.dispatch([
+      new Energy.LoadGoalSettings(),
+      new Profile.FetchGoals(),
+      new Weight.LoadHistory(),
+    ]);
     const today = new Date().toISOString().split('T')[0];
     this.store.dispatch(new Energy.FetchDayData(today));
-    this.store.dispatch(new Weight.LoadHistory());
     this.loadRecentSessions();
   }
 

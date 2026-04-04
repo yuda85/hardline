@@ -50,7 +50,7 @@ export class WorkoutListComponent implements OnInit {
   });
 
   ngOnInit() {
-    this.store.dispatch(new Workout.FetchPlans());
+    this.store.dispatch([new Workout.FetchPlans(), new Profile.FetchGoals()]);
     // Clear volume cache when plans change
     this.store.select(WorkoutState.plans).subscribe(() => this.volumeCache.clear());
   }
