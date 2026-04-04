@@ -5,7 +5,9 @@ export interface Milestone {
   type: 'weight' | 'streak';
   value: number;
   label: string;
+  sublabel: string;
   icon: string;
+  unlocked: boolean;
 }
 
 const STREAK_MILESTONES = [7, 14, 30, 60, 90];
@@ -27,34 +29,44 @@ export class MilestoneBadgeComponent {
     const currentStreak = this.streak();
     const milestones: Milestone[] = [];
 
-    // Weight milestones: every 1kg toward target
     if (target !== null && all.length >= 2) {
       const start = all[all.length - 1].weightKg;
       const current = all[0].weightKg;
       const direction = target < start ? 'loss' : 'gain';
       const progress = direction === 'loss' ? start - current : current - start;
-      const kgsHit = Math.floor(Math.max(0, progress));
+      const totalNeeded = Math.abs(start - target);
 
-      for (let i = 1; i <= kgsHit; i++) {
-        milestones.push({
-          type: 'weight',
-          value: i,
-          label: `${i}kg ${direction === 'loss' ? 'lost' : 'gained'}`,
-          icon: direction === 'loss' ? 'trending_down' : 'trending_up',
-        });
-      }
-    }
+      // Percentage milestones
+      const pct5 = totalNeeded * 0.05;
+      milestones.push({
+        type: 'weight',
+        value: 5,
+        label: '5% Loss',
+        sublabel: progress >= pct5 ? `Unlocked ${Math.floor(progress / pct5)}d ago` : 'In Progress',
+        icon: 'star',
+        unlocked: progress >= pct5,
+      });
 
-    // Streak milestones
-    for (const m of STREAK_MILESTONES) {
-      if (currentStreak >= m) {
-        milestones.push({
-          type: 'streak',
-          value: m,
-          label: `${m}-day streak`,
-          icon: 'local_fire_department',
-        });
-      }
+      // Absolute milestones
+      const kgMilestone = Math.min(10, totalNeeded);
+      milestones.push({
+        type: 'weight',
+        value: kgMilestone,
+        label: `${Math.round(kgMilestone)}kg Total`,
+        sublabel: progress >= kgMilestone ? 'Achieved' : 'In Progress',
+        icon: 'trophy',
+        unlocked: progress >= kgMilestone,
+      });
+
+      // Goal weight
+      milestones.push({
+        type: 'weight',
+        value: 100,
+        label: 'Goal Weight',
+        sublabel: progress >= totalNeeded ? 'Achieved' : 'Locked',
+        icon: progress >= totalNeeded ? 'emoji_events' : 'lock',
+        unlocked: progress >= totalNeeded,
+      });
     }
 
     return milestones;

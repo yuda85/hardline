@@ -1,13 +1,18 @@
 <div class="balance" [class.balance--deficit]="isDeficit()" [class.balance--surplus]="!isDeficit()">
-  <div class="balance__row">
-    <span class="balance__icon material-symbols-outlined">{{ isDeficit() ? 'trending_down' : 'trending_up' }}</span>
-    <div class="balance__info">
-      <span class="balance__value">{{ net() }} kcal</span>
-      <span class="balance__label">{{ label() }}</span>
+  <div class="balance__top">
+    <span class="balance__micro-label">Net Energy</span>
+    <div class="balance__main">
+      <span class="balance__value">{{ net() }}</span>
+      <span class="balance__unit">{{ label() }}</span>
     </div>
   </div>
-  <div class="balance__breakdown">
-    <span>In: {{ consumed() }}</span>
-    <span>Out: {{ burned() }}</span>
+  <div class="balance__insight">
+    <p>You are currently
+      <strong class="balance__highlight">{{ isDeficit() ? 'on track' : 'over target' }}</strong>
+      for your energy goals.
+    </p>
+  </div>
+  <div class="balance__bar">
+    <div class="balance__bar-fill" [style.width.%]="barPct()"></div>
   </div>
 </div>

@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
@@ -10,6 +10,7 @@ import { WorkoutRepository } from '../../../data/repositories/workout.repository
 import { ButtonComponent, CardComponent, IconButtonComponent, BadgeComponent } from '../../../shared/components';
 import { ExercisePickerComponent } from '../exercise-picker/exercise-picker';
 import { SetEditorComponent } from '../set-editor/set-editor';
+import { expandCollapse } from '../../../shared/animations/expand-collapse';
 import { PLAN_TEMPLATES, PlanTemplate } from './plan-templates';
 import { WorkoutDay, ExerciseGroup, PlanExercise, PlanSet, Exercise, MuscleGroup } from '../../../core/models';
 import { EXERCISES } from '../exercise-data';
@@ -24,8 +25,9 @@ import { EXERCISES } from '../exercise-data';
   ],
   templateUrl: './plan-editor.html',
   styleUrl: './plan-editor.scss',
+  animations: [expandCollapse],
 })
-export class PlanEditorComponent implements OnInit {
+export class PlanEditorComponent implements OnInit, OnDestroy {
   private readonly store = inject(Store);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
@@ -43,6 +45,9 @@ export class PlanEditorComponent implements OnInit {
   protected readonly editingExercise = signal<{ dayIdx: number; groupIdx: number; exIdx: number } | null>(null);
   protected readonly showExercisePicker = signal(false);
   protected readonly pickerTarget = signal<{ dayIdx: number; mode: 'add' | 'superset' | 'swap'; swapGroupIdx?: number; swapExIdx?: number; swapMuscleGroup?: MuscleGroup } | null>(null);
+  protected readonly saveStatus = signal<'idle' | 'saving' | 'saved'>('idle');
+  private saveTimer: ReturnType<typeof setTimeout> | null = null;
+  private savedTimer: ReturnType<typeof setTimeout> | null = null;
 
   ngOnInit() {
     const id = this.route.snapshot.paramMap.get('planId') ?? 'new';
@@ -77,12 +82,14 @@ export class PlanEditorComponent implements OnInit {
     };
     this.days.set([...current, newDay]);
     this.expandedDay.set(current.length);
+    this.autoSave();
   }
 
   protected deleteDay(index: number) {
     const updated = this.days().filter((_, i) => i !== index).map((d, i) => ({ ...d, dayNumber: i + 1 }));
     this.days.set(updated);
     this.expandedDay.set(null);
+    this.autoSave();
   }
 
   protected duplicateDay(index: number) {
@@ -97,6 +104,7 @@ export class PlanEditorComponent implements OnInit {
 
   protected updateDayName(index: number, name: string) {
     this.days.update(days => days.map((d, i) => (i === index ? { ...d, name } : d)));
+    this.autoSave();
   }
 
   protected dropDay(event: CdkDragDrop<WorkoutDay[]>) {
@@ -104,6 +112,7 @@ export class PlanEditorComponent implements OnInit {
     moveItemInArray(days, event.previousIndex, event.currentIndex);
     this.days.set(days.map((d, i) => ({ ...d, dayNumber: i + 1 })));
     this.haptic();
+    this.autoSave();
   }
 
   // --- Exercises ---
@@ -164,6 +173,7 @@ export class PlanEditorComponent implements OnInit {
 
     this.showExercisePicker.set(false);
     this.pickerTarget.set(null);
+    this.autoSave();
   }
 
   protected addExerciseToSuperset(dayIdx: number, groupIdx: number, exercise: Exercise) {
@@ -188,6 +198,7 @@ export class PlanEditorComponent implements OnInit {
       updated[dayIdx] = day;
       return updated;
     });
+    this.autoSave();
   }
 
   protected dropExercise(dayIdx: number, event: CdkDragDrop<ExerciseGroup[]>) {
@@ -201,6 +212,7 @@ export class PlanEditorComponent implements OnInit {
       return updated;
     });
     this.haptic();
+    this.autoSave();
   }
 
   // --- Sets/Rest/Notes update ---
@@ -210,6 +222,7 @@ export class PlanEditorComponent implements OnInit {
       updated[dayIdx].exerciseGroups[groupIdx].exercises[exIdx].sets = sets;
       return updated;
     });
+    this.autoSave();
   }
 
   protected updateRest(dayIdx: number, groupIdx: number, rest: number) {
@@ -218,6 +231,7 @@ export class PlanEditorComponent implements OnInit {
       updated[dayIdx].exerciseGroups[groupIdx].restSeconds = rest;
       return updated;
     });
+    this.autoSave();
   }
 
   protected updateNotes(dayIdx: number, groupIdx: number, exIdx: number, notes: string) {
@@ -231,6 +245,7 @@ export class PlanEditorComponent implements OnInit {
       }
       return updated;
     });
+    this.autoSave();
   }
 
   // --- Save ---
@@ -291,6 +306,47 @@ export class PlanEditorComponent implements OnInit {
   protected isEditing(dayIdx: number, groupIdx: number, exIdx: number): boolean {
     const e = this.editingExercise();
     return e?.dayIdx === dayIdx && e?.groupIdx === groupIdx && e?.exIdx === exIdx;
+  }
+
+  // --- Auto-save ---
+  private autoSave() {
+    if (this.isNew()) return;
+
+    if (this.saveTimer) clearTimeout(this.saveTimer);
+    if (this.savedTimer) clearTimeout(this.savedTimer);
+
+    this.saveTimer = setTimeout(() => {
+      this.saveStatus.set('saving');
+      this.store
+        .dispatch(
+          new Workout.UpdatePlan(this.planId(), {
+            name: this.planName(),
+            description: this.planDescription().trim() || undefined,
+            days: this.days(),
+          }),
+        )
+        .subscribe(() => {
+          this.saveStatus.set('saved');
+          this.savedTimer = setTimeout(() => this.saveStatus.set('idle'), 2000);
+        });
+    }, 1500);
+  }
+
+  ngOnDestroy() {
+    if (this.saveTimer) {
+      clearTimeout(this.saveTimer);
+      // Save immediately if a debounced save was pending
+      if (!this.isNew()) {
+        this.store.dispatch(
+          new Workout.UpdatePlan(this.planId(), {
+            name: this.planName(),
+            description: this.planDescription().trim() || undefined,
+            days: this.days(),
+          }),
+        );
+      }
+    }
+    if (this.savedTimer) clearTimeout(this.savedTimer);
   }
 
   private loadExistingPlan(id: string) {

@@ -124,6 +124,15 @@ export class ActiveWorkoutComponent implements OnInit, OnDestroy {
     return s.exerciseGroups.reduce((sum, g) => sum + g.exercises.length, 0);
   });
 
+  protected readonly restProgress = computed(() => {
+    const group = this.currentGroup();
+    if (!group) return 0;
+    const total = group.restSeconds;
+    const left = this.restTimeLeft();
+    if (total <= 0) return 0;
+    return ((total - left) / total) * 552; // 552 = 2*pi*r where r=88
+  });
+
   ngOnInit() {
     const planId = this.route.snapshot.paramMap.get('planId');
     const dayNumber = Number(this.route.snapshot.paramMap.get('dayNumber'));

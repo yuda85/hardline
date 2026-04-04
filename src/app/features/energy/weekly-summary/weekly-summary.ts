@@ -2,12 +2,10 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { Store } from '@ngxs/store';
 import { Energy } from '../../../store/energy/energy.actions';
 import { EnergyState } from '../../../store/energy/energy.state';
-import { ButtonComponent, CardComponent, BadgeComponent } from '../../../shared/components';
-
 @Component({
   selector: 'app-weekly-summary',
   standalone: true,
-  imports: [ButtonComponent, CardComponent, BadgeComponent],
+  imports: [],
   templateUrl: './weekly-summary.html',
   styleUrl: './weekly-summary.scss',
 })

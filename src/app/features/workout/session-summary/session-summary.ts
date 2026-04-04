@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { Router } from '@angular/router';
 import { Store } from '@ngxs/store';
 import { take } from 'rxjs/operators';
@@ -31,6 +31,20 @@ export class SessionSummaryComponent implements OnInit {
   protected readonly totalReps = signal(0);
   protected readonly duration = signal('');
 
+  // PRs that match exercises in this session
+  protected readonly sessionPRs = computed(() => {
+    const s = this.session();
+    const allPRs = this.prs();
+    if (!s || !allPRs.length) return [];
+    const exerciseIds = new Set<string>();
+    for (const group of s.exerciseGroups) {
+      for (const ex of group.exercises) {
+        exerciseIds.add(ex.exerciseId);
+      }
+    }
+    return allPRs.filter(pr => exerciseIds.has(pr.exerciseId));
+  });
+
   ngOnInit() {
     const uid = this.store.selectSnapshot(AuthState.uid);
     if (!uid) { this.router.navigate(['/workouts']); return; }
@@ -57,6 +71,10 @@ export class SessionSummaryComponent implements OnInit {
 
   protected getPR(exerciseId: string): PersonalRecord | undefined {
     return this.prs().find(pr => pr.exerciseId === exerciseId);
+  }
+
+  protected getExerciseReps(ex: { sets: { completed: boolean; actualReps: number }[] }): number {
+    return ex.sets.filter(s => s.completed).reduce((sum, s) => sum + s.actualReps, 0);
   }
 
   private calculateStats(session: WorkoutSession) {

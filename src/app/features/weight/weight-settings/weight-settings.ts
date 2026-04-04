@@ -4,12 +4,10 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Store } from '@ngxs/store';
 import { ProfileState } from '../../../store/profile/profile.state';
 import { Profile } from '../../../store/profile/profile.actions';
-import { CardComponent, ButtonComponent, IconButtonComponent } from '../../../shared/components';
-
 @Component({
   selector: 'app-weight-settings',
   standalone: true,
-  imports: [ReactiveFormsModule, CardComponent, ButtonComponent, IconButtonComponent],
+  imports: [ReactiveFormsModule],
   templateUrl: './weight-settings.html',
   styleUrl: './weight-settings.scss',
 })
@@ -28,12 +26,15 @@ export class WeightSettingsComponent implements OnInit {
   });
 
   ngOnInit() {
-    const goals = this.goals();
-    const prefs = this.preferences();
+    // Ensure profile data is loaded
+    this.store.dispatch(new Profile.FetchGoals()).subscribe(() => {
+      const goals = this.goals();
+      const prefs = this.preferences();
 
-    this.form.patchValue({
-      targetWeight: goals?.targetWeight ?? null,
-      reminderTime: prefs?.weighInReminderTime ?? '07:00',
+      this.form.patchValue({
+        targetWeight: goals?.targetWeight ?? null,
+        reminderTime: prefs?.weighInReminderTime ?? '07:00',
+      });
     });
   }
 

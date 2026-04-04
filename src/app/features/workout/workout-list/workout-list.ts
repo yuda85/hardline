@@ -1,10 +1,12 @@
-import { Component, inject, OnInit, signal, ViewChild, ElementRef } from '@angular/core';
+import { Component, inject, OnInit, signal, computed, ViewChild, ElementRef } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { Store } from '@ngxs/store';
 import { WorkoutState } from '../../../store/workout/workout.state';
 import { AuthState } from '../../../store/auth/auth.state';
+import { ProfileState } from '../../../store/profile/profile.state';
 import { Workout } from '../../../store/workout/workout.actions';
+import { Profile } from '../../../store/profile/profile.actions';
 import { WorkoutIOService } from '../../../core/services/workout-io.service';
 import { ButtonComponent, CardComponent, BadgeComponent, SkeletonComponent } from '../../../shared/components';
 import { RelativeTimePipe } from '../../../shared/pipes/relative-time.pipe';
@@ -28,11 +30,24 @@ export class WorkoutListComponent implements OnInit {
 
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
 
-  protected readonly plans = this.store.selectSignal(WorkoutState.plans);
+  private readonly rawPlans = this.store.selectSignal(WorkoutState.plans);
+  protected readonly activePlanId = this.store.selectSignal(ProfileState.activePlanId);
   protected readonly loading = this.store.selectSignal(WorkoutState.loading);
   protected readonly seeding = signal(false);
   protected readonly importError = signal<string | null>(null);
   protected readonly expandedPlan = signal<string | null>(null);
+
+  /** Active plan always sorted to top */
+  protected readonly plans = computed(() => {
+    const all = this.rawPlans();
+    const activeId = this.activePlanId();
+    if (!activeId) return all;
+    return [...all].sort((a, b) => {
+      if (a.id === activeId) return -1;
+      if (b.id === activeId) return 1;
+      return 0;
+    });
+  });
 
   ngOnInit() {
     this.store.dispatch(new Workout.FetchPlans());
@@ -52,6 +67,22 @@ export class WorkoutListComponent implements OnInit {
   protected startDay(planId: string, dayNumber: number, event?: Event) {
     event?.stopPropagation();
     this.router.navigate(['/workouts', 'day', planId, dayNumber]);
+  }
+
+  protected toggleActivePlan(planId: string, event: Event) {
+    event.stopPropagation();
+    const current = this.activePlanId();
+    this.store.dispatch(new Profile.SetActivePlan(current === planId ? null : planId));
+  }
+
+  protected goToBuilder(event: Event) {
+    event.stopPropagation();
+    this.router.navigate(['/workouts', 'generate']);
+  }
+
+  protected goToSmartWorkout(event: Event) {
+    event.stopPropagation();
+    this.router.navigate(['/workouts', 'smart-workout']);
   }
 
   protected editPlan(planId: string, event: Event) {

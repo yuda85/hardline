@@ -1,47 +1,83 @@
 <div class="whist">
+  <!-- Header -->
   <header class="whist__header">
-    <app-icon-button icon="arrow_back" ariaLabel="Back" (click)="goBack()" />
+    <button class="whist__back" (click)="goBack()">
+      <span class="material-symbols-outlined">arrow_back</span>
+    </button>
     <h1 class="whist__title">Weight History</h1>
   </header>
 
   @if (sortedEntries().length === 0) {
-    <app-card [elevation]="1" padding="lg">
-      <div class="whist__empty">
-        <span class="material-symbols-outlined">history</span>
-        <p>No weight entries yet</p>
-      </div>
-    </app-card>
+    <div class="whist__empty">
+      <span class="material-symbols-outlined whist__empty-icon">history</span>
+      <p>No weight entries yet</p>
+    </div>
   } @else {
+    <!-- Hero summary -->
+    <section class="whist__hero">
+      <div class="whist__hero-row">
+        <span class="whist__hero-weight">{{ latestWeight() }}</span>
+        <div class="whist__hero-meta">
+          <span class="whist__hero-label">Current Weight</span>
+          @if (thirtyDayChange(); as change) {
+            <span class="whist__hero-change" [class.whist__hero-change--loss]="change < 0" [class.whist__hero-change--gain]="change > 0">
+              {{ change > 0 ? '+' : '' }}{{ change }} kg
+            </span>
+          }
+          <span class="whist__hero-label">Last 30 Days</span>
+        </div>
+      </div>
+      <div class="whist__hero-bar">
+        <div class="whist__hero-bar-fill" [style.width.%]="progressPct()"></div>
+      </div>
+    </section>
+
+    <!-- Month groups -->
     @for (group of groupedByMonth(); track group.month) {
-      <div class="whist__month">
-        <h2 class="whist__month-title">{{ formatMonth(group.month) }}</h2>
+      <section class="whist__month" [class.whist__month--faded]="!group.isFirst">
+        <h3 class="whist__month-title">
+          {{ monthName(group.month) }}
+          <span class="whist__month-line"></span>
+        </h3>
+
         <div class="whist__entries">
           @for (entry of group.entries; track entry.id) {
             <div class="whist__entry">
-              <div class="whist__entry-date">{{ formatDate(entry.date) }}</div>
-              <div class="whist__entry-weight">{{ entry.weightKg }}kg</div>
-              @if (entry.change !== null) {
-                <div
-                  class="whist__entry-change"
-                  [class.whist__entry-change--gain]="entry.change > 0"
-                  [class.whist__entry-change--loss]="entry.change < 0"
-                >
-                  {{ entry.change > 0 ? '+' : '' }}{{ entry.change }}
+              <div class="whist__entry-left">
+                <span class="whist__entry-date">{{ formatDateFull(entry.date) }}</span>
+                @if (entry.notes) {
+                  <span class="whist__entry-notes">{{ entry.notes }}</span>
+                }
+              </div>
+              <div class="whist__entry-right">
+                <div class="whist__entry-data">
+                  <span class="whist__entry-weight">{{ entry.weightKg }}</span>
+                  @if (entry.change !== null) {
+                    <span
+                      class="whist__entry-change"
+                      [class.whist__entry-change--loss]="entry.change < 0"
+                      [class.whist__entry-change--gain]="entry.change > 0"
+                    >{{ entry.change > 0 ? '+' : '' }}{{ entry.change }} kg</span>
+                  }
                 </div>
-              } @else {
-                <div class="whist__entry-change">—</div>
-              }
-              @if (entry.notes) {
-                <div class="whist__entry-notes">{{ entry.notes }}</div>
-              }
+                <div
+                  class="whist__entry-bar"
+                  [class.whist__entry-bar--loss]="entry.change !== null && entry.change <= 0"
+                  [class.whist__entry-bar--gain]="entry.change !== null && entry.change > 0"
+                ></div>
+              </div>
             </div>
           }
         </div>
-      </div>
+      </section>
     }
 
+    <!-- Load more -->
     <div class="whist__load-more">
-      <app-button variant="outline" (click)="loadMore()">Load more</app-button>
+      <button class="whist__load-btn" (click)="loadMore()">
+        <span class="material-symbols-outlined">history</span>
+        Load more history
+      </button>
     </div>
   }
 </div>

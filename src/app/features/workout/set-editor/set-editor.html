@@ -1,71 +1,110 @@
-<div class="sed">
-  <!-- Sets -->
-  <label class="sed__label">Sets &amp; Reps</label>
-  <div class="sed__sets">
-    @for (set of sets(); track $index; let i = $index) {
-      <div class="sed__set-row">
-        <span class="sed__set-num">{{ i + 1 }}</span>
+@if (mode() === 'inline') {
+  <!-- Inline mode: compact set rows with +/- steppers -->
+  <div class="sed-inline">
+    <div class="sed-inline__sets">
+      @for (set of sets(); track $index; let i = $index) {
+        <div class="sed-inline__row">
+          <span class="sed-inline__label">Set {{ i + 1 }}</span>
+          <div class="sed-inline__stepper">
+            <button class="sed-inline__stepper-btn" (click)="updateReps(i, set.targetReps - 1)">
+              <span class="material-symbols-outlined">remove</span>
+            </button>
+            <input
+              type="number"
+              inputmode="numeric"
+              class="sed-inline__value"
+              [ngModel]="set.targetReps"
+              (ngModelChange)="updateReps(i, $event)"
+              min="1"
+            />
+            <button class="sed-inline__stepper-btn" (click)="updateReps(i, set.targetReps + 1)">
+              <span class="material-symbols-outlined">add</span>
+            </button>
+          </div>
+          <span class="sed-inline__reps-label">Reps</span>
+          @if (sets().length > 1) {
+            <button class="sed-inline__remove" (click)="removeSet(i)">
+              <span class="material-symbols-outlined">close</span>
+            </button>
+          }
+        </div>
+      }
+    </div>
+    <button class="sed-inline__add" (click)="addSet()">
+      <span class="material-symbols-outlined">add_box</span>
+    </button>
+  </div>
+} @else {
+  <!-- Panel mode: original layout -->
+  <div class="sed">
+    <!-- Sets -->
+    <label class="sed__label">Sets &amp; Reps</label>
+    <div class="sed__sets">
+      @for (set of sets(); track $index; let i = $index) {
+        <div class="sed__set-row">
+          <span class="sed__set-num">{{ i + 1 }}</span>
+          <input
+            type="number"
+            inputmode="numeric"
+            class="sed__reps-input"
+            [ngModel]="set.targetReps"
+            (ngModelChange)="updateReps(i, $event)"
+            min="1"
+          />
+          <span class="sed__reps-label">reps</span>
+          @if (sets().length > 1) {
+            <button class="sed__remove" (click)="removeSet(i)">
+              <span class="material-symbols-outlined">close</span>
+            </button>
+          }
+        </div>
+      }
+      <button class="sed__add-set" (click)="addSet()">
+        <span class="material-symbols-outlined">add</span> Add set
+      </button>
+    </div>
+
+    <!-- Rest -->
+    <label class="sed__label">Rest between sets</label>
+    <div class="sed__rest">
+      @for (preset of restPresets; track preset) {
+        <button
+          class="sed__rest-btn"
+          [class.sed__rest-btn--active]="restSeconds() === preset && !customRest()"
+          (click)="setRest(preset)"
+        >
+          {{ preset }}s
+        </button>
+      }
+      <button
+        class="sed__rest-btn"
+        [class.sed__rest-btn--active]="customRest() || !restPresets.includes(restSeconds())"
+        (click)="customRest.set(true)"
+      >
+        Custom
+      </button>
+    </div>
+    @if (customRest() || !restPresets.includes(restSeconds())) {
+      <div class="sed__custom-rest">
         <input
           type="number"
           inputmode="numeric"
-          class="sed__reps-input"
-          [ngModel]="set.targetReps"
-          (ngModelChange)="updateReps(i, $event)"
-          min="1"
+          [ngModel]="restSeconds()"
+          (ngModelChange)="onCustomRest($event)"
+          min="0"
         />
-        <span class="sed__reps-label">reps</span>
-        @if (sets().length > 1) {
-          <button class="sed__remove" (click)="removeSet(i)">
-            <span class="material-symbols-outlined">close</span>
-          </button>
-        }
+        <span>seconds</span>
       </div>
     }
-    <button class="sed__add-set" (click)="addSet()">
-      <span class="material-symbols-outlined">add</span> Add set
-    </button>
-  </div>
 
-  <!-- Rest -->
-  <label class="sed__label">Rest between sets</label>
-  <div class="sed__rest">
-    @for (preset of restPresets; track preset) {
-      <button
-        class="sed__rest-btn"
-        [class.sed__rest-btn--active]="restSeconds() === preset && !customRest()"
-        (click)="setRest(preset)"
-      >
-        {{ preset }}s
-      </button>
-    }
-    <button
-      class="sed__rest-btn"
-      [class.sed__rest-btn--active]="customRest() || !restPresets.includes(restSeconds())"
-      (click)="customRest.set(true)"
-    >
-      Custom
-    </button>
+    <!-- Notes -->
+    <label class="sed__label">Notes (optional)</label>
+    <textarea
+      class="sed__notes"
+      [ngModel]="notes()"
+      (ngModelChange)="onNotesChange($event)"
+      placeholder="e.g. Slow eccentric, use belt..."
+      rows="2"
+    ></textarea>
   </div>
-  @if (customRest() || !restPresets.includes(restSeconds())) {
-    <div class="sed__custom-rest">
-      <input
-        type="number"
-        inputmode="numeric"
-        [ngModel]="restSeconds()"
-        (ngModelChange)="onCustomRest($event)"
-        min="0"
-      />
-      <span>seconds</span>
-    </div>
-  }
-
-  <!-- Notes -->
-  <label class="sed__label">Notes (optional)</label>
-  <textarea
-    class="sed__notes"
-    [ngModel]="notes()"
-    (ngModelChange)="onNotesChange($event)"
-    placeholder="e.g. Slow eccentric, use belt..."
-    rows="2"
-  ></textarea>
-</div>
+}

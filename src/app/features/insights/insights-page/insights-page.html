@@ -1,0 +1,171 @@
+<div class="insights">
+  <!-- Header -->
+  <header class="insights__header">
+    <h1 class="insights__title">Insights</h1>
+    <p class="insights__subtitle">Your training at a glance</p>
+    <div class="insights__range-pills">
+      <button
+        class="insights__pill"
+        [class.insights__pill--active]="timeRange() === 'week'"
+        (click)="setTimeRange('week')"
+      >This Week</button>
+      <button
+        class="insights__pill"
+        [class.insights__pill--active]="timeRange() === 'month'"
+        (click)="setTimeRange('month')"
+      >This Month</button>
+      <button
+        class="insights__pill"
+        [class.insights__pill--active]="timeRange() === '3months'"
+        (click)="setTimeRange('3months')"
+      >3 Months</button>
+    </div>
+  </header>
+
+  <!-- Card 1: Muscle Recovery Map -->
+  <app-card [elevation]="2" padding="lg" accentBorder="primary">
+    <h2 class="insights__section-title">Muscle Recovery Map</h2>
+
+    <app-recovery-map [recoveryData]="recovery()" />
+
+    <!-- Legend -->
+    <div class="insights__legend">
+      <div class="insights__legend-item">
+        <span class="insights__legend-dot" style="background: #ef6719; box-shadow: 0 0 6px rgba(239,103,25,0.6)"></span>
+        <span>Recovering</span>
+      </div>
+      <div class="insights__legend-item">
+        <span class="insights__legend-dot" style="background: #ffb595"></span>
+        <span>Sore</span>
+      </div>
+      <div class="insights__legend-item">
+        <span class="insights__legend-dot" style="background: #66d9a0"></span>
+        <span>Ready</span>
+      </div>
+      <div class="insights__legend-item">
+        <span class="insights__legend-dot" style="background: #414755"></span>
+        <span>Undertrained</span>
+      </div>
+    </div>
+
+    <!-- Muscle group list -->
+    <div class="insights__muscle-list">
+      @for (item of sortedRecovery(); track item.group) {
+        <div class="insights__muscle-row">
+          <span class="insights__muscle-name" [style.color]="statusColor(item.status)">{{ item.label }}</span>
+          <span class="insights__muscle-time">{{ timeAgo(item.lastTrained) }}</span>
+        </div>
+      }
+    </div>
+  </app-card>
+
+  <!-- Card 2: PR Board -->
+  @if (prBoard().length > 0) {
+    <section>
+      <h2 class="insights__section-title insights__section-title--outer">PR Board — Big Lifts</h2>
+      <div class="insights__pr-scroll">
+        @for (pr of prBoard(); track pr.exerciseId) {
+          <div class="insights__pr-tile" [class.insights__pr-tile--recent]="pr.isRecent">
+            <p class="insights__pr-name">{{ pr.exerciseName }}</p>
+            <h3 class="insights__pr-value">{{ pr.oneRepMax }}<span class="insights__pr-unit">kg</span></h3>
+            <p class="insights__pr-detail">{{ pr.weight }}kg x {{ pr.reps }} · {{ pr.date | date:'MMM d' }}</p>
+            <app-sparkline [data]="pr.history" [width]="100" [height]="28" />
+          </div>
+        }
+      </div>
+    </section>
+  }
+
+  <!-- Card 3: Weekly Volume Trend -->
+  <app-card [elevation]="1" padding="lg">
+    <div class="insights__card-header">
+      <h2 class="insights__section-title">Weekly Volume</h2>
+      @if (volumeChange(); as pct) {
+        <span class="insights__delta" [class.insights__delta--positive]="pct > 0" [class.insights__delta--negative]="pct < 0">
+          <span class="material-symbols-outlined">{{ pct > 0 ? 'trending_up' : 'trending_down' }}</span>
+          {{ pct > 0 ? '+' : '' }}{{ pct }}%
+        </span>
+      }
+    </div>
+
+    <div class="insights__bars">
+      @for (week of weeklyVolume(); track week.weekLabel) {
+        <div class="insights__bar-col">
+          <span class="insights__bar-label">{{ formatVolume(week.volume) }}</span>
+          <div
+            class="insights__bar"
+            [class.insights__bar--current]="week.isCurrent"
+            [style.height.%]="(week.volume / maxVolume()) * 100"
+          ></div>
+        </div>
+      }
+    </div>
+
+    <div class="insights__volume-summary">
+      <span class="insights__volume-number">{{ currentWeekVolume() | number }}</span>
+      <span class="insights__volume-unit">kg this week</span>
+    </div>
+  </app-card>
+
+  <!-- Card 4: Training Heatmap -->
+  <app-card [elevation]="1" padding="lg">
+    <div class="insights__card-header">
+      <h2 class="insights__section-title">Frequency</h2>
+      @if (heatmapStats().streak > 0) {
+        <app-badge variant="tertiary" size="sm">{{ heatmapStats().streak }} day streak</app-badge>
+      }
+    </div>
+
+    <div class="insights__heatmap">
+      @for (week of heatmapWeeks(); track $index) {
+        <div class="insights__heatmap-col">
+          @for (day of week; track day.date) {
+            <div
+              class="insights__heatmap-cell"
+              [class.insights__heatmap-cell--1]="day.intensity === 1"
+              [class.insights__heatmap-cell--2]="day.intensity === 2"
+              [class.insights__heatmap-cell--3]="day.intensity === 3"
+            ></div>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="insights__heatmap-stats">
+      <div>
+        <span class="insights__heatmap-num">{{ heatmapStats().workoutDays }}</span>
+        <span class="insights__heatmap-label">workouts</span>
+      </div>
+      <div class="insights__heatmap-right">
+        <span class="insights__heatmap-num">{{ heatmapStats().avgPerWeek }}</span>
+        <span class="insights__heatmap-label">avg / week</span>
+      </div>
+    </div>
+  </app-card>
+
+  <!-- Card 5: Body Weight Momentum -->
+  @if (momentum(); as m) {
+    <app-card [elevation]="1" padding="lg">
+      <h2 class="insights__section-title">Momentum</h2>
+      <div class="insights__momentum">
+        <div class="insights__momentum-main">
+          <span class="insights__momentum-rate" [style.color]="momentumColor()">
+            {{ m.ratePerWeek > 0 ? '+' : '' }}{{ m.ratePerWeek }}<span class="insights__momentum-unit">kg/wk</span>
+          </span>
+          <p class="insights__momentum-label">{{ m.label }}</p>
+          <p class="insights__momentum-basis">Based on last 4 weeks</p>
+        </div>
+        @if (m.weeklyAverages.length >= 2) {
+          <app-sparkline [data]="m.weeklyAverages" [color]="momentumColor()" [width]="96" [height]="40" />
+        }
+      </div>
+    </app-card>
+  } @else {
+    <app-card [elevation]="1" padding="lg">
+      <div class="insights__empty">
+        <span class="material-symbols-outlined insights__empty-icon">monitor_weight</span>
+        <p>Log your weight for 2+ weeks to see momentum</p>
+      </div>
+    </app-card>
+  }
+</div>

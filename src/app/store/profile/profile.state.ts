@@ -42,6 +42,11 @@ export class ProfileState {
     return state.loading;
   }
 
+  @Selector()
+  static activePlanId(state: ProfileStateModel): string | null {
+    return state.activePlanId;
+  }
+
   @Action(Profile.FetchGoals)
   fetchGoals(ctx: StateContext<ProfileStateModel>) {
     const uid = this.store.selectSnapshot(AuthState.uid);
@@ -54,6 +59,7 @@ export class ProfileState {
         ctx.patchState({
           goals: user?.goals ?? null,
           preferences: user?.preferences ?? null,
+          activePlanId: user?.activePlanId ?? null,
           loading: false,
         });
       }),
@@ -109,6 +115,15 @@ export class ProfileState {
         }),
       );
     }
+  }
+
+  @Action(Profile.SetActivePlan)
+  async setActivePlan(ctx: StateContext<ProfileStateModel>, action: Profile.SetActivePlan) {
+    const uid = this.store.selectSnapshot(AuthState.uid);
+    if (!uid) return;
+
+    await this.userRepo.update(uid, { activePlanId: action.planId });
+    ctx.patchState({ activePlanId: action.planId });
   }
 
   @Action(Profile.Reset)

@@ -2,7 +2,7 @@
   <div class="macros__item">
     <div class="macros__header">
       <span class="macros__label">Protein</span>
-      <span class="macros__value">{{ protein() }}/{{ proteinGoal() }}g</span>
+      <span class="macros__value">{{ protein() }}g <span>/ {{ proteinGoal() }}g</span></span>
     </div>
     <div class="macros__track">
       <div class="macros__fill macros__fill--protein" [style.width.%]="proteinPct()"></div>
@@ -11,7 +11,7 @@
   <div class="macros__item">
     <div class="macros__header">
       <span class="macros__label">Carbs</span>
-      <span class="macros__value">{{ carbs() }}/{{ carbsGoal() }}g</span>
+      <span class="macros__value">{{ carbs() }}g <span>/ {{ carbsGoal() }}g</span></span>
     </div>
     <div class="macros__track">
       <div class="macros__fill macros__fill--carbs" [style.width.%]="carbsPct()"></div>
@@ -19,8 +19,8 @@
   </div>
   <div class="macros__item">
     <div class="macros__header">
-      <span class="macros__label">Fat</span>
-      <span class="macros__value">{{ fat() }}/{{ fatGoal() }}g</span>
+      <span class="macros__label">Fats</span>
+      <span class="macros__value">{{ fat() }}g <span>/ {{ fatGoal() }}g</span></span>
     </div>
     <div class="macros__track">
       <div class="macros__fill macros__fill--fat" [style.width.%]="fatPct()"></div>

@@ -13,4 +13,9 @@ export class BalanceCardComponent {
   protected readonly net = computed(() => this.consumed() - this.burned());
   protected readonly isDeficit = computed(() => this.net() < 0);
   protected readonly label = computed(() => (this.isDeficit() ? 'Deficit' : 'Surplus'));
+  protected readonly barPct = computed(() => {
+    const total = this.burned();
+    if (total === 0) return 0;
+    return Math.min(100, Math.round((this.consumed() / total) * 100));
+  });
 }

@@ -3,13 +3,12 @@ import { FormBuilder, FormArray, ReactiveFormsModule, Validators } from '@angula
 import { Store } from '@ngxs/store';
 import { Energy } from '../../../store/energy/energy.actions';
 import { EnergyState } from '../../../store/energy/energy.state';
-import { ButtonComponent, IconButtonComponent } from '../../../shared/components';
 import { MealItem, MealType } from '../../../core/models/energy.model';
 
 @Component({
   selector: 'app-add-meal-energy',
   standalone: true,
-  imports: [ReactiveFormsModule, ButtonComponent, IconButtonComponent],
+  imports: [ReactiveFormsModule],
   templateUrl: './add-meal.html',
   styleUrl: './add-meal.scss',
 })

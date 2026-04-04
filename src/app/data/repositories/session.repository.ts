@@ -24,4 +24,13 @@ export class SessionRepository extends BaseRepository<WorkoutSession> {
       limit(count),
     ]);
   }
+
+  getByDateRange(userId: string, startDate: Date, endDate: Date): Observable<WorkoutSession[]> {
+    return this.queryDocs([
+      where('userId', '==', userId),
+      where('startedAt', '>=', startDate),
+      where('startedAt', '<=', endDate),
+      orderBy('startedAt', 'asc'),
+    ]);
+  }
 }

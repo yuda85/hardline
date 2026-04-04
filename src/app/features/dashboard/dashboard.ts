@@ -61,6 +61,8 @@ export class DashboardComponent implements OnInit {
   protected goToEnergy() { this.router.navigate(['/energy']); }
   protected goToWorkouts() { this.router.navigate(['/workouts']); }
   protected goToWeight() { this.router.navigate(['/weight']); }
+  protected goToSmartWorkout() { this.router.navigate(['/workouts', 'smart-workout']); }
+  protected goToBuilder() { this.router.navigate(['/workouts', 'generate']); }
 
   protected getGreeting(): string {
     const hour = new Date().getHours();

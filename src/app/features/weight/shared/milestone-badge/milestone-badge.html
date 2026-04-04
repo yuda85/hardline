@@ -1,13 +1,15 @@
 @if (milestones().length > 0) {
-  <div class="badges">
-    <h3 class="badges__title">Milestones</h3>
-    <div class="badges__grid">
-      @for (m of milestones(); track m.label) {
-        <div class="badge" [class.badge--weight]="m.type === 'weight'" [class.badge--streak]="m.type === 'streak'">
-          <span class="material-symbols-outlined badge__icon">{{ m.icon }}</span>
-          <span class="badge__label">{{ m.label }}</span>
+  <div class="miles__grid">
+    @for (m of milestones(); track m.label) {
+      <div class="miles__card" [class.miles__card--locked]="!m.unlocked">
+        <div class="miles__icon-wrap" [class.miles__icon-wrap--locked]="!m.unlocked">
+          <span class="material-symbols-outlined miles__icon">{{ m.icon }}</span>
         </div>
-      }
-    </div>
+        <div class="miles__text">
+          <span class="miles__label">{{ m.label }}</span>
+          <span class="miles__sublabel">{{ m.sublabel }}</span>
+        </div>
+      </div>
+    }
   </div>
 }

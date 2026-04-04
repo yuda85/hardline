@@ -5,14 +5,14 @@
 }
 
 .chart__grid {
-  stroke: var(--surface-container-high);
+  stroke: var(--surface-container-highest);
   stroke-width: 0.5;
   stroke-dasharray: 2 2;
 }
 
 .chart__line {
   fill: none;
-  stroke: var(--primary);
+  stroke: #3cd7ff;
   stroke-width: 2;
   stroke-linecap: round;
   stroke-linejoin: round;
@@ -20,7 +20,7 @@
 
 .chart__trend {
   fill: none;
-  stroke: var(--tertiary);
+  stroke: #ffb596;
   stroke-width: 1.5;
   stroke-linecap: round;
   stroke-linejoin: round;
@@ -29,8 +29,8 @@
 }
 
 .chart__dot {
-  fill: var(--primary);
-  stroke: var(--surface);
+  fill: #3cd7ff;
+  stroke: var(--surface-container);
   stroke-width: 1.5;
 }
 
@@ -54,6 +54,7 @@
   gap: 0.5rem;
   padding: 2rem 1rem;
   color: var(--on-surface-variant);
+  min-height: 10rem;
 
   .material-symbols-outlined {
     font-size: 2rem;

@@ -16,7 +16,7 @@ import {
 @Component({
   selector: 'app-goals-setup',
   standalone: true,
-  imports: [ReactiveFormsModule, ButtonComponent, CardComponent, BadgeComponent, MacroBarsComponent],
+  imports: [ReactiveFormsModule, MacroBarsComponent],
   templateUrl: './goals-setup.html',
   styleUrl: './goals-setup.scss',
 })

@@ -1,0 +1,48 @@
+.recovery-map {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+}
+
+.recovery-map__body {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.recovery-map__svg {
+  width: 96px;
+  height: 192px;
+}
+
+.recovery-map__label {
+  margin-top: 0.5rem;
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--on-surface-variant);
+}
+
+// Pulsing glow for recovering muscles
+.pulse-glow {
+  animation: pulseGlow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    filter: drop-shadow(0 0 2px #ef6719);
+    opacity: 1;
+  }
+  50% {
+    filter: drop-shadow(0 0 8px #ef6719);
+    opacity: 0.85;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pulse-glow {
+    animation: none;
+  }
+}

@@ -4,14 +4,13 @@ import { Store } from '@ngxs/store';
 import { AIService } from '../../../core/services/ai.service';
 import { EnergyState } from '../../../store/energy/energy.state';
 import { Energy } from '../../../store/energy/energy.actions';
-import { ButtonComponent, CardComponent, BadgeComponent } from '../../../shared/components';
 import { AiTotalPipe } from '../../../shared/pipes/ai-total.pipe';
 import { MealItem, MealType } from '../../../core/models/energy.model';
 
 @Component({
   selector: 'app-ai-meal-input-energy',
   standalone: true,
-  imports: [FormsModule, ButtonComponent, CardComponent, BadgeComponent, AiTotalPipe],
+  imports: [FormsModule, AiTotalPipe],
   templateUrl: './ai-meal-input.html',
   styleUrl: './ai-meal-input.scss',
 })

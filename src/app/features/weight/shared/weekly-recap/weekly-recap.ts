@@ -1,11 +1,9 @@
 import { Component, input, computed } from '@angular/core';
 import { WeightEntry } from '../../../../core/models/energy.model';
-import { CardComponent } from '../../../../shared/components';
-
 @Component({
   selector: 'app-weekly-recap',
   standalone: true,
-  imports: [CardComponent],
+  imports: [],
   templateUrl: './weekly-recap.html',
   styleUrl: './weekly-recap.scss',
 })

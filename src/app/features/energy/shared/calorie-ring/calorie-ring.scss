@@ -5,8 +5,8 @@
   justify-content: center;
 
   &--sm { width: 72px; height: 72px; }
-  &--md { width: 100px; height: 100px; }
-  &--lg { width: 140px; height: 140px; }
+  &--md { width: 128px; height: 128px; }
+  &--lg { width: 224px; height: 224px; }
 }
 
 .ring__svg {
@@ -17,19 +17,25 @@
 
 .ring__bg {
   fill: none;
-  stroke: var(--surface-container-high);
-  stroke-width: 7;
+  stroke: var(--surface-container-highest);
+  stroke-width: 8;
+
+  .ring--lg & { stroke-width: 12; }
 }
 
 .ring__fill {
   fill: none;
-  stroke: var(--primary);
-  stroke-width: 7;
+  stroke: #3cd7ff;
+  stroke-width: 8;
   stroke-linecap: round;
   transition: stroke-dashoffset 500ms ease;
+  filter: drop-shadow(0 0 12px rgba(60, 215, 255, 0.4));
+
+  .ring--lg & { stroke-width: 12; }
 
   &--over {
     stroke: var(--error);
+    filter: drop-shadow(0 0 12px rgba(255, 180, 171, 0.4));
   }
 }
 
@@ -47,20 +53,21 @@
   font-weight: 800;
   line-height: 1;
   color: var(--on-surface);
+  letter-spacing: -0.04em;
 
   .ring--sm & { font-size: 0.875rem; }
-  .ring--md & { font-size: 1.25rem; }
-  .ring--lg & { font-size: 1.75rem; }
+  .ring--md & { font-size: 1.5rem; }
+  .ring--lg & { font-size: 3.25rem; }
 
   &--over { color: var(--error); }
 }
 
 .ring__label {
-  font-size: 0.5625rem;
+  font-size: 0.625rem;
   color: var(--on-surface-variant);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  font-weight: 600;
+  letter-spacing: 0.15em;
+  font-weight: 700;
 
-  .ring--lg & { font-size: 0.6875rem; }
+  .ring--lg & { font-size: 0.75rem; }
 }

@@ -1,44 +1,48 @@
 .macros {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 1.5rem;
 }
 
 .macros__header {
   display: flex;
   justify-content: space-between;
-  align-items: baseline;
-  margin-bottom: 0.125rem;
+  align-items: flex-end;
+  margin-bottom: 0.5rem;
 }
 
 .macros__label {
-  font-size: 0.6875rem;
-  font-weight: 600;
-  color: var(--on-surface-variant);
+  font-size: 0.75rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.15em;
+  color: var(--on-surface-variant);
 }
 
 .macros__value {
-  font-family: var(--font-headline);
-  font-size: 0.6875rem;
+  font-size: 0.875rem;
   font-weight: 700;
   color: var(--on-surface);
+
+  span {
+    color: var(--on-surface-variant);
+    font-weight: 500;
+  }
 }
 
 .macros__track {
   height: 6px;
-  background: var(--surface-container-high);
-  border-radius: 3px;
+  background: var(--surface-container-highest);
+  border-radius: 9999px;
   overflow: hidden;
 }
 
 .macros__fill {
   height: 100%;
-  border-radius: 3px;
+  border-radius: 9999px;
   transition: width 400ms ease;
 
-  &--protein { background: var(--primary); }
-  &--carbs { background: var(--tertiary); }
-  &--fat { background: var(--secondary); }
+  &--protein { background: #3cd7ff; }
+  &--carbs { background: var(--on-surface-variant); }
+  &--fat { background: #ffb696; }
 }

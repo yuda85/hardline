@@ -1,11 +1,20 @@
 <div class="am__backdrop" (click)="close()"></div>
+
 <div class="am">
+  <div class="am__handle"></div>
+
+  <!-- Header -->
   <div class="am__header">
-    <h2 class="am__title">Log meal</h2>
-    <app-icon-button icon="close" ariaLabel="Close" (click)="close()" />
+    <div class="am__icon-box">
+      <span class="material-symbols-outlined">restaurant</span>
+    </div>
+    <div>
+      <h2 class="am__title">Log Meal</h2>
+      <p class="am__subtitle">Manual nutrition entry</p>
+    </div>
   </div>
 
-  <!-- Meal type -->
+  <!-- Meal type tabs -->
   <div class="am__type-tabs">
     @for (type of mealTypes; track type.value) {
       <button
@@ -21,13 +30,15 @@
       @for (item of items.controls; track $index; let i = $index) {
         <div class="am__item" [formGroupName]="$index">
           <div class="am__item-header">
-            <span class="am__item-num">{{ i + 1 }}</span>
+            <span class="am__item-num">#{{ i + 1 }}</span>
             @if (items.length > 1) {
-              <app-icon-button icon="delete" ariaLabel="Remove" size="sm" (click)="removeItem(i)" />
+              <button type="button" class="am__item-delete" (click)="removeItem(i)">
+                <span class="material-symbols-outlined">close</span>
+              </button>
             }
           </div>
           <div class="am__field am__field--full">
-            <label>Food name</label>
+            <label>Food Name</label>
             <input type="text" formControlName="name" placeholder="e.g. Chicken breast" />
           </div>
           <div class="am__row">
@@ -59,8 +70,11 @@
     </button>
   </form>
 
+  <!-- Actions -->
   <div class="am__actions">
-    <app-button variant="outline" (click)="close()">Cancel</app-button>
-    <app-button variant="primary" [loading]="saving()" (click)="save()">Save meal</app-button>
+    <button class="am__skip" (click)="close()">Cancel</button>
+    <button class="am__save" [disabled]="saving()" (click)="save()">Save Meal</button>
   </div>
+
+  <div class="am__safe-area"></div>
 </div>

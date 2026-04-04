@@ -1,33 +1,47 @@
 <div class="ds">
-  <h1 class="ds__title">Daily Summary</h1>
+  <header class="ds__header">
+    <h1 class="ds__title">Daily Summary</h1>
+  </header>
 
   <div class="ds__date-nav">
-    <app-icon-button icon="chevron_left" ariaLabel="Previous day" (click)="prevDay()" />
+    <button class="ds__nav-btn" (click)="prevDay()">
+      <span class="material-symbols-outlined">chevron_left</span>
+    </button>
     <span class="ds__date">{{ formatDate(selectedDate()) }}</span>
-    <app-icon-button icon="chevron_right" ariaLabel="Next day" (click)="nextDay()" />
+    <button class="ds__nav-btn" (click)="nextDay()">
+      <span class="material-symbols-outlined">chevron_right</span>
+    </button>
   </div>
 
   @if (summary(); as s) {
     <!-- Intake -->
-    <app-card [elevation]="1" padding="lg">
-      <h2 class="ds__section">Intake</h2>
+    <div class="ds__card">
+      <div class="ds__section-header">
+        <h2 class="ds__section-title">Intake</h2>
+        <span class="ds__section-line"></span>
+      </div>
       <div class="ds__intake-row">
         <app-calorie-ring [consumed]="s.consumedCalories" [target]="s.targetCalories" size="md" />
-        <app-macro-bars
-          [protein]="s.consumedProtein" [proteinGoal]="s.targetProtein"
-          [carbs]="s.consumedCarbs" [carbsGoal]="s.targetCarbs"
-          [fat]="s.consumedFat" [fatGoal]="s.targetFat"
-        />
+        <div class="ds__intake-macros">
+          <app-macro-bars
+            [protein]="s.consumedProtein" [proteinGoal]="s.targetProtein"
+            [carbs]="s.consumedCarbs" [carbsGoal]="s.targetCarbs"
+            [fat]="s.consumedFat" [fatGoal]="s.targetFat"
+          />
+        </div>
       </div>
       <div class="ds__stat-row">
         <span>{{ s.mealCount }} meals</span>
-        <span>{{ s.consumedCalories }} / {{ s.targetCalories }} kcal</span>
+        <span class="ds__stat-highlight">{{ s.consumedCalories }} / {{ s.targetCalories }} kcal</span>
       </div>
-    </app-card>
+    </div>
 
     <!-- Burn -->
-    <app-card [elevation]="1" padding="lg">
-      <h2 class="ds__section">Burn</h2>
+    <div class="ds__card ds__card--burn">
+      <div class="ds__section-header">
+        <h2 class="ds__section-title">Burn</h2>
+        <span class="ds__section-line"></span>
+      </div>
       <div class="ds__burn-items">
         <div class="ds__burn-row"><span>BMR</span><strong>{{ s.bmrEstimate }} kcal</strong></div>
         <div class="ds__burn-row"><span>Steps ({{ s.steps }})</span><strong>{{ s.stepsCalories }} kcal</strong></div>
@@ -35,22 +49,21 @@
         <div class="ds__burn-row"><span>Cardio</span><strong>{{ s.cardioCalories }} kcal</strong></div>
         <div class="ds__burn-row ds__burn-row--total"><span>Total out</span><strong>{{ s.totalCaloriesOut }} kcal</strong></div>
       </div>
-    </app-card>
+    </div>
 
     <!-- Balance -->
     <app-balance-card [consumed]="s.consumedCalories" [burned]="s.totalCaloriesOut" />
 
     @if (s.weightKg) {
-      <app-card [elevation]="2" padding="md">
-        <div class="ds__weight">
-          <span class="material-symbols-outlined">monitor_weight</span>
-          <strong>{{ s.weightKg }} kg</strong>
-        </div>
-      </app-card>
+      <div class="ds__weight-card">
+        <span class="material-symbols-outlined ds__weight-icon">monitor_weight</span>
+        <strong class="ds__weight-value">{{ s.weightKg }} kg</strong>
+      </div>
     }
   } @else {
-    <app-card [elevation]="1" padding="lg">
-      <p class="ds__empty">No data for this day yet. Log meals and activity to see your summary.</p>
-    </app-card>
+    <div class="ds__empty">
+      <span class="material-symbols-outlined">analytics</span>
+      <p>No data for this day yet. Log meals and activity to see your summary.</p>
+    </div>
   }
 </div>

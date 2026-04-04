@@ -1,77 +1,65 @@
 .pred {
+  background: var(--surface-container);
+  border-radius: 1.5rem;
+  padding: 2rem;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  justify-content: space-between;
+  border: 1px solid rgba(65, 71, 85, 0.15);
+  min-height: 180px;
 }
 
 .pred__header {
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.pred__label {
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--on-surface-variant);
 }
 
 .pred__icon {
-  font-size: 1.25rem;
-  color: var(--tertiary);
-}
-
-.pred__title {
-  font-family: var(--font-headline);
-  font-weight: 700;
-  font-size: 0.8125rem;
-  color: var(--on-surface);
+  font-size: 1.5rem;
+  color: #ffdbcd;
 }
 
 .pred__body {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.25rem;
 }
 
-.pred__main {
-  display: flex;
-  align-items: baseline;
-  gap: 0.5rem;
-}
-
-.pred__arrow {
-  font-family: var(--font-headline);
-  font-weight: 800;
-  font-size: 1.25rem;
-
-  &--gain { color: var(--error); }
-  &--loss { color: #22c55e; }
-}
-
-.pred__projected {
-  font-size: 0.8125rem;
-  color: var(--on-surface-variant);
-}
-
-.pred__detail {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.pred__calories {
+.pred__hint {
   font-size: 0.75rem;
   color: var(--on-surface-variant);
+}
+
+.pred__date {
+  font-family: var(--font-headline);
+  font-weight: 800;
+  font-size: 1.5rem;
+  color: var(--on-surface);
+}
+
+.pred__status {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  margin-top: 0.25rem;
+
+  &--on-track { color: #ffb596; }
+  &--ahead { color: #22c55e; }
+  &--behind { color: var(--error); }
 }
 
 .pred--empty {
-  align-items: center;
-  padding: 0.5rem 0;
-}
-
-.pred__empty-icon {
-  font-size: 1.5rem;
-  color: var(--on-surface-variant);
-  opacity: 0.4;
-}
-
-.pred__empty-text {
-  font-size: 0.75rem;
-  color: var(--on-surface-variant);
-  text-align: center;
+  .pred__hint {
+    font-size: 0.8125rem;
+  }
 }

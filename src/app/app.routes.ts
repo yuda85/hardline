@@ -61,6 +61,20 @@ export const routes: Routes = [
                 m => m.SessionSummaryComponent,
               ),
           },
+          {
+            path: 'generate',
+            loadComponent: () =>
+              import('./features/workout/workout-builder/workout-builder').then(
+                m => m.WorkoutBuilderComponent,
+              ),
+          },
+          {
+            path: 'smart-workout',
+            loadComponent: () =>
+              import('./features/workout/smart-workout/smart-workout').then(
+                m => m.SmartWorkoutComponent,
+              ),
+          },
         ],
       },
       {
@@ -121,6 +135,13 @@ export const routes: Routes = [
               ),
           },
         ],
+      },
+      {
+        path: 'insights',
+        loadComponent: () =>
+          import('./features/insights/insights-page/insights-page').then(
+            m => m.InsightsPageComponent,
+          ),
       },
       {
         path: 'profile',

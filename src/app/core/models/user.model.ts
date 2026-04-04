@@ -9,6 +9,7 @@ export interface UserProfile extends FirestoreDoc {
   goals: UserGoals;
   preferences: UserPreferences;
   onboardingComplete: boolean;
+  activePlanId?: string | null;
 }
 
 export interface UserGoals {

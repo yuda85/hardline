@@ -1,0 +1,289 @@
+<div class="builder">
+  <div class="builder__ghost">
+    <span>BUILD</span>
+    <span>HARDLINE</span>
+  </div>
+
+  <div class="builder__content">
+    <!-- Header -->
+    <header class="builder__header">
+      <app-icon-button icon="chevron_left" ariaLabel="Go back" (clicked)="goBack()" />
+      <h1 class="builder__title">AI Workout Builder</h1>
+    </header>
+
+    @if (generatedPlan(); as plan) {
+      <!-- Generated Plan Preview -->
+      <div class="builder__preview">
+        <div class="builder__preview-header">
+          <h2 class="builder__preview-title">{{ plan.name }}</h2>
+          @if (plan.description) {
+            <p class="builder__preview-desc">{{ plan.description }}</p>
+          }
+        </div>
+
+        @for (day of plan.days; track day.dayNumber) {
+          <app-card class="builder__day-card">
+            <div class="builder__day-header">
+              <span class="builder__day-num">Day {{ day.dayNumber }}</span>
+              <span class="builder__day-name">{{ day.name }}</span>
+            </div>
+
+            @for (group of day.exerciseGroups; track $index) {
+              <div class="builder__exercise-group" [class.builder__exercise-group--superset]="group.type === 'superset'">
+                @if (group.type === 'superset') {
+                  <span class="builder__superset-label">SUPERSET</span>
+                }
+                @for (ex of group.exercises; track ex.exerciseId) {
+                  <div class="builder__exercise-row">
+                    <span class="builder__exercise-name">{{ ex.exerciseName }}</span>
+                    <span class="builder__exercise-sets">
+                      {{ ex.sets.length }} &times; {{ ex.sets[0]?.targetReps }}
+                      @if (ex.sets.length > 1 && ex.sets[0]?.targetReps !== ex.sets[ex.sets.length - 1]?.targetReps) {
+                        <span>-{{ ex.sets[ex.sets.length - 1]?.targetReps }}</span>
+                      }
+                    </span>
+                  </div>
+                }
+                <span class="builder__rest">{{ group.restSeconds }}s rest</span>
+              </div>
+            }
+          </app-card>
+        }
+
+        <div class="builder__actions">
+          <app-button variant="ghost" (click)="generate()">Regenerate</app-button>
+          <app-button variant="primary" (click)="savePlan(plan)">Save Plan</app-button>
+        </div>
+      </div>
+    } @else {
+      <!-- Builder Form -->
+      <form class="builder__form" (ngSubmit)="generate()">
+
+        <!-- Free Text Goal (PRIMARY) -->
+        <section class="builder__section">
+          <div class="builder__section-header">
+            <h2 class="builder__section-title">Your Goal</h2>
+            <span class="builder__section-line"></span>
+          </div>
+          <textarea
+            class="builder__textarea"
+            placeholder="Describe what you want to achieve... e.g. 'I want to squat 200kg', 'build mass in my legs', 'get stronger without caring about looks'"
+            [ngModel]="freeTextGoal()"
+            (ngModelChange)="freeTextGoal.set($event)"
+            name="freeTextGoal"
+            rows="3"
+          ></textarea>
+          <span class="builder__field-hint">This is the primary driver of your program. Be specific.</span>
+        </section>
+
+        <!-- Training Style -->
+        <section class="builder__section">
+          <div class="builder__section-header">
+            <h2 class="builder__section-title">Training Style</h2>
+            <span class="builder__section-line"></span>
+          </div>
+          <div class="builder__toggle-group">
+            @for (opt of trainingStyleOptions; track opt.value) {
+              <button
+                type="button"
+                class="builder__toggle-btn"
+                [class.builder__toggle-btn--active]="trainingStyle() === opt.value"
+                (click)="trainingStyle.set(opt.value)"
+              >{{ opt.label }}</button>
+            }
+          </div>
+        </section>
+
+        <!-- Body Composition Goal -->
+        <section class="builder__section">
+          <div class="builder__section-header">
+            <h2 class="builder__section-title">Body Comp</h2>
+            <span class="builder__section-line"></span>
+          </div>
+          <div class="builder__goal-cards">
+            @for (opt of goalOptions; track opt.value) {
+              <button
+                type="button"
+                class="builder__goal-card"
+                [class.builder__goal-card--active]="fitnessGoal() === opt.value"
+                (click)="fitnessGoal.set(opt.value)"
+              >
+                <span class="builder__goal-sub">{{ opt.sub }}</span>
+                <span class="builder__goal-label">{{ opt.label }}</span>
+              </button>
+            }
+          </div>
+        </section>
+
+        <!-- Rep Range -->
+        <section class="builder__section">
+          <div class="builder__section-header">
+            <h2 class="builder__section-title">Rep Range</h2>
+            <span class="builder__section-line"></span>
+          </div>
+          <div class="builder__toggle-group">
+            @for (opt of repRangeOptions; track opt.value) {
+              <button
+                type="button"
+                class="builder__toggle-btn"
+                [class.builder__toggle-btn--active]="repRange() === opt.value"
+                (click)="repRange.set(opt.value)"
+              >{{ opt.label }}</button>
+            }
+          </div>
+        </section>
+
+        <!-- Experience -->
+        <section class="builder__section">
+          <div class="builder__section-header">
+            <h2 class="builder__section-title">Experience</h2>
+            <span class="builder__section-line"></span>
+          </div>
+          <div class="builder__toggle-group">
+            @for (opt of experienceOptions; track opt.value) {
+              <button
+                type="button"
+                class="builder__toggle-btn"
+                [class.builder__toggle-btn--active]="experienceLevel() === opt.value"
+                (click)="experienceLevel.set(opt.value)"
+              >{{ opt.label }}</button>
+            }
+          </div>
+        </section>
+
+        <!-- Schedule -->
+        <section class="builder__section">
+          <div class="builder__section-header">
+            <h2 class="builder__section-title">Schedule</h2>
+            <span class="builder__section-line"></span>
+          </div>
+          <div class="builder__schedule-grid">
+            <div class="builder__schedule-item">
+              <label class="builder__input-label">DAYS PER WEEK</label>
+              <div class="builder__toggle-group">
+                @for (d of daysOptions; track d) {
+                  <button
+                    type="button"
+                    class="builder__toggle-btn builder__toggle-btn--compact"
+                    [class.builder__toggle-btn--active]="daysPerWeek() === d"
+                    (click)="daysPerWeek.set(d)"
+                  >{{ d }}</button>
+                }
+              </div>
+            </div>
+            <div class="builder__schedule-item">
+              <label class="builder__input-label">MINUTES PER SESSION</label>
+              <div class="builder__toggle-group">
+                @for (m of minuteOptions; track m) {
+                  <button
+                    type="button"
+                    class="builder__toggle-btn builder__toggle-btn--compact"
+                    [class.builder__toggle-btn--active]="minutesPerWorkout() === m"
+                    (click)="minutesPerWorkout.set(m)"
+                  >{{ m }}</button>
+                }
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Split Preference -->
+        <section class="builder__section">
+          <div class="builder__section-header">
+            <h2 class="builder__section-title">Split</h2>
+            <span class="builder__section-line"></span>
+          </div>
+          <div class="builder__toggle-group">
+            @for (opt of splitOptions; track opt.value) {
+              <button
+                type="button"
+                class="builder__toggle-btn"
+                [class.builder__toggle-btn--active]="splitPreference() === opt.value"
+                (click)="splitPreference.set(opt.value)"
+              >{{ opt.label }}</button>
+            }
+          </div>
+        </section>
+
+        <!-- Equipment -->
+        <section class="builder__section">
+          <div class="builder__section-header">
+            <h2 class="builder__section-title">Equipment</h2>
+            <span class="builder__section-line"></span>
+          </div>
+          <div class="builder__chip-grid">
+            @for (type of equipmentTypes; track type) {
+              <button
+                type="button"
+                class="builder__chip"
+                [class.builder__chip--active]="equipment()[type]"
+                (click)="toggleEquipment(type)"
+              >
+                <span class="material-symbols-outlined builder__chip-icon">
+                  {{ type === 'Barbell' ? 'fitness_center' : type === 'Dumbbell' ? 'exercise' : type === 'Cable' ? 'cable' : type === 'Machine' ? 'precision_manufacturing' : 'sports_martial_arts' }}
+                </span>
+                {{ type }}
+              </button>
+            }
+          </div>
+        </section>
+
+        <!-- Weak Points (optional) -->
+        <section class="builder__section">
+          <div class="builder__section-header">
+            <h2 class="builder__section-title">Weak Points <span class="builder__optional">(optional)</span></h2>
+            <span class="builder__section-line"></span>
+          </div>
+          <div class="builder__chip-grid">
+            @for (mg of muscleGroups; track mg.value) {
+              <button
+                type="button"
+                class="builder__chip"
+                [class.builder__chip--active]="weakPoints().includes(mg.value)"
+                (click)="toggleWeakPoint(mg.value)"
+              >{{ mg.label }}</button>
+            }
+          </div>
+        </section>
+
+        <!-- Injuries (optional) -->
+        <section class="builder__section">
+          <div class="builder__section-header">
+            <h2 class="builder__section-title">Injuries <span class="builder__optional">(optional)</span></h2>
+            <span class="builder__section-line"></span>
+          </div>
+          <input
+            type="text"
+            class="builder__text-input"
+            placeholder="e.g. left shoulder, lower back"
+            [ngModel]="injuries()"
+            (ngModelChange)="injuries.set($event)"
+            name="injuries"
+          />
+        </section>
+
+        @if (error()) {
+          <div class="builder__error">{{ error() }}</div>
+        }
+        @if (generateError()) {
+          <div class="builder__error">{{ generateError() }}</div>
+        }
+
+        <!-- Generate Button -->
+        <div class="builder__submit">
+          @if (generating()) {
+            <app-button variant="primary" [disabled]="true">
+              <span class="material-symbols-outlined builder__spin">neurology</span>
+              Generating...
+            </app-button>
+          } @else {
+            <app-button variant="primary" type="submit">
+              <span class="material-symbols-outlined">neurology</span>
+              Generate Workout Plan
+            </app-button>
+          }
+        </div>
+      </form>
+    }
+  </div>
+</div>

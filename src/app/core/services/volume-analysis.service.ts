@@ -16,7 +16,7 @@ export interface VolumeAnalysis {
   recommendations: string[];
 }
 
-const RECOMMENDED_RANGES: Record<MuscleGroup, { min: number; max: number }> = {
+export const RECOMMENDED_RANGES: Record<MuscleGroup, { min: number; max: number }> = {
   [MuscleGroup.Chest]: { min: 10, max: 20 },
   [MuscleGroup.Back]: { min: 10, max: 20 },
   [MuscleGroup.Shoulders]: { min: 10, max: 15 },

@@ -1,44 +1,37 @@
-@if (recap(); as r) {
-  <app-card [elevation]="1" padding="md">
-    <div class="recap">
-      <h3 class="recap__title">Weekly recap</h3>
+<div class="recap">
+  <h3 class="recap__title">Weekly Recap</h3>
 
-      <div class="recap__stats">
-        <div class="recap__stat">
-          <span class="recap__stat-value">{{ r.avgWeight }}kg</span>
-          <span class="recap__stat-label">Avg weight</span>
+  @if (recap(); as r) {
+    <ul class="recap__list">
+      <li class="recap__item">
+        <div class="recap__item-left">
+          <span class="recap__item-label">Min Weight</span>
+          <span class="recap__item-sub">This week</span>
         </div>
-
+        <span class="recap__item-value">{{ r.lowest }} kg</span>
+      </li>
+      <li class="recap__item">
+        <div class="recap__item-left">
+          <span class="recap__item-label">Max Weight</span>
+          <span class="recap__item-sub">This week</span>
+        </div>
+        <span class="recap__item-value recap__item-value--muted">{{ r.highest }} kg</span>
+      </li>
+      <li class="recap__item recap__item--last">
+        <div class="recap__item-left">
+          <span class="recap__item-label">Avg Change</span>
+          <span class="recap__item-sub">vs Last Week</span>
+        </div>
         @if (r.change !== null) {
-          <div class="recap__stat">
-            <span class="recap__stat-value" [class.recap__stat-value--gain]="r.change > 0" [class.recap__stat-value--loss]="r.change < 0">
-              {{ r.change > 0 ? '+' : '' }}{{ r.change }}kg
-            </span>
-            <span class="recap__stat-label">vs last week</span>
-          </div>
+          <span class="recap__item-value recap__item-value--primary">{{ r.change > 0 ? '+' : '' }}{{ r.change }} kg</span>
+        } @else {
+          <span class="recap__item-value recap__item-value--muted">—</span>
         }
-
-        <div class="recap__stat">
-          <span class="recap__stat-value">{{ r.logsThisWeek }}/7</span>
-          <span class="recap__stat-label">Days logged</span>
-        </div>
-
-        <div class="recap__stat">
-          <span class="recap__stat-value recap__stat-value--streak">{{ streak() }}d</span>
-          <span class="recap__stat-label">Streak</span>
-        </div>
-      </div>
-
-      <div class="recap__range">
-        <span class="recap__range-label">Range: {{ r.lowest }}kg – {{ r.highest }}kg</span>
-      </div>
+      </li>
+    </ul>
+  } @else {
+    <div class="recap__empty">
+      <p>Log weight for 2+ days to see your weekly recap</p>
     </div>
-  </app-card>
-} @else {
-  <app-card [elevation]="1" padding="md">
-    <div class="recap recap--empty">
-      <span class="material-symbols-outlined recap__empty-icon">calendar_month</span>
-      <p class="recap__empty-text">Log weight for 2+ days to see your weekly recap</p>
-    </div>
-  </app-card>
-}
+  }
+</div>

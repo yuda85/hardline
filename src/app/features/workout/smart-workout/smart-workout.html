@@ -1,0 +1,171 @@
+<div class="smart">
+  <div class="smart__ghost">
+    <span>SMART</span>
+    <span>HARDLINE</span>
+  </div>
+
+  <div class="smart__content">
+    <!-- Header -->
+    <header class="smart__header">
+      <app-icon-button icon="chevron_left" ariaLabel="Go back" (click)="goBack()" />
+      <h1 class="smart__title">Smart Workout</h1>
+    </header>
+
+    @if (dailyWorkout(); as result) {
+      <!-- Generated Workout Preview -->
+      <div class="smart__result">
+        <app-card class="smart__reasoning-card">
+          <div class="smart__reasoning-icon">
+            <span class="material-symbols-outlined">neurology</span>
+          </div>
+          <p class="smart__reasoning-text">{{ result.reasoning }}</p>
+          <div class="smart__reasoning-meta">
+            <span class="smart__meta-item">
+              <span class="material-symbols-outlined smart__meta-icon">timer</span>
+              ~{{ result.estimatedMinutes }} min
+            </span>
+            <span class="smart__meta-item">
+              <span class="material-symbols-outlined smart__meta-icon">fitness_center</span>
+              {{ result.musclesCovered.length }} muscle groups
+            </span>
+          </div>
+        </app-card>
+
+        <!-- Muscles Covered -->
+        <div class="smart__muscles">
+          @for (mg of result.musclesCovered; track mg) {
+            <app-badge>{{ mg }}</app-badge>
+          }
+        </div>
+
+        <!-- Workout Preview -->
+        <app-card class="smart__workout-card">
+          <div class="smart__workout-header">
+            <span class="smart__workout-name">{{ result.workout.name }}</span>
+          </div>
+
+          @for (group of result.workout.exerciseGroups; track $index) {
+            <div class="smart__exercise-group" [class.smart__exercise-group--superset]="group.type === 'superset'">
+              @if (group.type === 'superset') {
+                <span class="smart__superset-label">SUPERSET</span>
+              }
+              @for (ex of group.exercises; track ex.exerciseId) {
+                <div class="smart__exercise-row">
+                  <span class="smart__exercise-name">{{ ex.exerciseName }}</span>
+                  <span class="smart__exercise-sets">
+                    {{ ex.sets.length }} &times; {{ ex.sets[0]?.targetReps }}
+                    @if (ex.sets.length > 1 && ex.sets[0]?.targetReps !== ex.sets[ex.sets.length - 1]?.targetReps) {
+                      <span>-{{ ex.sets[ex.sets.length - 1]?.targetReps }}</span>
+                    }
+                  </span>
+                </div>
+              }
+              <span class="smart__rest">{{ group.restSeconds }}s rest</span>
+            </div>
+          }
+        </app-card>
+
+        <!-- Actions -->
+        <div class="smart__actions">
+          <app-button variant="ghost" (click)="generate()">Regenerate</app-button>
+          <div class="smart__save-wrap" [attr.title]="activePlanId() ? null : 'Set an active plan first to save workouts to it'">
+            <app-button
+              variant="ghost"
+              [disabled]="!activePlanId()"
+              (click)="saveToActivePlan(result)"
+            >
+              <span class="material-symbols-outlined">bookmark_add</span>
+              Save to Plan
+            </app-button>
+          </div>
+          <app-button variant="primary" (click)="startNow(result)">
+            <span class="material-symbols-outlined">play_arrow</span>
+            Start Now
+          </app-button>
+        </div>
+        @if (!activePlanId()) {
+          <p class="smart__no-plan-hint">
+            <span class="material-symbols-outlined smart__hint-icon">info</span>
+            Star a plan in your workout list to enable saving workouts to it.
+          </p>
+        }
+      </div>
+    } @else {
+      <!-- Config Form -->
+      <div class="smart__intro">
+        <app-card class="smart__intro-card">
+          <div class="smart__intro-icon">
+            <span class="material-symbols-outlined">neurology</span>
+          </div>
+          <h2 class="smart__intro-title">AI-Powered Workout</h2>
+          <p class="smart__intro-desc">
+            Based on your recovery status and training history,
+            we'll generate the perfect workout for today.
+          </p>
+        </app-card>
+      </div>
+
+      <form class="smart__form" (ngSubmit)="generate()">
+        <!-- Time -->
+        <section class="smart__section">
+          <div class="smart__section-header">
+            <h2 class="smart__section-title">Available Time</h2>
+            <span class="smart__section-line"></span>
+          </div>
+          <div class="smart__toggle-group">
+            @for (m of minuteOptions; track m) {
+              <button
+                type="button"
+                class="smart__toggle-btn"
+                [class.smart__toggle-btn--active]="availableMinutes() === m"
+                (click)="availableMinutes.set(m)"
+              >{{ m }} min</button>
+            }
+          </div>
+        </section>
+
+        <!-- Equipment -->
+        <section class="smart__section">
+          <div class="smart__section-header">
+            <h2 class="smart__section-title">Equipment</h2>
+            <span class="smart__section-line"></span>
+          </div>
+          <div class="smart__chip-grid">
+            @for (type of equipmentTypes; track type) {
+              <button
+                type="button"
+                class="smart__chip"
+                [class.smart__chip--active]="equipment()[type]"
+                (click)="toggleEquipment(type)"
+              >
+                <span class="material-symbols-outlined smart__chip-icon">
+                  {{ type === 'Barbell' ? 'fitness_center' : type === 'Dumbbell' ? 'exercise' : type === 'Cable' ? 'cable' : type === 'Machine' ? 'precision_manufacturing' : 'sports_martial_arts' }}
+                </span>
+                {{ type }}
+              </button>
+            }
+          </div>
+        </section>
+
+        @if (generateError()) {
+          <div class="smart__error">{{ generateError() }}</div>
+        }
+
+        <!-- Generate -->
+        <div class="smart__submit">
+          @if (generating()) {
+            <app-button variant="primary" [disabled]="true">
+              <span class="material-symbols-outlined smart__spin">neurology</span>
+              Analyzing recovery...
+            </app-button>
+          } @else {
+            <app-button variant="primary" type="submit">
+              <span class="material-symbols-outlined">neurology</span>
+              Generate Smart Workout
+            </app-button>
+          }
+        </div>
+      </form>
+    }
+  </div>
+</div>

@@ -1,9 +1,14 @@
 <div class="act">
-  <h1 class="act__title">Activity & Burn</h1>
+  <header class="act__header">
+    <h1 class="act__title">Activity & Burn</h1>
+  </header>
 
-  <!-- Burn breakdown -->
-  <app-card [elevation]="1" padding="lg">
-    <h2 class="act__section">Burn Breakdown</h2>
+  <!-- Burn Breakdown -->
+  <div class="act__burn">
+    <div class="act__section-header">
+      <h2 class="act__section-title">Burn Breakdown</h2>
+      <span class="act__section-line"></span>
+    </div>
     <div class="act__burn-grid">
       <div class="act__burn-item">
         <span class="act__burn-label">BMR</span>
@@ -25,11 +30,14 @@
     <div class="act__burn-total">
       Total: <strong>{{ summary()?.totalCaloriesOut ?? goals()?.bmr ?? 0 }} kcal</strong>
     </div>
-  </app-card>
+  </div>
 
   <!-- Steps -->
-  <app-card [elevation]="1" padding="lg">
-    <h2 class="act__section">Steps</h2>
+  <div class="act__card">
+    <div class="act__section-header">
+      <h2 class="act__section-title">Steps</h2>
+      <span class="act__section-line"></span>
+    </div>
     <div class="act__steps">
       <input
         type="number"
@@ -40,31 +48,35 @@
         placeholder="0"
       />
       <span class="act__steps-target">/ {{ goals()?.dailyStepsTarget ?? 8000 }}</span>
-      <app-button variant="primary" size="sm" (click)="updateSteps()">Save</app-button>
+      <button class="act__steps-save" (click)="updateSteps()">Save</button>
     </div>
-  </app-card>
+  </div>
 
-  <!-- Workout sessions (auto) -->
+  <!-- Workout Sessions -->
   @if (workoutSessions().length > 0) {
-    <app-card [elevation]="1" padding="lg">
-      <h2 class="act__section">Workout Sessions</h2>
+    <div class="act__card">
+      <div class="act__section-header">
+        <h2 class="act__section-title">Workout Sessions</h2>
+        <span class="act__section-line"></span>
+      </div>
       @for (session of workoutSessions(); track session.id) {
         <div class="act__workout">
           <span class="material-symbols-outlined act__workout-icon">exercise</span>
-          <div class="act__workout-info">
-            <span class="act__workout-name">Day {{ session.dayNumber }}</span>
-          </div>
-          <app-badge variant="primary" size="sm">~{{ getWorkoutCalories(session) }} kcal</app-badge>
+          <span class="act__workout-name">Day {{ session.dayNumber }}</span>
+          <span class="act__workout-badge">~{{ getWorkoutCalories(session) }} kcal</span>
         </div>
       }
-    </app-card>
+    </div>
   }
 
   <!-- Cardio -->
-  <app-card [elevation]="1" padding="lg">
-    <div class="act__cardio-header">
-      <h2 class="act__section">Cardio</h2>
-      <app-button variant="outline" size="sm" icon="add" (click)="showAddCardio.set(true)">Add</app-button>
+  <div class="act__card">
+    <div class="act__section-header">
+      <h2 class="act__section-title">Cardio</h2>
+      <span class="act__section-line"></span>
+      <button class="act__add-btn" (click)="showAddCardio.set(true)">
+        <span class="material-symbols-outlined">add</span> Add
+      </button>
     </div>
 
     @for (entry of cardio(); track entry.id) {
@@ -73,19 +85,21 @@
           <span class="act__cardio-type">{{ entry.type }}</span>
           <span class="act__cardio-detail">{{ entry.durationMinutes }}min</span>
         </div>
-        <app-badge variant="tertiary" size="sm">{{ entry.caloriesBurned }} kcal</app-badge>
-        <app-icon-button icon="delete" ariaLabel="Remove" size="sm" (click)="removeCardio(entry.id)" />
+        <span class="act__cardio-badge">{{ entry.caloriesBurned }} kcal</span>
+        <button class="act__delete-btn" (click)="removeCardio(entry.id)">
+          <span class="material-symbols-outlined">delete</span>
+        </button>
       </div>
     } @empty {
       <p class="act__empty">No cardio logged</p>
     }
-  </app-card>
+  </div>
 
-  <!-- Add cardio form -->
+  <!-- Add Cardio Form -->
   @if (showAddCardio()) {
-    <app-card [elevation]="2" padding="lg">
-      <h3 class="act__section act__section--primary">Log Cardio</h3>
-      <div class="act__cardio-form">
+    <div class="act__card act__card--form">
+      <h3 class="act__form-title">Log Cardio</h3>
+      <div class="act__form">
         <div class="act__field">
           <label>Type</label>
           <select [ngModel]="cardioType()" (ngModelChange)="cardioType.set($event)">
@@ -109,10 +123,10 @@
           <input type="number" inputmode="decimal" [ngModel]="cardioDistance()" (ngModelChange)="cardioDistance.set($event)" placeholder="—" />
         </div>
         <div class="act__form-actions">
-          <app-button variant="outline" size="sm" (click)="showAddCardio.set(false)">Cancel</app-button>
-          <app-button variant="primary" size="sm" [loading]="savingCardio()" (click)="saveCardio()">Save</app-button>
+          <button class="act__cancel" (click)="showAddCardio.set(false)">Cancel</button>
+          <button class="act__save" [disabled]="savingCardio()" (click)="saveCardio()">Save</button>
         </div>
       </div>
-    </app-card>
+    </div>
   }
 </div>

@@ -8,15 +8,20 @@ import { WorkoutRepository } from '../../data/repositories/workout.repository';
 import { SessionRepository } from '../../data/repositories/session.repository';
 import { PRRepository } from '../../data/repositories/pr.repository';
 import { OneRepMaxService } from '../../core/services/one-rep-max.service';
+import { WorkoutBuilderService } from '../../core/services/workout-builder.service';
+import { DailyWorkoutService } from '../../core/services/daily-workout.service';
 import { AuthState } from '../auth/auth.state';
+import { ProfileState } from '../profile/profile.state';
 import {
   WorkoutPlan,
+  WorkoutDay,
   WorkoutSession,
   SessionExerciseGroup,
   SessionExercise,
   SessionSet,
   PersonalRecord,
 } from '../../core/models';
+import { DailyWorkoutResult } from '../../core/models/ai-workout.model';
 
 @State<WorkoutStateModel>({
   name: 'workout',
@@ -28,6 +33,8 @@ export class WorkoutState {
   private readonly sessionRepo = inject(SessionRepository);
   private readonly prRepo = inject(PRRepository);
   private readonly oneRMService = inject(OneRepMaxService);
+  private readonly builderService = inject(WorkoutBuilderService);
+  private readonly dailyService = inject(DailyWorkoutService);
   private readonly store = inject(Store);
 
   @Selector()
@@ -63,6 +70,26 @@ export class WorkoutState {
   @Selector()
   static prs(state: WorkoutStateModel): Record<string, PersonalRecord> {
     return state.prs;
+  }
+
+  @Selector()
+  static generatedPlan(state: WorkoutStateModel): WorkoutPlan | null {
+    return state.generatedPlan;
+  }
+
+  @Selector()
+  static dailyWorkout(state: WorkoutStateModel): DailyWorkoutResult | null {
+    return state.dailyWorkout;
+  }
+
+  @Selector()
+  static generating(state: WorkoutStateModel): boolean {
+    return state.generating;
+  }
+
+  @Selector()
+  static generateError(state: WorkoutStateModel): string | null {
+    return state.generateError;
   }
 
   @Action(Workout.FetchPlans)
@@ -317,6 +344,111 @@ export class WorkoutState {
       await this.sessionRepo.remove(session.id);
     }
     ctx.patchState({ activeSession: null, lastSessionData: {} });
+  }
+
+  @Action(Workout.UpdatePlanDay)
+  async updatePlanDay(ctx: StateContext<WorkoutStateModel>, action: Workout.UpdatePlanDay) {
+    const state = ctx.getState();
+    const plan = state.activePlan;
+    if (!plan) return;
+
+    const updatedDays = plan.days.map(d =>
+      d.dayNumber === action.dayNumber ? { ...action.day, dayNumber: action.dayNumber } : d,
+    );
+
+    // Update local state immediately for responsiveness
+    ctx.patchState({
+      activePlan: { ...plan, days: updatedDays },
+    });
+
+    // Persist to Firebase
+    await this.workoutRepo.update(action.planId, { days: updatedDays });
+    ctx.dispatch(new Workout.FetchPlans());
+  }
+
+  // ── AI Generation Handlers ──
+
+  @Action(Workout.GeneratePlan)
+  async generatePlan(
+    ctx: StateContext<WorkoutStateModel>,
+    action: Workout.GeneratePlan,
+  ) {
+    ctx.patchState({ generating: true, generatedPlan: null, generateError: null });
+    try {
+      const plan = await this.builderService.buildPlan(action.input);
+      ctx.patchState({ generatedPlan: plan, generating: false });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Failed to generate workout plan';
+      console.error('GeneratePlan error:', e);
+      ctx.patchState({ generating: false, generateError: msg });
+    }
+  }
+
+  @Action(Workout.SaveGeneratedPlan)
+  async saveGeneratedPlan(
+    ctx: StateContext<WorkoutStateModel>,
+    action: Workout.SaveGeneratedPlan,
+  ) {
+    const uid = this.store.selectSnapshot(AuthState.uid);
+    if (!uid) return;
+    const { id, createdAt, updatedAt, ...planData } = action.plan;
+    planData.userId = uid;
+    ctx.dispatch(new Workout.SavePlan(planData));
+    ctx.patchState({ generatedPlan: null, dailyWorkout: null });
+  }
+
+  @Action(Workout.GenerateDailyWorkout)
+  async generateDailyWorkout(
+    ctx: StateContext<WorkoutStateModel>,
+    action: Workout.GenerateDailyWorkout,
+  ) {
+    ctx.patchState({ generating: true, dailyWorkout: null, generateError: null });
+    try {
+      const result = await this.dailyService.getSmartWorkout(
+        action.availableMinutes,
+        action.availableEquipment,
+      );
+      ctx.patchState({ dailyWorkout: result, generating: false });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Failed to generate smart workout';
+      console.error('GenerateDailyWorkout error:', e);
+      ctx.patchState({ generating: false, generateError: msg });
+    }
+  }
+
+  @Action(Workout.StartGeneratedWorkout)
+  async startGeneratedWorkout(
+    ctx: StateContext<WorkoutStateModel>,
+    action: Workout.StartGeneratedWorkout,
+  ) {
+    const uid = this.store.selectSnapshot(AuthState.uid);
+    if (!uid) return;
+
+    const planData = this.dailyService.toAdHocPlan(action.workout, uid);
+    const planId = await this.workoutRepo.create(planData);
+    ctx.patchState({ dailyWorkout: null });
+    ctx.dispatch(new Workout.StartSession(planId, 1));
+  }
+
+  @Action(Workout.AddDayToActivePlan)
+  async addDayToActivePlan(
+    ctx: StateContext<WorkoutStateModel>,
+    action: Workout.AddDayToActivePlan,
+  ) {
+    const activePlanId = this.store.selectSnapshot(ProfileState.activePlanId);
+    if (!activePlanId) return;
+
+    const plans = ctx.getState().plans;
+    const plan = plans.find(p => p.id === activePlanId);
+    if (!plan) return;
+
+    const newDayNumber = plan.days.length + 1;
+    const newDay: WorkoutDay = { ...action.day, dayNumber: newDayNumber };
+    const updatedDays = [...plan.days, newDay];
+
+    await this.workoutRepo.update(activePlanId, { days: updatedDays });
+    ctx.patchState({ dailyWorkout: null });
+    ctx.dispatch(new Workout.FetchPlans());
   }
 
   @Action(Workout.Reset)

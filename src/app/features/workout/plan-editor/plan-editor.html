@@ -2,16 +2,18 @@
 @if (showTemplatePicker()) {
   <div class="editor">
     <header class="editor__header">
-      <app-icon-button icon="arrow_back" ariaLabel="Back" (click)="goBack()" />
-      <h1 class="editor__title">New Plan</h1>
-      <div></div>
+      <button class="editor__back-btn" (click)="goBack()">
+        <span class="material-symbols-outlined">arrow_back</span>
+      </button>
+      <h1 class="editor__picker-title">Choose a Template</h1>
     </header>
 
-    <h2 class="editor__section">Choose a template</h2>
     <div class="editor__templates">
       @for (tmpl of templates; track tmpl.id) {
         <div class="editor__template" (click)="selectTemplate(tmpl)">
-          <span class="material-symbols-outlined editor__template-icon">{{ tmpl.icon }}</span>
+          <div class="editor__template-icon-circle">
+            <span class="material-symbols-outlined">{{ tmpl.icon }}</span>
+          </div>
           <span class="editor__template-name">{{ tmpl.name }}</span>
           <span class="editor__template-desc">{{ tmpl.description }}</span>
         </div>
@@ -22,54 +24,83 @@
   <div class="editor">
     <!-- Header -->
     <header class="editor__header">
-      <app-icon-button icon="arrow_back" ariaLabel="Back" (click)="goBack()" />
-      <h1 class="editor__title">{{ isNew() ? 'New Plan' : 'Edit Plan' }}</h1>
-      <app-button variant="primary" size="sm" icon="save" [loading]="saving()" (click)="save()">Save</app-button>
+      <div class="editor__header-left">
+        <button class="editor__close-btn" (click)="goBack()">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+        <button class="editor__cancel-btn" (click)="goBack()">Cancel</button>
+      </div>
+      <div class="editor__header-right">
+        @if (!isNew() && saveStatus() !== 'idle') {
+          <span class="editor__auto-save-badge">
+            @if (saveStatus() === 'saving') {
+              Saving...
+            } @else {
+              &#10003; Saved
+            }
+          </span>
+        }
+        <button class="editor__save-btn" [disabled]="saving()" (click)="save()">
+          @if (saving()) {
+            Saving...
+          } @else {
+            Save
+          }
+        </button>
+      </div>
     </header>
 
-    <!-- Plan info -->
-    <div class="editor__info">
-      <div class="editor__field">
-        <label>Plan name</label>
-        <input type="text" [ngModel]="planName()" (ngModelChange)="planName.set($event)" placeholder="e.g. Push Pull Legs" />
-      </div>
-      <div class="editor__field">
-        <label>Description (optional)</label>
-        <input type="text" [ngModel]="planDescription()" (ngModelChange)="planDescription.set($event)" placeholder="Brief description..." />
-      </div>
-    </div>
+    <!-- Plan name -->
+    <input
+      type="text"
+      class="editor__plan-name"
+      [ngModel]="planName()"
+      (ngModelChange)="planName.set($event)"
+      placeholder="Plan Name"
+    />
+
+    <!-- Description -->
+    <textarea
+      class="editor__plan-desc"
+      [ngModel]="planDescription()"
+      (ngModelChange)="planDescription.set($event)"
+      placeholder="Add a description..."
+      rows="2"
+    ></textarea>
 
     <!-- Days -->
-    <h2 class="editor__section">Days</h2>
-
     <div cdkDropList (cdkDropListDropped)="dropDay($event)" class="editor__days">
       @for (day of days(); track day.dayNumber; let di = $index) {
-        <div cdkDrag class="editor__day">
+        <div
+          cdkDrag
+          class="editor__day"
+          [class.editor__day--expanded]="expandedDay() === di"
+        >
           <!-- Day header -->
           <div class="editor__day-header" (click)="expandedDay.set(expandedDay() === di ? null : di)">
             <span class="material-symbols-outlined editor__drag-handle" cdkDragHandle>drag_indicator</span>
-            <div class="editor__day-badge">{{ day.dayNumber }}</div>
-            <input
-              type="text"
-              class="editor__day-name-input"
-              [ngModel]="day.name"
-              (ngModelChange)="updateDayName(di, $event)"
-              (click)="$event.stopPropagation()"
-              placeholder="Day name..."
-            />
-            <div class="editor__day-actions">
-              <app-icon-button icon="content_copy" ariaLabel="Duplicate day" size="sm" (click)="duplicateDay(di); $event.stopPropagation()" />
-              <app-icon-button icon="delete" ariaLabel="Delete day" size="sm" (click)="deleteDay(di); $event.stopPropagation()" />
+            <div class="editor__day-meta">
               <span
-                class="material-symbols-outlined editor__expand"
-                [class.editor__expand--open]="expandedDay() === di"
-              >expand_more</span>
+                class="editor__day-seq"
+                [class.editor__day-seq--active]="expandedDay() === di"
+              >Sequence {{ (di + 1).toString().padStart(2, '0') }}</span>
+              <input
+                type="text"
+                class="editor__day-name"
+                [ngModel]="day.name"
+                (ngModelChange)="updateDayName(di, $event)"
+                (click)="$event.stopPropagation()"
+                placeholder="Day name..."
+              />
             </div>
+            <button class="editor__day-delete" (click)="deleteDay(di); $event.stopPropagation()">
+              <span class="material-symbols-outlined">delete_outline</span>
+            </button>
           </div>
 
           <!-- Day exercises (expanded) -->
           @if (expandedDay() === di) {
-            <div class="editor__day-body">
+            <div class="editor__day-body" @expandCollapse>
               <div
                 cdkDropList
                 [cdkDropListData]="day.exerciseGroups"
@@ -77,32 +108,37 @@
                 class="editor__exercises"
               >
                 @for (group of day.exerciseGroups; track $index; let gi = $index) {
-                  <div cdkDrag class="editor__group" [class.editor__group--superset]="group.type !== 'single'">
+                  <div cdkDrag class="editor__exercise-card">
+                    <div class="editor__progress-rail"></div>
+
                     @if (group.type !== 'single') {
                       <div class="editor__group-label">
                         <app-badge variant="tertiary" size="sm">{{ group.type }}</app-badge>
-                        <app-icon-button icon="delete" ariaLabel="Remove group" size="sm" (click)="deleteExerciseGroup(di, gi)" />
                       </div>
                     }
 
                     @for (ex of group.exercises; track $index; let ei = $index) {
                       <div class="editor__exercise">
                         <div class="editor__exercise-header">
-                          <span class="material-symbols-outlined editor__drag-handle" cdkDragHandle>drag_indicator</span>
                           <div class="editor__exercise-info" (click)="toggleEditExercise(di, gi, ei)">
                             <span class="editor__exercise-name">{{ ex.exerciseName }}</span>
                             <span class="editor__exercise-sets">{{ formatSets(ex.sets) }}</span>
                           </div>
-                          <app-icon-button icon="swap_horiz" ariaLabel="Swap exercise" size="sm" (click)="openSwapPicker(di, gi, ei)" />
-                          @if (group.type === 'single') {
-                            <app-icon-button icon="delete" ariaLabel="Remove" size="sm" (click)="deleteExerciseGroup(di, gi)" />
-                          }
+                          <div class="editor__exercise-actions">
+                            <button class="editor__ex-action-btn" (click)="openSwapPicker(di, gi, ei)">
+                              <span class="material-symbols-outlined">swap_horiz</span>
+                            </button>
+                            <button class="editor__ex-action-btn" (click)="deleteExerciseGroup(di, gi)">
+                              <span class="material-symbols-outlined">delete_outline</span>
+                            </button>
+                          </div>
                         </div>
 
-                        <!-- Inline set editor (expanded) -->
+                        <!-- Inline set editor -->
                         @if (isEditing(di, gi, ei)) {
                           <div class="editor__exercise-edit">
                             <app-set-editor
+                              mode="inline"
                               [sets]="ex.sets"
                               [restSeconds]="group.restSeconds"
                               [notes]="ex.notes ?? ''"
@@ -110,6 +146,18 @@
                               (restChange)="updateRest(di, gi, $event)"
                               (notesChange)="updateNotes(di, gi, ei, $event)"
                             />
+
+                            <!-- Rest time chips -->
+                            <div class="editor__rest-chips">
+                              <span class="editor__rest-label">Rest</span>
+                              @for (seconds of [60, 90, 120, 180]; track seconds) {
+                                <button
+                                  class="editor__rest-chip"
+                                  [class.editor__rest-chip--active]="group.restSeconds === seconds"
+                                  (click)="updateRest(di, gi, seconds)"
+                                >{{ seconds }}s</button>
+                              }
+                            </div>
                           </div>
                         }
                       </div>
@@ -126,12 +174,14 @@
 
               <!-- Add buttons -->
               <div class="editor__add-buttons">
-                <app-button variant="outline" size="sm" icon="add" (click)="openExercisePicker(di, 'add')">
+                <button class="editor__add-ex-btn" (click)="openExercisePicker(di, 'add')">
+                  <span class="material-symbols-outlined">add</span>
                   Add Exercise
-                </app-button>
-                <app-button variant="ghost" size="sm" icon="link" (click)="openExercisePicker(di, 'superset')">
+                </button>
+                <button class="editor__add-ex-btn" (click)="openExercisePicker(di, 'superset')">
+                  <span class="material-symbols-outlined">link</span>
                   Add Superset
-                </app-button>
+                </button>
               </div>
             </div>
           }
@@ -139,7 +189,13 @@
       }
     </div>
 
-    <app-button variant="outline" [fullWidth]="true" icon="add" (click)="addDay()">Add Day</app-button>
+    <!-- Add Training Day -->
+    <button class="editor__add-day" (click)="addDay()">
+      <div class="editor__add-day-icon">
+        <span class="material-symbols-outlined">add</span>
+      </div>
+      <span class="editor__add-day-label">Add Training Day</span>
+    </button>
 
     <!-- Plan actions -->
     @if (!isNew()) {
@@ -155,6 +211,6 @@
   <app-exercise-picker
     [filterMuscleGroup]="pickerTarget()?.swapMuscleGroup ?? null"
     (picked)="onExercisePicked($event)"
-    (closed)="showExercisePicker.set(false)"
+    (closed)="showExercisePicker.set(false); pickerTarget.set(null)"
   />
 }

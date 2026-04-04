@@ -3,7 +3,6 @@ import { Router } from '@angular/router';
 import { Store } from '@ngxs/store';
 import { Energy } from '../../../store/energy/energy.actions';
 import { EnergyState } from '../../../store/energy/energy.state';
-import { ButtonComponent, CardComponent, IconButtonComponent, SkeletonComponent } from '../../../shared/components';
 import { CalorieRingComponent } from '../shared/calorie-ring/calorie-ring';
 import { MacroBarsComponent } from '../shared/macro-bars/macro-bars';
 import { BalanceCardComponent } from '../shared/balance-card/balance-card';
@@ -11,7 +10,7 @@ import { BalanceCardComponent } from '../shared/balance-card/balance-card';
 @Component({
   selector: 'app-energy-home',
   standalone: true,
-  imports: [ButtonComponent, CardComponent, IconButtonComponent, SkeletonComponent, CalorieRingComponent, MacroBarsComponent, BalanceCardComponent],
+  imports: [CalorieRingComponent, MacroBarsComponent, BalanceCardComponent],
   templateUrl: './energy-home.html',
   styleUrl: './energy-home.scss',
 })
@@ -23,7 +22,6 @@ export class EnergyHomeComponent implements OnInit {
   protected readonly summary = this.store.selectSignal(EnergyState.dailySummary);
   protected readonly steps = this.store.selectSignal(EnergyState.todaysSteps);
   protected readonly loading = this.store.selectSignal(EnergyState.loading);
-  protected readonly selectedDate = this.store.selectSignal(EnergyState.selectedDate);
 
   ngOnInit() {
     this.store.dispatch(new Energy.LoadGoalSettings()).subscribe(() => {

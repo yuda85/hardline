@@ -108,6 +108,18 @@
       </div>
     </app-card>
 
+    <!-- Quick Workout Actions (wide) -->
+    <app-card class="dash__card dash__card--wide dash__quick-card" [elevation]="2" padding="md">
+      <div class="dash__quick-row">
+        <app-button variant="gradient" [pill]="true" size="sm" icon="bolt" (click)="goToSmartWorkout()">
+          Quick Workout
+        </app-button>
+        <app-button variant="outline" [pill]="true" size="sm" icon="neurology" (click)="goToBuilder()">
+          AI Builder
+        </app-button>
+      </div>
+    </app-card>
+
     <!-- Recent workouts (wide) -->
     <app-card class="dash__card dash__card--wide" [elevation]="1" padding="lg">
       <div class="dash__card-header">

@@ -6,6 +6,7 @@ import { Subject } from 'rxjs';
 import { takeUntil, distinctUntilChanged, map } from 'rxjs/operators';
 import { Profile } from '../../../store/profile/profile.actions';
 import { Energy } from '../../../store/energy/energy.actions';
+import { Weight } from '../../../store/weight/weight.actions';
 import { AuthState } from '../../../store/auth/auth.state';
 import { EnergyCalcService } from '../../../core/services/energy-calc.service';
 import { ButtonComponent, CardComponent, BadgeComponent } from '../../../shared/components';
@@ -321,6 +322,9 @@ export class OnboardingComponent implements OnInit, OnDestroy {
           dailyFat: v.dailyFat,
         };
         this.store.dispatch(new Energy.SaveGoalSettings(energySettings));
+
+        // Seed first weight entry from onboarding
+        this.store.dispatch(new Weight.LogWeight(weightKg, 'Starting weight from onboarding'));
       }
     });
   }

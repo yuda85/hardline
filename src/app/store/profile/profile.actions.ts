@@ -23,6 +23,11 @@ export namespace Profile {
     ) {}
   }
 
+  export class SetActivePlan {
+    static readonly type = '[Profile] Set Active Plan';
+    constructor(public planId: string | null) {}
+  }
+
   export class Reset {
     static readonly type = '[Profile] Reset';
   }

@@ -1,87 +1,114 @@
 <div class="flog">
-  <header class="flog__header">
-    <h1 class="flog__title">Food Log</h1>
-    <app-button variant="primary" size="sm" icon="add" (click)="showAddMeal.set(true)">Log meal</app-button>
-  </header>
+  <!-- Editorial Date Nav -->
+  <nav class="flog__date-nav">
+    @for (day of weekDays(); track day.dateStr) {
+      <button
+        class="flog__day"
+        [class.flog__day--active]="day.offset === 0"
+        (click)="selectDay(day.dateStr)"
+      >
+        <span class="flog__day-label">{{ day.dateLabel }}</span>
+        <span class="flog__day-abbr">{{ day.dayAbbr }}</span>
+      </button>
+    }
+  </nav>
 
-  <!-- Date nav -->
-  <div class="flog__date-nav">
-    <app-icon-button icon="chevron_left" ariaLabel="Previous day" (click)="prevDay()" />
-    <span class="flog__date">{{ formatDate(selectedDate()) }}</span>
-    <app-icon-button icon="chevron_right" ariaLabel="Next day" (click)="nextDay()" />
-  </div>
-
-  <!-- Calorie summary -->
   @if (goals(); as g) {
-    <div class="flog__calorie-bar">
-      <app-calorie-ring
-        [consumed]="summary()?.consumedCalories ?? 0"
-        [target]="g.dailyCalories"
-        size="sm"
-      />
-      <div class="flog__calorie-info">
-        <span class="flog__calorie-consumed">{{ summary()?.consumedCalories ?? 0 }} <span class="flog__calorie-unit">kcal eaten</span></span>
-        <span class="flog__calorie-target">of {{ g.dailyCalories }} kcal target</span>
+    <!-- Bento Summary -->
+    <div class="flog__summary">
+      <!-- Calorie Ring -->
+      <div class="flog__summary-ring">
+        <div class="flog__ring-data">
+          <span class="flog__ring-micro">Calories</span>
+          <div class="flog__ring-nums">
+            <span class="flog__ring-consumed">{{ summary()?.consumedCalories ?? 0 }}</span>
+            <span class="flog__ring-target">/ {{ g.dailyCalories }} kcal</span>
+          </div>
+          <span class="flog__ring-remaining">{{ remainingCalories() }} kcal remaining</span>
+        </div>
+        <app-calorie-ring
+          [consumed]="summary()?.consumedCalories ?? 0"
+          [target]="g.dailyCalories"
+          size="md"
+        />
+      </div>
+
+      <!-- Macro Bars -->
+      <div class="flog__summary-macros">
+        <app-macro-bars
+          [protein]="summary()?.consumedProtein ?? 0"
+          [proteinGoal]="g.dailyProtein"
+          [carbs]="summary()?.consumedCarbs ?? 0"
+          [carbsGoal]="g.dailyCarbs"
+          [fat]="summary()?.consumedFat ?? 0"
+          [fatGoal]="g.dailyFat"
+        />
       </div>
     </div>
-
-    <!-- Macro bars -->
-    <app-macro-bars
-      [protein]="summary()?.consumedProtein ?? 0"
-      [proteinGoal]="g.dailyProtein"
-      [carbs]="summary()?.consumedCarbs ?? 0"
-      [carbsGoal]="g.dailyCarbs"
-      [fat]="summary()?.consumedFat ?? 0"
-      [fatGoal]="g.dailyFat"
-    />
   }
 
-  <!-- AI quick log -->
+  <!-- AI Sensory Input -->
   <app-ai-meal-input-energy (mealAdded)="showAddMeal.set(false)" />
 
-  <!-- Meals by type -->
-  @if (loading()) {
-    <app-card [elevation]="1" padding="md">
-      <app-skeleton width="60%" height="1rem" />
-      <div style="margin-top: 0.5rem"><app-skeleton width="40%" height="0.875rem" /></div>
-    </app-card>
-  } @else {
+  <!-- Meal Sections -->
+  <div class="flog__meals">
     @for (type of mealTypes; track type) {
-      <div class="flog__section">
-        <div class="flog__section-header">
-          <h2 class="flog__section-title">{{ type }}</h2>
-          <span class="flog__section-cal">{{ getMealTypeCalories(type) }} kcal</span>
-        </div>
-
-        @for (meal of getMealsByType(type); track meal.id) {
-          <app-card [elevation]="2" padding="sm">
-            <div class="flog__meal">
-              <div class="flog__meal-info">
-                <div class="flog__meal-items">
-                  @for (item of meal.items; track $index) {
-                    <span class="flog__meal-item">{{ item.name }}</span>
-                  }
+      @if (getMealsByType(type).length > 0) {
+        <!-- Meal Card -->
+        <div class="flog__meal-card">
+          <div class="flog__meal-hover-bar"></div>
+          <div class="flog__meal-content">
+            <div class="flog__meal-header">
+              <div class="flog__meal-header-left">
+                <div class="flog__meal-icon-box">
+                  <span class="material-symbols-outlined">{{ getMealIcon(type) }}</span>
                 </div>
-                <div class="flog__meal-meta">
-                  <span>{{ formatTime(meal.timestamp) }}</span>
-                  @if (meal.source !== 'manual') {
-                    <app-badge variant="primary" size="sm">{{ meal.source }}</app-badge>
-                  }
+                <div>
+                  <div class="flog__meal-title-row">
+                    <h4 class="flog__meal-type">{{ type }}</h4>
+                    @if (getMealsByType(type)[0]; as firstMeal) {
+                      <span class="flog__meal-time">{{ formatTime(firstMeal.timestamp) }}</span>
+                    }
+                  </div>
+                  <span class="flog__meal-count">{{ getMealsByType(type).length }} item{{ getMealsByType(type).length > 1 ? 's' : '' }} logged</span>
                 </div>
               </div>
-              <div class="flog__meal-macros">
-                <span class="flog__meal-cal">{{ meal.totalCalories }}</span>
-                <span class="flog__meal-detail">P{{ meal.totalProtein }} C{{ meal.totalCarbs }} F{{ meal.totalFat }}</span>
+              <div class="flog__meal-kcal">
+                <span class="flog__meal-kcal-value">{{ getMealTypeCalories(type) }}</span>
+                <span class="flog__meal-kcal-unit">kcal</span>
               </div>
-              <app-icon-button icon="delete" ariaLabel="Remove" size="sm" (click)="removeMeal(meal.id)" />
             </div>
-          </app-card>
-        } @empty {
-          <p class="flog__empty-type">No {{ type }} logged</p>
-        }
-      </div>
+
+            <!-- Items List -->
+            <div class="flog__items">
+              @for (meal of getMealsByType(type); track meal.id) {
+                @for (item of meal.items; track $index) {
+                  <div class="flog__item" [class.flog__item--last]="$last">
+                    <span class="flog__item-name">{{ item.name }}</span>
+                    <div class="flog__item-meta">
+                      <div class="flog__item-protein">
+                        <span class="flog__item-dot"></span>
+                        <span>{{ item.protein }}g P</span>
+                      </div>
+                      <span class="flog__item-cal">{{ item.calories }} kcal</span>
+                    </div>
+                  </div>
+                }
+              }
+            </div>
+          </div>
+        </div>
+      } @else {
+        <!-- Empty State -->
+        <button class="flog__empty" (click)="showAddMeal.set(true)">
+          <span class="material-symbols-outlined flog__empty-icon">{{ getMealIcon(type) }}</span>
+          <h4 class="flog__empty-title">{{ getEmptyLabel(type) }}</h4>
+          <p class="flog__empty-hint">Log your meal to track nutrition precisely.</p>
+          <span class="flog__empty-btn">Quick Add {{ type | titlecase }}</span>
+        </button>
+      }
     }
-  }
+  </div>
 </div>
 
 @if (showAddMeal()) {

@@ -1,36 +1,70 @@
 @if (session(); as s) {
   <div class="summary">
-    <div class="summary__hero">
-      <span class="material-symbols-outlined summary__hero-icon">emoji_events</span>
-      <h1 class="summary__title">Workout Complete!</h1>
-      @if (duration()) {
-        <p class="summary__duration">{{ duration() }}</p>
-      }
-    </div>
+    <!-- Hero Section -->
+    <section class="summary__hero">
+      <div class="summary__hero-glow"></div>
+      <div class="summary__hero-content">
+        <div class="summary__trophy">
+          <span class="material-symbols-outlined summary__trophy-icon" style="font-variation-settings: 'FILL' 1;">emoji_events</span>
+          <div class="summary__trophy-dot"></div>
+        </div>
+        <h1 class="summary__title">Workout Complete!</h1>
+        @if (duration()) {
+          <p class="summary__subtitle">Session Complete • {{ duration() }}</p>
+        }
+      </div>
+    </section>
 
-    <div class="summary__stats">
-      <app-card [elevation]="2" padding="md">
-        <div class="summary__stat">
-          <span class="summary__stat-value">{{ totalSets() }}</span>
-          <span class="summary__stat-label">Sets</span>
-        </div>
-      </app-card>
-      <app-card [elevation]="2" padding="md">
-        <div class="summary__stat">
-          <span class="summary__stat-value">{{ totalReps() }}</span>
-          <span class="summary__stat-label">Reps</span>
-        </div>
-      </app-card>
-      <app-card [elevation]="2" padding="md">
-        <div class="summary__stat">
-          <span class="summary__stat-value">{{ totalVolume() | number }}</span>
-          <span class="summary__stat-label">Volume (kg)</span>
-        </div>
-      </app-card>
-    </div>
+    <!-- Stats Grid -->
+    <section class="summary__stats">
+      <div class="summary__stat summary__stat--accent">
+        <p class="summary__stat-label">Volume</p>
+        <p class="summary__stat-value">{{ totalVolume() | number }}</p>
+        <span class="summary__stat-unit">kg</span>
+      </div>
+      <div class="summary__stat">
+        <p class="summary__stat-label">Sets</p>
+        <p class="summary__stat-value">{{ totalSets() }}</p>
+      </div>
+      <div class="summary__stat">
+        <p class="summary__stat-label">Reps</p>
+        <p class="summary__stat-value">{{ totalReps() }}</p>
+      </div>
+    </section>
 
-    <app-card [elevation]="1" padding="lg">
-      <h3 class="summary__section-title">Exercise Breakdown</h3>
+    <!-- PR Section -->
+    @if (sessionPRs().length > 0) {
+      <section class="summary__prs">
+        <div class="summary__prs-header">
+          <div class="summary__prs-title">
+            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">military_tech</span>
+            <h3>New Personal Records</h3>
+          </div>
+          <span class="summary__prs-count">+{{ sessionPRs().length }} PRs</span>
+        </div>
+        <div class="summary__prs-list">
+          @for (pr of sessionPRs(); track pr.exerciseId) {
+            <div class="summary__pr-row">
+              <div class="summary__pr-info">
+                <p class="summary__pr-name">{{ pr.exerciseName }}</p>
+                <p class="summary__pr-1rm">New 1RM: {{ pr.oneRepMax }}kg</p>
+              </div>
+              <div class="summary__pr-weight">
+                <span class="summary__pr-value">{{ pr.weight }}</span>
+                <span class="summary__pr-unit">kg</span>
+              </div>
+            </div>
+          }
+        </div>
+        <div class="summary__prs-bg">
+          <span class="material-symbols-outlined">emoji_events</span>
+        </div>
+      </section>
+    }
+
+    <!-- Exercise Breakdown -->
+    <section class="summary__exercises-section">
+      <h3 class="summary__section-title">Exercise History</h3>
       <div class="summary__exercises">
         @for (group of s.exerciseGroups; track $index) {
           @if (group.type !== 'single') {
@@ -39,12 +73,17 @@
             </div>
           }
           @for (ex of group.exercises; track $index) {
-            <div class="summary__exercise">
+            <div class="summary__exercise-card">
               <div class="summary__exercise-header">
-                <span class="summary__exercise-name">{{ ex.exerciseName }}</span>
-                @if (getPR(ex.exerciseId); as pr) {
-                  <app-badge variant="tertiary" size="sm">1RM: {{ pr.oneRepMax }}kg</app-badge>
-                }
+                <div>
+                  <h4 class="summary__exercise-name">{{ ex.exerciseName }}</h4>
+                  <div class="summary__exercise-meta">
+                    @if (getPR(ex.exerciseId); as pr) {
+                      <span class="summary__record-badge">Record Set</span>
+                    }
+                    <p class="summary__exercise-count">{{ ex.sets.length }} Sets • {{ getExerciseReps(ex) }} Reps</p>
+                  </div>
+                </div>
               </div>
               <div class="summary__exercise-sets">
                 @for (set of ex.sets; track $index) {
@@ -57,10 +96,14 @@
           }
         }
       </div>
-    </app-card>
+    </section>
 
-    <app-button variant="primary" size="lg" [fullWidth]="true" icon="arrow_forward" (click)="goToWorkouts()">
-      Back to workouts
-    </app-button>
+    <!-- CTA -->
+    <div class="summary__cta">
+      <button class="summary__cta-btn" (click)="goToWorkouts()">
+        Back to Workouts
+        <span class="material-symbols-outlined">arrow_forward</span>
+      </button>
+    </div>
   </div>
 }

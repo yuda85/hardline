@@ -1,73 +1,68 @@
 .recap {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
+  background: var(--surface-container-low);
+  border-radius: 1.5rem;
+  padding: 2rem;
 }
 
 .recap__title {
   font-family: var(--font-headline);
-  font-weight: 700;
-  font-size: 0.8125rem;
+  font-weight: 800;
+  font-size: 1.25rem;
   color: var(--on-surface);
+  margin-bottom: 1.5rem;
 }
 
-.recap__stats {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.75rem;
+.recap__list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
 }
 
-.recap__stat {
+.recap__item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 0;
+  border-bottom: 1px solid rgba(65, 71, 85, 0.1);
+
+  &--last {
+    border-bottom: none;
+  }
+}
+
+.recap__item-left {
   display: flex;
   flex-direction: column;
   gap: 0.125rem;
 }
 
-.recap__stat-value {
+.recap__item-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--on-surface);
+}
+
+.recap__item-sub {
+  font-size: 0.75rem;
+  color: var(--on-surface-variant);
+}
+
+.recap__item-value {
   font-family: var(--font-headline);
   font-weight: 800;
   font-size: 1.125rem;
   color: var(--on-surface);
 
-  &--gain { color: var(--error); }
-  &--loss { color: #22c55e; }
-  &--streak { color: var(--primary); }
+  &--muted { color: var(--on-surface-variant); }
+  &--primary { color: #3cd7ff; }
 }
 
-.recap__stat-label {
-  font-size: 0.6875rem;
-  font-weight: 600;
-  color: var(--on-surface-variant);
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-}
+.recap__empty {
+  padding: 1rem 0;
 
-.recap__range {
-  padding-top: 0.25rem;
-  border-top: 1px solid var(--outline-variant);
-}
-
-.recap__range-label {
-  font-size: 0.75rem;
-  color: var(--on-surface-variant);
-}
-
-.recap--empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 0;
-}
-
-.recap__empty-icon {
-  font-size: 1.5rem;
-  color: var(--on-surface-variant);
-  opacity: 0.4;
-}
-
-.recap__empty-text {
-  font-size: 0.75rem;
-  color: var(--on-surface-variant);
-  text-align: center;
+  p {
+    font-size: 0.8125rem;
+    color: var(--on-surface-variant);
+  }
 }

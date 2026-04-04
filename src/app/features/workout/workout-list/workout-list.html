@@ -14,8 +14,14 @@
       <p class="workouts__subtitle">Manage your training regime</p>
     </div>
     <div class="workouts__actions">
+      <app-button variant="outline" [pill]="true" size="sm" icon="bolt" (click)="goToSmartWorkout($event)">
+        Quick Workout
+      </app-button>
+      <app-button variant="outline" [pill]="true" size="sm" icon="neurology" (click)="goToBuilder($event)">
+        AI Builder
+      </app-button>
       <app-button variant="outline" [pill]="true" size="sm" icon="add_box" (click)="triggerImport()">
-        Import Plan
+        Import
       </app-button>
       <app-button variant="gradient" [pill]="true" size="sm" icon="add" (click)="editPlan('new', $event)">
         New Plan
@@ -47,17 +53,35 @@
       </div>
       <h3 class="workouts__empty-title">Need a starting point?</h3>
       <p class="workouts__empty-text">
-        Load professional templates designed for various goals, from strength to endurance.
+        Let AI build a plan for your goals, or load professional templates.
       </p>
-      <app-button
-        variant="outline"
-        [pill]="true"
-        icon="download"
-        [loading]="seeding()"
-        (click)="seedExamples()"
-      >
-        Load Sample Plans
-      </app-button>
+      <div class="workouts__empty-actions">
+        <app-button
+          variant="gradient"
+          [pill]="true"
+          icon="neurology"
+          (click)="goToBuilder($event)"
+        >
+          AI Workout Builder
+        </app-button>
+        <app-button
+          variant="outline"
+          [pill]="true"
+          icon="bolt"
+          (click)="goToSmartWorkout($event)"
+        >
+          Quick Workout
+        </app-button>
+        <app-button
+          variant="outline"
+          [pill]="true"
+          icon="download"
+          [loading]="seeding()"
+          (click)="seedExamples()"
+        >
+          Load Sample Plans
+        </app-button>
+      </div>
       <div class="workouts__template-labels">
         <span>PPL</span>
         <span>UPPER/LOWER</span>
@@ -69,16 +93,33 @@
     <div class="workouts__list">
       @for (plan of plans(); track plan.id) {
         <app-card
-          [elevation]="1"
+          [elevation]="activePlanId() === plan.id ? 2 : 1"
           padding="none"
-          [accentBorder]="expandedPlan() === plan.id ? 'primary' : 'muted'"
+          [accentBorder]="activePlanId() === plan.id ? 'primary' : expandedPlan() === plan.id ? 'primary' : 'muted'"
         >
           <!-- Plan Header -->
-          <div class="plan-header" (click)="togglePlan(plan.id!)">
+          <div class="plan-header" [class.plan-header--active]="activePlanId() === plan.id" (click)="togglePlan(plan.id!)">
             <div class="plan-info">
               <div class="plan-info__top">
+                <button
+                  class="plan-star"
+                  [class.plan-star--active]="activePlanId() === plan.id"
+                  (click)="toggleActivePlan(plan.id!, $event)"
+                  [attr.aria-label]="activePlanId() === plan.id ? 'Remove as active plan' : 'Set as active plan'"
+                  [attr.title]="activePlanId() === plan.id ? 'Active plan' : 'Set as active plan'"
+                >
+                  <span
+                    class="material-symbols-outlined"
+                    [style.font-variation-settings]="activePlanId() === plan.id ? '\'FILL\' 1' : '\'FILL\' 0'"
+                  >star</span>
+                </button>
                 <div class="plan-info__text">
-                  <h3 class="plan-name">{{ plan.name }}</h3>
+                  <h3 class="plan-name">
+                    {{ plan.name }}
+                    @if (activePlanId() === plan.id) {
+                      <span class="plan-active-badge">ACTIVE</span>
+                    }
+                  </h3>
                   @if (plan.description) {
                     <p class="plan-desc">{{ plan.description }}</p>
                   }

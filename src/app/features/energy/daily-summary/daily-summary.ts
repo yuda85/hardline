@@ -2,7 +2,6 @@ import { Component, inject, OnInit } from '@angular/core';
 import { Store } from '@ngxs/store';
 import { Energy } from '../../../store/energy/energy.actions';
 import { EnergyState } from '../../../store/energy/energy.state';
-import { ButtonComponent, CardComponent, IconButtonComponent, BadgeComponent } from '../../../shared/components';
 import { CalorieRingComponent } from '../shared/calorie-ring/calorie-ring';
 import { MacroBarsComponent } from '../shared/macro-bars/macro-bars';
 import { BalanceCardComponent } from '../shared/balance-card/balance-card';
@@ -10,7 +9,7 @@ import { BalanceCardComponent } from '../shared/balance-card/balance-card';
 @Component({
   selector: 'app-daily-summary',
   standalone: true,
-  imports: [ButtonComponent, CardComponent, IconButtonComponent, BadgeComponent, CalorieRingComponent, MacroBarsComponent, BalanceCardComponent],
+  imports: [CalorieRingComponent, MacroBarsComponent, BalanceCardComponent],
   templateUrl: './daily-summary.html',
   styleUrl: './daily-summary.scss',
 })

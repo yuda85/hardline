@@ -1,154 +1,344 @@
 .flog {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  max-width: 640px;
+  max-width: 80rem;
+  padding-bottom: 6rem;
 }
 
-.flog__header {
+// Editorial Date Nav
+.flog__date-nav {
+  display: flex;
+  align-items: flex-end;
+  gap: 2rem;
+  overflow-x: auto;
+  padding: 2rem 0;
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+}
+
+.flog__day {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  background: none;
+  border: none;
+  cursor: pointer;
+  opacity: 0.3;
+  transition: opacity 200ms;
+  flex-shrink: 0;
+
+  &:hover { opacity: 0.5; }
+
+  &--active {
+    opacity: 1;
+    color: #3cd7ff;
+
+    .flog__day-label { color: #3cd7ff; }
+    .flog__day-abbr { font-size: 3.75rem; }
+  }
+}
+
+.flog__day-label {
+  font-size: 0.625rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--on-surface-variant);
+}
+
+.flog__day-abbr {
+  font-family: var(--font-headline);
+  font-weight: 800;
+  font-size: 2.5rem;
+  letter-spacing: -0.04em;
+  color: var(--on-surface);
+  line-height: 1;
+
+  .flog__day--active & {
+    color: #3cd7ff;
+  }
+}
+
+// Bento Summary
+.flog__summary {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  margin-bottom: 2rem;
+
+  @media (min-width: 768px) {
+    grid-template-columns: 5fr 7fr;
+  }
+}
+
+.flog__summary-ring {
+  background: var(--surface-container);
+  border-radius: 1.5rem;
+  padding: 2rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
-}
-
-.flog__title {
-  font-family: var(--font-headline);
-  font-weight: 800;
-  font-size: clamp(1.5rem, 4vw, 2rem);
-  color: var(--on-surface);
-}
-
-// Calorie bar
-.flog__calorie-bar {
-  display: flex;
-  align-items: center;
   gap: 1rem;
-  background: var(--surface-container-low);
-  border-radius: 1rem;
-  padding: 0.875rem 1.25rem;
+  overflow: hidden;
 }
 
-.flog__calorie-info {
+.flog__ring-data {
   display: flex;
   flex-direction: column;
-  gap: 0.125rem;
+  gap: 0.25rem;
 }
 
-.flog__calorie-consumed {
+.flog__ring-micro {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--on-surface-variant);
+}
+
+.flog__ring-nums {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+}
+
+.flog__ring-consumed {
   font-family: var(--font-headline);
   font-weight: 800;
-  font-size: 1.25rem;
+  font-size: 3rem;
+  letter-spacing: -0.04em;
   color: var(--on-surface);
+  line-height: 1;
 }
 
-.flog__calorie-unit {
-  font-size: 0.75rem;
+.flog__ring-target {
+  font-size: 0.875rem;
   font-weight: 500;
   color: var(--on-surface-variant);
 }
 
-.flog__calorie-target {
+.flog__ring-remaining {
   font-size: 0.75rem;
-  color: var(--on-surface-variant);
+  font-weight: 600;
+  color: #3cd7ff;
+  margin-top: 0.5rem;
 }
 
-.flog__date-nav {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-}
-
-.flog__date {
-  font-family: var(--font-headline);
-  font-weight: 700;
-  font-size: 1rem;
-  color: var(--on-surface);
-  min-width: 120px;
-  text-align: center;
-}
-
-// Sections by meal type
-.flog__section {
+.flog__summary-macros {
+  background: var(--surface-container);
+  border-radius: 1.5rem;
+  padding: 2rem;
   display: flex;
   flex-direction: column;
-  gap: 0.375rem;
+  justify-content: center;
 }
 
-.flog__section-header {
+// Meals
+.flog__meals {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.flog__section-title {
-  font-family: var(--font-headline);
-  font-weight: 700;
-  font-size: 0.8125rem;
-  color: var(--on-surface-variant);
-  text-transform: capitalize;
-}
-
-.flog__section-cal {
-  font-family: var(--font-headline);
-  font-weight: 700;
-  font-size: 0.75rem;
-  color: var(--primary);
-}
-
-.flog__empty-type {
-  font-size: 0.75rem;
-  color: var(--on-surface-variant);
-  opacity: 0.5;
-  padding: 0.25rem 0;
+  flex-direction: column;
+  gap: 2rem;
 }
 
 // Meal card
-.flog__meal {
+.flog__meal-card {
+  position: relative;
+
+  &:hover .flog__meal-hover-bar { opacity: 1; }
+  &:hover .flog__meal-content { transform: translateX(0.5rem); }
+}
+
+.flog__meal-hover-bar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: #3cd7ff;
+  border-radius: 9999px;
+  opacity: 0;
+  transition: opacity 200ms;
+}
+
+.flog__meal-content {
+  background: var(--surface-container);
+  border-radius: 1.5rem;
+  padding: 1.5rem;
+  transition: transform 200ms;
+}
+
+.flog__meal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+}
+
+.flog__meal-header-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.flog__meal-icon-box {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 1rem;
+  background: var(--surface-container-highest);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .material-symbols-outlined {
+    font-size: 1.5rem;
+    color: var(--on-surface-variant);
+    opacity: 0.8;
+  }
+}
+
+.flog__meal-title-row {
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 
-.flog__meal-info { flex: 1; min-width: 0; }
-
-.flog__meal-items {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.125rem;
-}
-
-.flog__meal-item {
-  font-weight: 600;
-  font-size: 0.8125rem;
-  color: var(--on-surface);
-  &:not(:last-child)::after { content: ','; margin-right: 0.125rem; }
-}
-
-.flog__meal-meta {
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-  font-size: 0.6875rem;
-  color: var(--on-surface-variant);
-  margin-top: 0.125rem;
-}
-
-.flog__meal-macros {
-  text-align: right;
-  flex-shrink: 0;
-}
-
-.flog__meal-cal {
+.flog__meal-type {
   font-family: var(--font-headline);
   font-weight: 800;
-  font-size: 0.9375rem;
+  font-size: 1.25rem;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  color: var(--on-surface);
+}
+
+.flog__meal-time {
+  font-size: 0.625rem;
+  font-weight: 600;
+  color: var(--on-surface-variant);
+  background: var(--surface-container-highest);
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.25rem;
+}
+
+.flog__meal-count {
+  font-size: 0.75rem;
+  color: var(--on-surface-variant);
+}
+
+.flog__meal-kcal {
+  text-align: right;
+}
+
+.flog__meal-kcal-value {
+  font-family: var(--font-headline);
+  font-weight: 800;
+  font-size: 1.5rem;
+  letter-spacing: -0.04em;
   color: var(--on-surface);
   display: block;
 }
 
-.flog__meal-detail {
-  font-size: 0.5625rem;
+.flog__meal-kcal-unit {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
   color: var(--on-surface-variant);
-  white-space: nowrap;
+}
+
+// Items list
+.flog__items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.flog__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(65, 71, 85, 0.1);
+
+  &--last { border-bottom: none; }
+}
+
+.flog__item-name {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--on-surface);
+}
+
+.flog__item-meta {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.flog__item-protein {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.625rem;
+  color: var(--on-surface-variant);
+}
+
+.flog__item-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background: #3cd7ff;
+}
+
+.flog__item-cal {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--on-surface);
+}
+
+// Empty state
+.flog__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 2rem;
+  border: 2px dashed rgba(65, 71, 85, 0.2);
+  border-radius: 1.5rem;
+  background: var(--surface-container-low);
+  opacity: 0.6;
+  cursor: pointer;
+  transition: opacity 200ms;
+  width: 100%;
+
+  &:hover { opacity: 1; }
+}
+
+.flog__empty-icon {
+  font-size: 2.5rem;
+  color: var(--on-surface-variant);
+  margin-bottom: 0.75rem;
+}
+
+.flog__empty-title {
+  font-family: var(--font-headline);
+  font-weight: 800;
+  font-size: 1.125rem;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  color: var(--on-surface-variant);
+}
+
+.flog__empty-hint {
+  font-size: 0.75rem;
+  color: var(--on-surface-variant);
+  max-width: 20rem;
+  margin-top: 0.25rem;
+}
+
+.flog__empty-btn {
+  margin-top: 1rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #3cd7ff;
+  border: 1px solid rgba(60, 215, 255, 0.2);
+  padding: 0.5rem 1.5rem;
+  border-radius: 9999px;
 }

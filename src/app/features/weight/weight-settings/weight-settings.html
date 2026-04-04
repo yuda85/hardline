@@ -1,46 +1,86 @@
 <div class="wset">
+  <!-- Header -->
   <header class="wset__header">
-    <app-icon-button icon="arrow_back" ariaLabel="Back" (click)="goBack()" />
+    <button class="wset__back" (click)="goBack()">
+      <span class="material-symbols-outlined">arrow_back</span>
+    </button>
     <h1 class="wset__title">Weight Settings</h1>
   </header>
 
+  <!-- Editorial hero -->
+  <div class="wset__hero">
+    <span class="wset__ghost">DATA</span>
+    <div class="wset__hero-text">
+      <p class="wset__hero-label">Configure your metrics</p>
+      <h2 class="wset__hero-title">Precision Control</h2>
+    </div>
+  </div>
+
   <form [formGroup]="form" class="wset__form">
-    <app-card [elevation]="1" padding="md">
-      <div class="wset__section">
-        <h3 class="wset__section-title">Goal weight</h3>
-        <p class="wset__section-hint">Set your target weight to track progress</p>
-        <div class="wset__field">
-          <label for="ws-target">Target weight (kg)</label>
+    <!-- Goal Weight -->
+    <section class="wset__card wset__card--primary">
+      <div class="wset__card-header">
+        <div>
+          <h3 class="wset__card-title">GOAL WEIGHT</h3>
+          <p class="wset__card-hint">Target mass for optimization.</p>
+        </div>
+        <span class="material-symbols-outlined wset__card-icon">monitor_weight</span>
+      </div>
+      <div class="wset__input-row">
+        <div class="wset__field wset__field--grow">
+          <label for="ws-target">Weight Value (KG)</label>
           <input
             id="ws-target"
             type="number"
             inputmode="decimal"
             step="0.1"
             formControlName="targetWeight"
-            placeholder="e.g. 75.0"
+            placeholder="185.0"
           />
         </div>
+        <span class="wset__unit">KG</span>
       </div>
-    </app-card>
+    </section>
 
-    <app-card [elevation]="1" padding="md">
-      <div class="wset__section">
-        <h3 class="wset__section-title">Morning reminder</h3>
-        <p class="wset__section-hint">Get reminded to weigh in each morning</p>
+    <!-- Morning Reminder -->
+    <section class="wset__card wset__card--muted">
+      <div class="wset__card-header">
+        <div>
+          <h3 class="wset__card-title">MORNING REMINDER</h3>
+          <p class="wset__card-hint">Consistency breeds excellence.</p>
+        </div>
+        <span class="material-symbols-outlined wset__card-icon">alarm</span>
+      </div>
+      <div class="wset__reminder-row">
         <div class="wset__field">
-          <label for="ws-reminder">Reminder time</label>
+          <label for="ws-reminder">Time Set</label>
           <input
             id="ws-reminder"
             type="time"
             formControlName="reminderTime"
           />
         </div>
+        <div class="wset__enabled-badge">
+          <span class="material-symbols-outlined wset__enabled-icon">notifications_active</span>
+          <span class="wset__enabled-text">Enabled</span>
+        </div>
       </div>
-    </app-card>
+    </section>
   </form>
 
+  <!-- Actions -->
   <div class="wset__actions">
-    <app-button variant="outline" (click)="goBack()">Cancel</app-button>
-    <app-button variant="primary" [loading]="saving()" (click)="save()">Save</app-button>
+    <button class="wset__cancel" (click)="goBack()">Cancel</button>
+    <button class="wset__save" [disabled]="saving()" (click)="save()">
+      @if (saving()) {
+        Saving...
+      } @else {
+        Save Changes
+      }
+    </button>
   </div>
+
+  <!-- Background decorative -->
+  <div class="wset__bg-glow wset__bg-glow--primary"></div>
+  <div class="wset__bg-glow wset__bg-glow--tertiary"></div>
 </div>

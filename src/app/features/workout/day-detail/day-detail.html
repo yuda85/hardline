@@ -1,81 +1,127 @@
-@if (day(); as d) {
+@if (dayData(); as d) {
   <div class="detail">
+    <!-- Header -->
     <header class="detail__header">
       <app-icon-button icon="arrow_back" ariaLabel="Back to workouts" (click)="goBack()" />
       <div class="detail__header-info">
-        <div class="detail__day-badge">Day {{ d.dayNumber }}</div>
-        <h1 class="detail__title">{{ d.name }}</h1>
+        <span class="detail__sequence">Sequence {{ d.dayNumber | number: '2.0-0' }}</span>
+        <input
+          class="detail__title-input"
+          type="text"
+          [value]="d.name"
+          (input)="updateDayName($any($event.target).value)"
+        />
         <div class="detail__stats">
           <span>{{ totalExercises() }} exercises</span>
           <span>{{ totalSets() }} sets</span>
         </div>
       </div>
+      <!-- Auto-save indicator -->
+      @if (saveStatus() !== 'idle') {
+        <span class="detail__save-status" [class.detail__save-status--saved]="saveStatus() === 'saved'">
+          @if (saveStatus() === 'saving') {
+            Saving...
+          } @else {
+            <span class="material-symbols-outlined">check</span> Saved
+          }
+        </span>
+      }
     </header>
 
-    <!-- Equipment needed -->
+    <!-- Equipment -->
     @if (equipment().length) {
-      <app-card [elevation]="1" padding="md">
-        <h2 class="detail__section-title">
-          <span class="material-symbols-outlined">fitness_center</span>
-          Equipment needed
-        </h2>
-        <div class="detail__equipment">
-          @for (item of equipment(); track item) {
-            <app-badge variant="surface" size="md">{{ item }}</app-badge>
-          }
-        </div>
-      </app-card>
+      <div class="detail__equipment">
+        @for (item of equipment(); track item) {
+          <app-badge variant="surface" size="sm">{{ item }}</app-badge>
+        }
+      </div>
     }
 
-    <!-- Exercise list -->
+    <!-- Exercise Groups -->
     <div class="detail__exercises">
-      <h2 class="detail__section-title">
-        <span class="material-symbols-outlined">format_list_bulleted</span>
-        Exercises
-      </h2>
-
-      @for (group of d.exerciseGroups; track $index) {
+      @for (group of d.exerciseGroups; track $index; let gIdx = $index) {
+        <!-- Group type label -->
         @if (group.type !== 'single') {
-          <div class="detail__group-header">
+          <div class="detail__group-label">
             <app-badge variant="tertiary" size="sm">{{ group.type }}</app-badge>
-            <span class="detail__group-rest">
-              <span class="material-symbols-outlined">timer</span>
-              {{ formatRest(group.restSeconds) }} rest
-            </span>
           </div>
         }
 
-        @for (ex of group.exercises; track $index) {
-          <div class="detail__exercise" [class.detail__exercise--grouped]="group.type !== 'single'">
-            <div class="detail__exercise-main">
-              <span class="detail__exercise-name">{{ ex.exerciseName }}</span>
-              <span class="detail__exercise-sets">{{ formatSets(ex.sets) }}</span>
+        @for (ex of group.exercises; track $index; let eIdx = $index) {
+          <div class="detail__exercise-card">
+            <div class="detail__exercise-rail"></div>
+
+            <div class="detail__exercise-content">
+              <!-- Exercise header -->
+              <div class="detail__exercise-top">
+                <div class="detail__exercise-info">
+                  <h3 class="detail__exercise-name">{{ ex.exerciseName }}</h3>
+                  <div class="detail__exercise-meta">
+                    <span class="detail__rest-chip" (click)="toggleRestEditor(gIdx)">
+                      <span class="material-symbols-outlined">timer</span>
+                      {{ formatRest(group.restSeconds) }} Rest
+                    </span>
+                  </div>
+                </div>
+                <div class="detail__exercise-actions">
+                  <button class="detail__action-btn" (click)="openSwapExercise(gIdx, eIdx)">
+                    <span class="material-symbols-outlined">swap_horiz</span>
+                  </button>
+                  <button class="detail__action-btn detail__action-btn--danger" (click)="deleteExerciseGroup(gIdx)">
+                    <span class="material-symbols-outlined">delete</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Inline set editor -->
+              <app-set-editor
+                mode="inline"
+                [sets]="ex.sets"
+                [restSeconds]="group.restSeconds"
+                [notes]="ex.notes ?? ''"
+                (setsChange)="updateSets(gIdx, eIdx, $event)"
+                (restChange)="updateRest(gIdx, $event)"
+                (notesChange)="updateNotes(gIdx, eIdx, $event)"
+              />
+
+              <!-- Rest time selector (toggled) -->
+              @if (editingRest() === gIdx && eIdx === 0) {
+                <div class="detail__rest-selector" @expandCollapse>
+                  <span class="detail__rest-label">Default Rest:</span>
+                  @for (preset of restPresets; track preset) {
+                    <button
+                      class="detail__rest-preset"
+                      [class.detail__rest-preset--active]="group.restSeconds === preset"
+                      (click)="updateRest(gIdx, preset)"
+                    >{{ preset }}s</button>
+                  }
+                </div>
+              }
             </div>
-
-            @if (group.type === 'single') {
-              <span class="detail__exercise-rest">
-                <span class="material-symbols-outlined">timer</span>
-                {{ formatRest(group.restSeconds) }}
-              </span>
-            }
-
-            @if (ex.notes) {
-              <p class="detail__exercise-notes">
-                <span class="material-symbols-outlined">info</span>
-                {{ ex.notes }}
-              </p>
-            }
           </div>
         }
       }
     </div>
 
-    <!-- Start button -->
-    <div class="detail__action">
+    <!-- Add buttons -->
+    <div class="detail__add-actions">
+      <button class="detail__add-btn" (click)="openAddExercise()">
+        <span class="material-symbols-outlined">add</span>
+        Add Exercise
+      </button>
+      <button class="detail__add-btn detail__add-btn--secondary" (click)="openAddSuperset()">
+        <span class="material-symbols-outlined">layers</span>
+        Add Superset
+      </button>
+    </div>
+
+    <!-- Start Workout -->
+    <div class="detail__bottom-action">
       <app-button
-        variant="primary"
+        variant="gradient"
         size="lg"
         [fullWidth]="true"
+        [pill]="true"
         icon="play_arrow"
         (click)="startWorkout()"
       >
@@ -83,6 +129,15 @@
       </app-button>
     </div>
   </div>
+
+  <!-- Exercise Picker Modal -->
+  @if (showExercisePicker()) {
+    <app-exercise-picker
+      [filterMuscleGroup]="pickerTarget()?.swapMuscleGroup ?? null"
+      (picked)="onExercisePicked($event)"
+      (closed)="closePicker()"
+    />
+  }
 } @else if (loading()) {
   <div class="detail__loading">Loading...</div>
 }

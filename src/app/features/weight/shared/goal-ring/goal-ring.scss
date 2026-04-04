@@ -4,9 +4,9 @@
   align-items: center;
   justify-content: center;
 
-  &--sm { width: 72px; height: 72px; }
-  &--md { width: 100px; height: 100px; }
-  &--lg { width: 140px; height: 140px; }
+  &--sm { width: 80px; height: 80px; }
+  &--md { width: 128px; height: 128px; }
+  &--lg { width: 128px; height: 128px; }
 }
 
 .goal__svg {
@@ -17,14 +17,14 @@
 
 .goal__bg {
   fill: none;
-  stroke: var(--surface-container-high);
-  stroke-width: 7;
+  stroke: var(--surface-container-highest);
+  stroke-width: 8;
 }
 
 .goal__fill {
   fill: none;
-  stroke: var(--primary);
-  stroke-width: 7;
+  stroke: #3cd7ff;
+  stroke-width: 8;
   stroke-linecap: round;
   transition: stroke-dashoffset 500ms ease;
 
@@ -47,29 +47,22 @@
   font-weight: 800;
   line-height: 1;
   color: var(--on-surface);
-
-  .goal--sm & { font-size: 0.75rem; }
-  .goal--md & { font-size: 1rem; }
-  .goal--lg & { font-size: 1.5rem; }
+  font-size: 1.5rem;
 
   &--complete { color: #22c55e; }
 }
 
 .goal__label {
-  font-size: 0.5rem;
+  font-size: 0.5625rem;
   color: var(--on-surface-variant);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   font-weight: 600;
   text-align: center;
-
-  .goal--lg & { font-size: 0.625rem; }
 }
 
 .goal__empty-icon {
-  font-size: 1.25rem;
+  font-size: 1.5rem;
   color: var(--on-surface-variant);
   opacity: 0.4;
-
-  .goal--lg & { font-size: 1.75rem; }
 }

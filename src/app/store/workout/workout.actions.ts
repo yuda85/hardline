@@ -1,4 +1,9 @@
-import { WorkoutPlan } from '../../core/models';
+import { WorkoutDay, WorkoutPlan } from '../../core/models';
+import {
+  WorkoutBuilderInput,
+  EquipmentType,
+  DailyWorkoutResult,
+} from '../../core/models/ai-workout.model';
 
 export namespace Workout {
   export class FetchPlans {
@@ -66,7 +71,42 @@ export namespace Workout {
     constructor(public planId: string) {}
   }
 
+  export class UpdatePlanDay {
+    static readonly type = '[Workout] Update Plan Day';
+    constructor(public planId: string, public dayNumber: number, public day: WorkoutDay) {}
+  }
+
   export class Reset {
     static readonly type = '[Workout] Reset';
+  }
+
+  // ── AI Generation ──
+
+  export class GeneratePlan {
+    static readonly type = '[Workout] Generate Plan';
+    constructor(public input: WorkoutBuilderInput) {}
+  }
+
+  export class GenerateDailyWorkout {
+    static readonly type = '[Workout] Generate Daily Workout';
+    constructor(
+      public availableMinutes: number,
+      public availableEquipment: EquipmentType[],
+    ) {}
+  }
+
+  export class SaveGeneratedPlan {
+    static readonly type = '[Workout] Save Generated Plan';
+    constructor(public plan: WorkoutPlan) {}
+  }
+
+  export class StartGeneratedWorkout {
+    static readonly type = '[Workout] Start Generated Workout';
+    constructor(public workout: DailyWorkoutResult) {}
+  }
+
+  export class AddDayToActivePlan {
+    static readonly type = '[Workout] Add Day To Active Plan';
+    constructor(public day: WorkoutDay) {}
   }
 }

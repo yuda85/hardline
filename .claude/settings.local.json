@@ -30,7 +30,11 @@
       "Bash(npm test:*)",
       "Bash(python3 .claude/skills/ui-ux-pro-max/scripts/search.py \"fitness health weight tracking dashboard dark mode gamification\" --design-system --persist -p \"Hardline Weight Tracker\")",
       "Bash(python3 .claude/skills/ui-ux-pro-max/scripts/search.py \"gamification streak badges progress celebration\" --domain ux -n 5)",
-      "Bash(python3 .claude/skills/ui-ux-pro-max/scripts/search.py \"modal bottom sheet dialog form input\" --domain ux -n 5)"
+      "Bash(python3 .claude/skills/ui-ux-pro-max/scripts/search.py \"modal bottom sheet dialog form input\" --domain ux -n 5)",
+      "Bash(cat /Users/yehudab/dev/hardline/src/app/data/repositories/*.ts)",
+      "Bash(wc -l /Users/yehudab/dev/hardline/src/app/features/energy/**/*.ts /Users/yehudab/dev/hardline/src/app/features/energy/**/*.html /Users/yehudab/dev/hardline/src/app/features/energy/**/*.scss)",
+      "Bash(ls /Users/yehudab/dev/hardline/dist/Hardline/browser/chunk-*)",
+      "Bash(curl -s -w '\\\\n%{http_code}' https://api.openai.com/v1/chat/completions -H 'Content-Type: application/json' -H 'Authorization: Bearer __CMDSUB_OUTPUT__')"
     ]
   }
 }

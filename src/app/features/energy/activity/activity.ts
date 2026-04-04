@@ -7,7 +7,6 @@ import { EnergyState } from '../../../store/energy/energy.state';
 import { AuthState } from '../../../store/auth/auth.state';
 import { EnergyCalcService } from '../../../core/services/energy-calc.service';
 import { SessionRepository } from '../../../data/repositories/session.repository';
-import { ButtonComponent, CardComponent, IconButtonComponent, BadgeComponent } from '../../../shared/components';
 import { CARDIO_TYPES, CardioEntry } from '../../../core/models/energy.model';
 import { WorkoutSession } from '../../../core/models/workout.model';
 import { toDateString } from '../../../core/services/date.util';
@@ -15,7 +14,7 @@ import { toDateString } from '../../../core/services/date.util';
 @Component({
   selector: 'app-activity',
   standalone: true,
-  imports: [FormsModule, ButtonComponent, CardComponent, IconButtonComponent, BadgeComponent],
+  imports: [FormsModule],
   templateUrl: './activity.html',
   styleUrl: './activity.scss',
 })
