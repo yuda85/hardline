@@ -11,257 +11,87 @@
   <header class="workouts__header">
     <div>
       <h2 class="workouts__title">Workouts</h2>
-      <p class="workouts__subtitle">Manage your training regime</p>
+      @if (activeTab() === 'active' && activePlan()) {
+        <p class="workouts__subtitle">{{ activePlan()!.name }}</p>
+      } @else {
+        <p class="workouts__subtitle">Manage your training regime</p>
+      }
     </div>
-    <div class="workouts__actions">
-      <app-button variant="outline" [pill]="true" size="sm" icon="bolt" (click)="goToSmartWorkout($event)">
-        Quick Workout
-      </app-button>
-      <app-button variant="outline" [pill]="true" size="sm" icon="neurology" (click)="goToBuilder($event)">
-        AI Builder
-      </app-button>
-      <app-button variant="outline" [pill]="true" size="sm" icon="add_box" (click)="triggerImport()">
-        Import
-      </app-button>
-      <app-button variant="gradient" [pill]="true" size="sm" icon="add" (click)="editPlan('new', $event)">
-        New Plan
-      </app-button>
-    </div>
+    @if (activeTab() === 'active' && activePlan()) {
+      <app-badge variant="primary" size="sm">
+        {{ activePlan()!.days.length }} DAYS/WK
+      </app-badge>
+    }
   </header>
+
+  <!-- Tab Bar -->
+  <div class="tab-bar" role="tablist">
+    <button
+      class="tab-bar__tab"
+      [class.tab-bar__tab--active]="activeTab() === 'active'"
+      role="tab"
+      [attr.aria-selected]="activeTab() === 'active'"
+      (click)="activeTab.set('active')"
+    >
+      Active Plan
+    </button>
+    <button
+      class="tab-bar__tab"
+      [class.tab-bar__tab--active]="activeTab() === 'plans'"
+      role="tab"
+      [attr.aria-selected]="activeTab() === 'plans'"
+      (click)="activeTab.set('plans')"
+    >
+      My Plans
+    </button>
+  </div>
 
   <!-- Error Banner -->
   @if (importError(); as err) {
     <div class="workouts__error">{{ err }}</div>
   }
 
-  <!-- Loading Skeletons -->
-  @if (loading() && plans().length === 0) {
-    @for (i of [1, 2]; track i) {
-      <app-card [elevation]="1" padding="lg" accentBorder="muted">
-        <app-skeleton width="60%" height="1.25rem" />
-        <div style="margin-top: 0.75rem"><app-skeleton width="80%" height="0.875rem" /></div>
-        <div style="margin-top: 0.5rem"><app-skeleton width="40%" height="0.75rem" /></div>
-      </app-card>
+  <!-- Tab Content -->
+  @switch (activeTab()) {
+    @case ('active') {
+      <app-active-plan-tab
+        [activePlan]="activePlan()"
+        (switchTab)="activeTab.set('plans')"
+        (startDay)="startDay($event.planId, $event.dayNumber)"
+      />
     }
-  } @else if (plans().length === 0) {
-    <!-- Empty State -->
-    <div class="workouts__empty">
-      <div class="workouts__empty-icon-wrap">
-        <span class="material-symbols-outlined workouts__empty-icon" style="font-variation-settings: 'FILL' 1;">
-          model_training
-        </span>
-      </div>
-      <h3 class="workouts__empty-title">Need a starting point?</h3>
-      <p class="workouts__empty-text">
-        Let AI build a plan for your goals, or load professional templates.
-      </p>
-      <div class="workouts__empty-actions">
-        <app-button
-          variant="gradient"
-          [pill]="true"
-          icon="neurology"
-          (click)="goToBuilder($event)"
-        >
-          AI Workout Builder
-        </app-button>
-        <app-button
-          variant="outline"
-          [pill]="true"
-          icon="bolt"
-          (click)="goToSmartWorkout($event)"
-        >
-          Quick Workout
-        </app-button>
-        <app-button
-          variant="outline"
-          [pill]="true"
-          icon="download"
-          [loading]="seeding()"
-          (click)="seedExamples()"
-        >
-          Load Sample Plans
-        </app-button>
-      </div>
-      <div class="workouts__template-labels">
-        <span>PPL</span>
-        <span>UPPER/LOWER</span>
-        <span>FULL BODY</span>
-      </div>
-    </div>
-  } @else {
-    <!-- Plan Cards -->
-    <div class="workouts__list">
-      @for (plan of plans(); track plan.id) {
-        <app-card
-          [elevation]="activePlanId() === plan.id ? 2 : 1"
-          padding="none"
-          [accentBorder]="activePlanId() === plan.id ? 'primary' : expandedPlan() === plan.id ? 'primary' : 'muted'"
-        >
-          <!-- Plan Header -->
-          <div class="plan-header" [class.plan-header--active]="activePlanId() === plan.id" (click)="togglePlan(plan.id!)">
-            <div class="plan-info">
-              <div class="plan-info__top">
-                <button
-                  class="plan-star"
-                  [class.plan-star--active]="activePlanId() === plan.id"
-                  (click)="toggleActivePlan(plan.id!, $event)"
-                  [attr.aria-label]="activePlanId() === plan.id ? 'Remove as active plan' : 'Set as active plan'"
-                  [attr.title]="activePlanId() === plan.id ? 'Active plan' : 'Set as active plan'"
-                >
-                  <span
-                    class="material-symbols-outlined"
-                    [style.font-variation-settings]="activePlanId() === plan.id ? '\'FILL\' 1' : '\'FILL\' 0'"
-                  >star</span>
-                </button>
-                <div class="plan-info__text">
-                  <h3 class="plan-name">
-                    {{ plan.name }}
-                    @if (activePlanId() === plan.id) {
-                      <span class="plan-active-badge">ACTIVE</span>
-                    }
-                  </h3>
-                  @if (plan.description) {
-                    <p class="plan-desc">{{ plan.description }}</p>
-                  }
-                </div>
-                <div class="plan-days-count">
-                  <span class="plan-days-count__number">{{ plan.days.length ?? 0 }}</span>
-                  <span class="plan-days-count__label">Days/Week</span>
-                </div>
-              </div>
-              <div class="plan-meta">
-                <span class="plan-meta__item">
-                  <span class="material-symbols-outlined plan-meta__icon">calendar_today</span>
-                  Updated {{ plan.updatedAt | relativeTime }}
-                </span>
-                <button
-                  class="plan-expand-toggle"
-                  (click)="$event.stopPropagation(); togglePlan(plan.id!)"
-                >
-                  <span class="plan-expand-toggle__label">
-                    {{ expandedPlan() === plan.id ? 'Collapse' : 'Expand' }}
-                  </span>
-                  <span
-                    class="material-symbols-outlined plan-expand-toggle__icon"
-                    [class.plan-expand-toggle__icon--open]="expandedPlan() === plan.id"
-                  >expand_more</span>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Volume Analysis + Days -->
-          @if (expandedPlan() === plan.id) {
-            @let analysis = getVolumeAnalysis(plan);
-            <div class="volume-section" @expandCollapse>
-              <div class="volume-header">
-                <span class="volume-header__title">
-                  <span class="material-symbols-outlined volume-header__icon">analytics</span>
-                  Weekly Volume
-                </span>
-                <span class="volume-header__score" [class]="'score--' + getScoreLevel(analysis.balanceScore)">
-                  {{ analysis.balanceScore }}% balanced
-                </span>
-              </div>
-
-              <div class="volume-bars">
-                @for (group of analysis.groups; track group.muscleGroup) {
-                  @if (group.sets > 0 || group.muscleGroup !== 'full_body') {
-                    <div class="volume-bar">
-                      <span class="volume-bar__label">{{ group.label }}</span>
-                      <div class="volume-bar__track">
-                        <div
-                          class="volume-bar__fill volume-bar__fill--{{ group.status }}"
-                          [style.width.%]="getBarWidth(group)"
-                        ></div>
-                      </div>
-                      <span class="volume-bar__sets">
-                        <strong>{{ group.sets }}</strong>/{{ group.minRecommended }}-{{ group.maxRecommended }}
-                      </span>
-                    </div>
-                  }
-                }
-              </div>
-
-              @if (analysis.recommendations.length) {
-                <div class="volume-recs">
-                  @for (rec of analysis.recommendations; track rec) {
-                    <p class="volume-recs__item">
-                      <span class="material-symbols-outlined volume-recs__icon">lightbulb</span>
-                      {{ rec }}
-                    </p>
-                  }
-                </div>
-              }
-            </div>
-
-            @if (plan.days.length) {
-            <div class="days-section" @expandCollapse>
-              @for (day of plan.days; track day.dayNumber; let first = $first) {
-                <div class="day-row">
-                  <div class="day-row__left">
-                    <div class="day-number" [class.day-number--active]="first">
-                      {{ day.dayNumber | number: '2.0-0' }}
-                    </div>
-                    <div class="day-info">
-                      <h4 class="day-name">{{ day.name }}</h4>
-                      <div class="day-badges">
-                        <app-badge variant="surface" size="sm">
-                          {{ getExerciseCount(day) }} Exercises
-                        </app-badge>
-                        @for (type of getGroupTypes(day); track type) {
-                          <app-badge
-                            [variant]="type === 'SS' ? 'primary' : 'tertiary'"
-                            size="sm"
-                          >{{ type }}</app-badge>
-                        }
-                      </div>
-                    </div>
-                  </div>
-                  <div class="day-actions">
-                    <button
-                      class="day-actions__preview"
-                      (click)="previewDay(plan.id!, day.dayNumber, $event)"
-                    >Preview</button>
-                    <button
-                      class="day-actions__start"
-                      (click)="startDay(plan.id!, day.dayNumber, $event)"
-                    >Start</button>
-                  </div>
-                </div>
-              }
-            </div>
-            }
-          }
-        </app-card>
-      }
-    </div>
-
-    <!-- Sample Plans Loader -->
-    <div class="sample-loader">
-      <div class="sample-loader__icon-wrap">
-        <span
-          class="material-symbols-outlined sample-loader__icon"
-          style="font-variation-settings: 'FILL' 1;"
-        >model_training</span>
-      </div>
-      <h3 class="sample-loader__title">Need a starting point?</h3>
-      <p class="sample-loader__text">
-        Load professional templates designed for various goals, from strength to endurance.
-      </p>
-      <app-button
-        variant="outline"
-        [pill]="true"
-        [loading]="seeding()"
-        (click)="seedExamples()"
-      >
-        Load Sample Plans
-      </app-button>
-      <div class="sample-loader__labels">
-        <span>PPL</span>
-        <span>UPPER/LOWER</span>
-        <span>FULL BODY</span>
-      </div>
-    </div>
+    @case ('plans') {
+      <app-my-plans-tab
+        [plans]="plans()"
+        [activePlanId]="activePlanId()"
+        [loading]="loading()"
+        [seeding]="seeding()"
+        (toggleActive)="toggleActivePlan($event.planId, $event.event)"
+        (editPlan)="editPlan($event.planId, $event.event)"
+        (deletePlan)="deletePlan($event.planId, $event.event)"
+        (exportPlan)="exportPlan($event.plan, $event.event)"
+        (sharePlan)="sharePlan($event.plan, $event.event)"
+        (triggerImport)="triggerImport()"
+        (seedExamples)="seedExamples()"
+        (goToBuilder)="goToBuilder($event)"
+        (goToSmartWorkout)="goToSmartWorkout($event)"
+        (createNewPlan)="createNewPlan($event)"
+      />
+    }
   }
 </div>
+
+<!-- FAB (only on Active Plan tab) -->
+@if (activeTab() === 'active') {
+  <app-fab icon="bolt" ariaLabel="AI Quick Workout" (fabClick)="goToSmartWorkout($event)" />
+}
+
+<!-- Share Bottom Sheet -->
+@if (shareUrl()) {
+  <app-share-bottom-sheet
+    [shareUrl]="shareUrl()!"
+    [loading]="shareLoading()"
+    (copyLink)="copyShareLink()"
+    (closed)="shareUrl.set(null)"
+  />
+}

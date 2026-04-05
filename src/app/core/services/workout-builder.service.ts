@@ -33,14 +33,17 @@ const ALL_UPPER: MuscleGroup[] = [
   MuscleGroup.Chest,
   MuscleGroup.Back,
   MuscleGroup.Shoulders,
-  MuscleGroup.Arms,
+  MuscleGroup.Biceps,
+  MuscleGroup.Triceps,
 ];
 const ALL_MUSCLES: MuscleGroup[] = [
   MuscleGroup.Chest,
   MuscleGroup.Back,
-  MuscleGroup.Legs,
+  MuscleGroup.UpperLegs,
+  MuscleGroup.LowerLegs,
   MuscleGroup.Shoulders,
-  MuscleGroup.Arms,
+  MuscleGroup.Biceps,
+  MuscleGroup.Triceps,
   MuscleGroup.Core,
 ];
 
@@ -56,18 +59,18 @@ const SPLIT_TEMPLATES: Record<string, SplitTemplate> = {
   ppl: {
     name: 'Push / Pull / Legs',
     days: [
-      { name: 'Push — Chest, Shoulders, Triceps', muscleGroups: [MuscleGroup.Chest, MuscleGroup.Shoulders, MuscleGroup.Arms] },
-      { name: 'Pull — Back & Biceps', muscleGroups: [MuscleGroup.Back, MuscleGroup.Arms] },
-      { name: 'Legs & Core', muscleGroups: [MuscleGroup.Legs, MuscleGroup.Core] },
+      { name: 'Push — Chest, Shoulders, Triceps', muscleGroups: [MuscleGroup.Chest, MuscleGroup.Shoulders, MuscleGroup.Triceps] },
+      { name: 'Pull — Back & Biceps', muscleGroups: [MuscleGroup.Back, MuscleGroup.Biceps] },
+      { name: 'Legs & Core', muscleGroups: [MuscleGroup.UpperLegs, MuscleGroup.LowerLegs, MuscleGroup.Core] },
     ],
   },
   upper_lower: {
     name: 'Upper / Lower',
     days: [
       { name: 'Upper — Strength', muscleGroups: ALL_UPPER },
-      { name: 'Lower — Strength', muscleGroups: [MuscleGroup.Legs, MuscleGroup.Core] },
+      { name: 'Lower — Strength', muscleGroups: [MuscleGroup.UpperLegs, MuscleGroup.LowerLegs, MuscleGroup.Core] },
       { name: 'Upper — Hypertrophy', muscleGroups: ALL_UPPER },
-      { name: 'Lower — Hypertrophy', muscleGroups: [MuscleGroup.Legs, MuscleGroup.Core] },
+      { name: 'Lower — Hypertrophy', muscleGroups: [MuscleGroup.UpperLegs, MuscleGroup.LowerLegs, MuscleGroup.Core] },
     ],
   },
   bro_split: {
@@ -76,8 +79,8 @@ const SPLIT_TEMPLATES: Record<string, SplitTemplate> = {
       { name: 'Chest', muscleGroups: [MuscleGroup.Chest] },
       { name: 'Back', muscleGroups: [MuscleGroup.Back] },
       { name: 'Shoulders', muscleGroups: [MuscleGroup.Shoulders] },
-      { name: 'Legs', muscleGroups: [MuscleGroup.Legs, MuscleGroup.Core] },
-      { name: 'Arms', muscleGroups: [MuscleGroup.Arms] },
+      { name: 'Legs', muscleGroups: [MuscleGroup.UpperLegs, MuscleGroup.LowerLegs, MuscleGroup.Core] },
+      { name: 'Arms', muscleGroups: [MuscleGroup.Biceps, MuscleGroup.Triceps] },
     ],
   },
 };
@@ -93,18 +96,18 @@ function autoSelectSplit(daysPerWeek: number): SplitTemplate {
       days: [
         ...SPLIT_TEMPLATES['ppl'].days,
         { name: 'Upper', muscleGroups: ALL_UPPER },
-        { name: 'Lower', muscleGroups: [MuscleGroup.Legs, MuscleGroup.Core] },
+        { name: 'Lower', muscleGroups: [MuscleGroup.UpperLegs, MuscleGroup.LowerLegs, MuscleGroup.Core] },
       ],
     };
     case 6: return {
       name: 'Push / Pull / Legs x2',
       days: [
-        { name: 'Push A — Strength', muscleGroups: [MuscleGroup.Chest, MuscleGroup.Shoulders, MuscleGroup.Arms] },
-        { name: 'Pull A — Strength', muscleGroups: [MuscleGroup.Back, MuscleGroup.Arms] },
-        { name: 'Legs A — Strength', muscleGroups: [MuscleGroup.Legs, MuscleGroup.Core] },
-        { name: 'Push B — Hypertrophy', muscleGroups: [MuscleGroup.Chest, MuscleGroup.Shoulders, MuscleGroup.Arms] },
-        { name: 'Pull B — Hypertrophy', muscleGroups: [MuscleGroup.Back, MuscleGroup.Arms] },
-        { name: 'Legs B — Hypertrophy', muscleGroups: [MuscleGroup.Legs, MuscleGroup.Core] },
+        { name: 'Push A — Strength', muscleGroups: [MuscleGroup.Chest, MuscleGroup.Shoulders, MuscleGroup.Triceps] },
+        { name: 'Pull A — Strength', muscleGroups: [MuscleGroup.Back, MuscleGroup.Biceps] },
+        { name: 'Legs A — Strength', muscleGroups: [MuscleGroup.UpperLegs, MuscleGroup.LowerLegs, MuscleGroup.Core] },
+        { name: 'Push B — Hypertrophy', muscleGroups: [MuscleGroup.Chest, MuscleGroup.Shoulders, MuscleGroup.Triceps] },
+        { name: 'Pull B — Hypertrophy', muscleGroups: [MuscleGroup.Back, MuscleGroup.Biceps] },
+        { name: 'Legs B — Hypertrophy', muscleGroups: [MuscleGroup.UpperLegs, MuscleGroup.LowerLegs, MuscleGroup.Core] },
       ],
     };
     default: return SPLIT_TEMPLATES['ppl'];
@@ -178,8 +181,10 @@ const MUSCLE_LABELS: Record<MuscleGroup, string> = {
   [MuscleGroup.Chest]: 'Chest',
   [MuscleGroup.Back]: 'Back',
   [MuscleGroup.Shoulders]: 'Shoulders',
-  [MuscleGroup.Legs]: 'Legs',
-  [MuscleGroup.Arms]: 'Arms',
+  [MuscleGroup.UpperLegs]: 'Upper Legs',
+  [MuscleGroup.LowerLegs]: 'Lower Legs',
+  [MuscleGroup.Biceps]: 'Biceps',
+  [MuscleGroup.Triceps]: 'Triceps',
   [MuscleGroup.Core]: 'Core',
   [MuscleGroup.FullBody]: 'Full Body',
 };
@@ -428,8 +433,10 @@ export class WorkoutBuilderService {
       MuscleGroup.Chest,
       MuscleGroup.Back,
       MuscleGroup.Shoulders,
-      MuscleGroup.Legs,
-      MuscleGroup.Arms,
+      MuscleGroup.UpperLegs,
+      MuscleGroup.LowerLegs,
+      MuscleGroup.Biceps,
+      MuscleGroup.Triceps,
       MuscleGroup.Core,
     ];
 

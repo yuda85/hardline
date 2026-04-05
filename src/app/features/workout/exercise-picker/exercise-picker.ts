@@ -32,8 +32,10 @@ export class ExercisePickerComponent {
     { value: MuscleGroup.Chest, label: 'Chest' },
     { value: MuscleGroup.Back, label: 'Back' },
     { value: MuscleGroup.Shoulders, label: 'Shoulders' },
-    { value: MuscleGroup.Legs, label: 'Legs' },
-    { value: MuscleGroup.Arms, label: 'Arms' },
+    { value: MuscleGroup.UpperLegs, label: 'Upper Legs' },
+    { value: MuscleGroup.LowerLegs, label: 'Lower Legs' },
+    { value: MuscleGroup.Biceps, label: 'Biceps' },
+    { value: MuscleGroup.Triceps, label: 'Triceps' },
     { value: MuscleGroup.Core, label: 'Core' },
     { value: MuscleGroup.FullBody, label: 'Full Body' },
   ];

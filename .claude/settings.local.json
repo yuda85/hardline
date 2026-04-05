@@ -36,7 +36,16 @@
       "Bash(ls /Users/yehudab/dev/hardline/dist/Hardline/browser/chunk-*)",
       "Bash(curl -s -w '\\\\n%{http_code}' https://api.openai.com/v1/chat/completions -H 'Content-Type: application/json' -H 'Authorization: Bearer __CMDSUB_OUTPUT__')",
       "Bash(gh auth:*)",
-      "Bash(gh secret:*)"
+      "Bash(gh secret:*)",
+      "Bash(npx vitest:*)",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:www.npmjs.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(gh api:*)",
+      "Bash(python3 -c \"import json,sys; data=json.load\\(sys.stdin\\); [print\\(n['path']\\) for n in data.get\\('tree',[]\\) if n['type']=='blob']\")",
+      "Bash(grep -i \"\\\\.ts$\")",
+      "Bash(node -e \"console.log\\(require\\('./node_modules/rxjs/package.json'\\).version\\)\")"
     ]
   }
 }

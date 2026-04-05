@@ -1,0 +1,250 @@
+<!-- Quick Actions Grid -->
+<section class="actions-grid">
+  <button class="action-btn action-btn--outline" (click)="createNewPlan.emit($event)">
+    <span class="material-symbols-outlined">add</span>
+    <span class="action-btn__label">New Plan</span>
+  </button>
+  <button class="action-btn action-btn--gradient" (click)="goToBuilder.emit($event)">
+    <span class="material-symbols-outlined">auto_awesome</span>
+    <span class="action-btn__label">AI Builder</span>
+  </button>
+  <button class="action-btn action-btn--outline" (click)="triggerImport.emit()">
+    <span class="material-symbols-outlined">download</span>
+    <span class="action-btn__label">Import</span>
+  </button>
+  <button class="action-btn action-btn--outline" (click)="goToSmartWorkout.emit($event)">
+    <span class="material-symbols-outlined">bolt</span>
+    <span class="action-btn__label">Quick Workout</span>
+  </button>
+</section>
+
+<!-- Loading Skeletons -->
+@if (loading() && plans().length === 0) {
+  @for (i of [1, 2]; track i) {
+    <app-card [elevation]="1" padding="lg" accentBorder="muted">
+      <app-skeleton width="60%" height="1.25rem" />
+      <div style="margin-top: 0.75rem"><app-skeleton width="80%" height="0.875rem" /></div>
+      <div style="margin-top: 0.5rem"><app-skeleton width="40%" height="0.75rem" /></div>
+    </app-card>
+  }
+} @else if (plans().length === 0) {
+  <!-- Empty State -->
+  <div class="empty">
+    <div class="empty__icon-wrap">
+      <span class="material-symbols-outlined empty__icon" style="font-variation-settings: 'FILL' 1">
+        fitness_center
+      </span>
+    </div>
+    <p class="empty__text">Drafting a new block? Try the AI Builder.</p>
+  </div>
+} @else {
+  <!-- Plan Cards -->
+  <div class="plans-list">
+    @for (plan of plans(); track plan.id) {
+      @let isActive = activePlanId() === plan.id;
+
+      <div
+        class="plan-card"
+        [class.plan-card--active]="isActive"
+        (click)="togglePlanExpand(plan.id!)"
+      >
+        <!-- Card Header -->
+        <div class="plan-card__header">
+          <div class="plan-card__left">
+            @if (isActive) {
+              <div class="plan-card__active-label">
+                <span
+                  class="material-symbols-outlined plan-card__star plan-card__star--active"
+                  style="font-variation-settings: 'FILL' 1"
+                  (click)="toggleActive.emit({ planId: plan.id!, event: $event })"
+                >star</span>
+                <span class="plan-card__active-text">Active Program</span>
+              </div>
+            }
+            <h3 class="plan-card__name" [class.plan-card__name--active]="isActive">{{ plan.name }}</h3>
+            @if (plan.description) {
+              <p class="plan-card__desc">{{ plan.description }}</p>
+            }
+          </div>
+
+          <div class="plan-card__right">
+            <!-- Meatball Menu -->
+            <div class="menu-wrap">
+              <button
+                class="menu-trigger"
+                (click)="toggleMenu(plan.id!, $event)"
+                aria-label="Plan options"
+              >
+                <span class="material-symbols-outlined">more_vert</span>
+              </button>
+
+              @if (openMenu() === plan.id) {
+                <div class="menu-dropdown" (click)="$event.stopPropagation()">
+                  <button class="menu-item" (click)="onMenuAction('edit', plan, $event)">
+                    <span class="material-symbols-outlined menu-item__icon">edit</span>
+                    Edit
+                  </button>
+                  <button class="menu-item" (click)="onMenuAction('export', plan, $event)">
+                    <span class="material-symbols-outlined menu-item__icon">download</span>
+                    Export
+                  </button>
+                  <button class="menu-item" (click)="onMenuAction('share', plan, $event)">
+                    <span class="material-symbols-outlined menu-item__icon">share</span>
+                    Share
+                  </button>
+                  <button class="menu-item menu-item--danger" (click)="onMenuAction('delete', plan, $event)">
+                    <span class="material-symbols-outlined menu-item__icon">delete</span>
+                    Delete
+                  </button>
+                </div>
+              }
+            </div>
+
+            <div class="plan-card__days-count">
+              <span class="plan-card__days-number" [class.plan-card__days-number--active]="isActive">
+                {{ plan.days.length }}
+              </span>
+              <span class="plan-card__days-label">Days / Week</span>
+            </div>
+          </div>
+        </div>
+
+        @if (!isActive) {
+          <div class="plan-card__meta">
+            <button
+              class="plan-card__star"
+              (click)="toggleActive.emit({ planId: plan.id!, event: $event })"
+              aria-label="Set as active plan"
+            >
+              <span class="material-symbols-outlined">star</span>
+            </button>
+            <span class="plan-card__updated">
+              <span class="material-symbols-outlined plan-card__updated-icon">calendar_today</span>
+              Updated {{ plan.updatedAt | relativeTime }}
+            </span>
+            <button
+              class="plan-card__expand-toggle"
+              (click)="$event.stopPropagation(); togglePlanExpand(plan.id!)"
+            >
+              <span class="plan-card__expand-label">
+                {{ expandedPlan() === plan.id ? 'Collapse' : 'Expand' }}
+              </span>
+              <span
+                class="material-symbols-outlined plan-card__expand-icon"
+                [class.plan-card__expand-icon--open]="expandedPlan() === plan.id"
+              >expand_more</span>
+            </button>
+          </div>
+        } @else {
+          <div class="plan-card__meta">
+            <span class="plan-card__updated">
+              <span class="material-symbols-outlined plan-card__updated-icon">calendar_today</span>
+              Updated {{ plan.updatedAt | relativeTime }}
+            </span>
+          </div>
+        }
+
+        <!-- Volume Analysis + Days (Expanded) -->
+        @if (expandedPlan() === plan.id) {
+          @let analysis = getVolumeAnalysis(plan);
+          <div class="volume-section" @expandCollapse>
+            <div class="volume-header">
+              <span class="volume-header__title">
+                <span class="material-symbols-outlined volume-header__icon">analytics</span>
+                Weekly Volume
+              </span>
+              <span class="volume-header__score" [class]="'score--' + getScoreLevel(analysis.balanceScore)">
+                {{ analysis.balanceScore }}% balanced
+              </span>
+            </div>
+
+            <div class="volume-bars">
+              @for (group of analysis.groups; track group.muscleGroup) {
+                @if (group.sets > 0 || group.muscleGroup !== 'full_body') {
+                  <div class="volume-bar">
+                    <span class="volume-bar__label">{{ group.label }}</span>
+                    <div class="volume-bar__track">
+                      <div
+                        class="volume-bar__fill volume-bar__fill--{{ group.status }}"
+                        [style.width.%]="getBarWidth(group)"
+                      ></div>
+                    </div>
+                    <span class="volume-bar__sets">
+                      <strong>{{ group.sets }}</strong>/{{ group.minRecommended }}-{{ group.maxRecommended }}
+                    </span>
+                  </div>
+                }
+              }
+            </div>
+
+            @if (analysis.recommendations.length) {
+              <div class="volume-recs">
+                @for (rec of analysis.recommendations; track rec) {
+                  <p class="volume-recs__item">
+                    <span class="material-symbols-outlined volume-recs__icon">lightbulb</span>
+                    {{ rec }}
+                  </p>
+                }
+              </div>
+            }
+          </div>
+
+          @if (plan.days.length) {
+            <div class="days-section" @expandCollapse>
+              @for (day of plan.days; track day.dayNumber; let first = $first) {
+                <div class="day-row">
+                  <div class="day-row__left">
+                    <div class="day-number" [class.day-number--active]="first">
+                      {{ day.dayNumber }}
+                    </div>
+                    <div class="day-info">
+                      <h4 class="day-name">{{ day.name }}</h4>
+                      <div class="day-badges">
+                        <app-badge variant="surface" size="sm">
+                          {{ getExerciseCount(day) }} Exercises
+                        </app-badge>
+                        @for (type of getGroupTypes(day); track type) {
+                          <app-badge
+                            [variant]="type === 'SS' ? 'primary' : 'tertiary'"
+                            size="sm"
+                          >{{ type }}</app-badge>
+                        }
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        }
+      </div>
+    }
+  </div>
+
+  <!-- Sample Plans Loader -->
+  <div class="sample-loader">
+    <div class="sample-loader__icon-wrap">
+      <span
+        class="material-symbols-outlined sample-loader__icon"
+        style="font-variation-settings: 'FILL' 1;"
+      >model_training</span>
+    </div>
+    <h3 class="sample-loader__title">Need a starting point?</h3>
+    <p class="sample-loader__text">
+      Load professional templates designed for various goals, from strength to endurance.
+    </p>
+    <app-button
+      variant="outline"
+      [pill]="true"
+      [loading]="seeding()"
+      (click)="seedExamples.emit()"
+    >
+      Load Sample Plans
+    </app-button>
+    <div class="sample-loader__labels">
+      <span>PPL</span>
+      <span>UPPER/LOWER</span>
+      <span>FULL BODY</span>
+    </div>
+  </div>
+}

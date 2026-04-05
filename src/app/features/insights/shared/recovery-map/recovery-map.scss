@@ -12,8 +12,18 @@
 }
 
 .recovery-map__svg {
-  width: 96px;
-  height: 192px;
+  width: 130px;
+  height: 260px;
+
+  @media (max-width: 320px) {
+    width: 100px;
+    height: 200px;
+  }
+
+  @media (min-width: 768px) {
+    width: 160px;
+    height: 320px;
+  }
 }
 
 .recovery-map__label {
@@ -25,24 +35,35 @@
   color: var(--on-surface-variant);
 }
 
+// Base polygon styling — default body color when no muscle group status
+.recovery-map__polygon {
+  fill: #3d4a5c;
+  stroke: #2c3648;
+  stroke-width: 0.3;
+  transition: fill 0.5s ease;
+}
+
 // Pulsing glow for recovering muscles
 .pulse-glow {
-  animation: pulseGlow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  animation: pulseGlow 2.5s ease-in-out infinite;
 }
 
 @keyframes pulseGlow {
   0%, 100% {
-    filter: drop-shadow(0 0 2px #ef6719);
-    opacity: 1;
+    filter: drop-shadow(0 0 2px rgba(239, 103, 25, 0.5));
   }
   50% {
-    filter: drop-shadow(0 0 8px #ef6719);
-    opacity: 0.85;
+    filter: drop-shadow(0 0 6px rgba(239, 103, 25, 0.7))
+           drop-shadow(0 0 12px rgba(239, 103, 25, 0.25));
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .pulse-glow {
     animation: none;
+  }
+
+  .recovery-map__polygon {
+    transition: none;
   }
 }

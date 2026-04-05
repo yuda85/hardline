@@ -1,41 +1,48 @@
 import { Component, inject, OnInit, signal, computed, ViewChild, ElementRef } from '@angular/core';
-import { DecimalPipe } from '@angular/common';
 import { Router } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 import { Store } from '@ngxs/store';
 import { WorkoutState } from '../../../store/workout/workout.state';
 import { AuthState } from '../../../store/auth/auth.state';
 import { ProfileState } from '../../../store/profile/profile.state';
+import { ShareState } from '../../../store/share/share.state';
 import { Workout } from '../../../store/workout/workout.actions';
 import { Profile } from '../../../store/profile/profile.actions';
+import { Share } from '../../../store/share/share.actions';
 import { WorkoutIOService } from '../../../core/services/workout-io.service';
-import { ButtonComponent, CardComponent, BadgeComponent, SkeletonComponent } from '../../../shared/components';
-import { RelativeTimePipe } from '../../../shared/pipes/relative-time.pipe';
-import { WorkoutPlan, WorkoutDay } from '../../../core/models';
-import { analyzeVolume, VolumeAnalysis, MuscleGroupVolume } from '../../../core/services/volume-analysis.service';
+import { ShareService } from '../../../core/services/share.service';
+import { WorkoutPlan } from '../../../core/models';
 import { SAMPLE_PLANS_DAYS } from '../exercise-data';
-import { expandCollapse } from '../../../shared/animations/expand-collapse';
+import { BadgeComponent } from '../../../shared/components';
+import { FabComponent } from '../../../shared/components/fab/fab';
+import { ActivePlanTabComponent } from './active-plan-tab/active-plan-tab';
+import { MyPlansTabComponent } from './my-plans-tab/my-plans-tab';
+import { ShareBottomSheetComponent } from '../../share/share-bottom-sheet/share-bottom-sheet';
 
 @Component({
   selector: 'app-workout-list',
   standalone: true,
-  imports: [DecimalPipe, ButtonComponent, CardComponent, BadgeComponent, SkeletonComponent, RelativeTimePipe],
+  imports: [BadgeComponent, FabComponent, ActivePlanTabComponent, MyPlansTabComponent, ShareBottomSheetComponent],
   templateUrl: './workout-list.html',
   styleUrl: './workout-list.scss',
-  animations: [expandCollapse],
 })
 export class WorkoutListComponent implements OnInit {
   private readonly store = inject(Store);
   private readonly router = inject(Router);
   private readonly workoutIO = inject(WorkoutIOService);
+  private readonly shareService = inject(ShareService);
 
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
+  @ViewChild(MyPlansTabComponent) myPlansTab?: MyPlansTabComponent;
 
   private readonly rawPlans = this.store.selectSignal(WorkoutState.plans);
   protected readonly activePlanId = this.store.selectSignal(ProfileState.activePlanId);
   protected readonly loading = this.store.selectSignal(WorkoutState.loading);
   protected readonly seeding = signal(false);
   protected readonly importError = signal<string | null>(null);
-  protected readonly expandedPlan = signal<string | null>(null);
+  protected readonly activeTab = signal<'active' | 'plans'>('active');
+  protected readonly shareUrl = signal<string | null>(null);
+  protected readonly shareLoading = signal(false);
 
   /** Active plan always sorted to top */
   protected readonly plans = computed(() => {
@@ -49,24 +56,20 @@ export class WorkoutListComponent implements OnInit {
     });
   });
 
+  /** Derive the single active plan for the Active Plan tab */
+  protected readonly activePlan = computed(() => {
+    const activeId = this.activePlanId();
+    if (!activeId) return null;
+    return this.rawPlans().find(p => p.id === activeId) ?? null;
+  });
+
   ngOnInit() {
     this.store.dispatch([new Workout.FetchPlans(), new Profile.FetchGoals()]);
-    // Clear volume cache when plans change
-    this.store.select(WorkoutState.plans).subscribe(() => this.volumeCache.clear());
+    this.store.select(WorkoutState.plans).subscribe(() => this.myPlansTab?.clearVolumeCache());
   }
 
-  protected togglePlan(planId: string) {
-    this.expandedPlan.update(current => (current === planId ? null : planId));
-  }
-
-  protected previewDay(planId: string, dayNumber: number, event: Event) {
-    event.stopPropagation();
-    this.router.navigate(['/workouts', 'day', planId, dayNumber]);
-  }
-
-  protected startDay(planId: string, dayNumber: number, event?: Event) {
-    event?.stopPropagation();
-    this.router.navigate(['/workouts', 'day', planId, dayNumber]);
+  protected startDay(planId: string, dayNumber: number) {
+    this.router.navigate(['/workouts', 'active', planId, dayNumber]);
   }
 
   protected toggleActivePlan(planId: string, event: Event) {
@@ -88,6 +91,11 @@ export class WorkoutListComponent implements OnInit {
   protected editPlan(planId: string, event: Event) {
     event.stopPropagation();
     this.router.navigate(['/workouts', 'edit', planId]);
+  }
+
+  protected createNewPlan(event: Event) {
+    event.stopPropagation();
+    this.router.navigate(['/workouts', 'edit', 'new']);
   }
 
   protected deletePlan(planId: string, event: Event) {
@@ -120,18 +128,6 @@ export class WorkoutListComponent implements OnInit {
     input.value = '';
   }
 
-  protected async clearAndReload() {
-    this.seeding.set(true);
-    for (const plan of this.plans()) {
-      if (plan.id) {
-        await new Promise<void>(resolve => {
-          this.store.dispatch(new Workout.DeletePlan(plan.id!)).subscribe(() => resolve());
-        });
-      }
-    }
-    await this.seedExamples();
-  }
-
   protected async seedExamples() {
     this.seeding.set(true);
     const uid = this.store.selectSnapshot(AuthState.uid);
@@ -146,39 +142,21 @@ export class WorkoutListComponent implements OnInit {
     this.seeding.set(false);
   }
 
-  private readonly volumeCache = new Map<string, VolumeAnalysis>();
-
-  protected getVolumeAnalysis(plan: WorkoutPlan): VolumeAnalysis {
-    const key = plan.id ?? plan.name;
-    const cached = this.volumeCache.get(key);
-    if (cached) return cached;
-    const analysis = analyzeVolume(plan);
-    this.volumeCache.set(key, analysis);
-    return analysis;
-  }
-
-  protected getBarWidth(group: MuscleGroupVolume): number {
-    if (group.sets === 0) return 0;
-    const max = group.maxRecommended || 1;
-    return Math.min(100, Math.round((group.sets / max) * 100));
-  }
-
-  protected getScoreLevel(score: number): string {
-    if (score >= 80) return 'good';
-    if (score >= 50) return 'warn';
-    return 'bad';
-  }
-
-  protected getExerciseCount(day: WorkoutDay): number {
-    return day.exerciseGroups.reduce((sum, g) => sum + g.exercises.length, 0);
-  }
-
-  protected getGroupTypes(day: WorkoutDay): string[] {
-    const types = new Set<string>();
-    for (const group of day.exerciseGroups) {
-      if (group.type === 'superset') types.add('SS');
-      else if (group.type === 'circuit') types.add('CIR');
+  protected async sharePlan(plan: WorkoutPlan, event: Event) {
+    event.stopPropagation();
+    this.shareLoading.set(true);
+    await firstValueFrom(this.store.dispatch(new Share.CreateShare(plan)));
+    const shareId = this.store.selectSnapshot(ShareState.lastShareId);
+    if (shareId) {
+      this.shareUrl.set(this.shareService.buildShareUrl(shareId));
     }
-    return [...types];
+    this.shareLoading.set(false);
+  }
+
+  protected async copyShareLink() {
+    const url = this.shareUrl();
+    if (url) {
+      await this.shareService.copyToClipboard(url);
+    }
   }
 }

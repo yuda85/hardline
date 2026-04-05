@@ -25,6 +25,13 @@
   color: var(--on-surface);
 }
 
+.dash__icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  object-fit: contain;
+}
+
 // Bento grid
 .dash__grid {
   display: grid;

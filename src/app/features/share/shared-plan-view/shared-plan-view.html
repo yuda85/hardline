@@ -1,0 +1,149 @@
+<div class="shared-view">
+  <!-- Top Bar -->
+  <header class="shared-view__top-bar">
+    <button class="shared-view__back" (click)="goHome()" aria-label="Go home">
+      <span class="material-symbols-outlined">home</span>
+    </button>
+    <span class="shared-view__logo">Hardline</span>
+  </header>
+
+  <!-- Loading State -->
+  @if (loading()) {
+    <div class="shared-view__body">
+      <app-card [elevation]="1" padding="lg">
+        <app-skeleton width="50%" height="1.5rem" />
+        <div style="margin-top: 0.75rem"><app-skeleton width="80%" height="0.875rem" /></div>
+        <div style="margin-top: 0.5rem"><app-skeleton width="40%" height="0.75rem" /></div>
+      </app-card>
+      @for (i of [1, 2, 3]; track i) {
+        <app-card [elevation]="0" padding="md">
+          <app-skeleton width="40%" height="1rem" />
+          <div style="margin-top: 0.5rem"><app-skeleton width="70%" height="0.75rem" /></div>
+        </app-card>
+      }
+    </div>
+  }
+
+  <!-- Error: Not Found -->
+  @else if (error() === 'not-found') {
+    <div class="shared-view__state">
+      <span class="material-symbols-outlined shared-view__state-icon">link_off</span>
+      <h2 class="shared-view__state-title">Link Not Found</h2>
+      <p class="shared-view__state-text">This share link doesn't exist or has been removed.</p>
+      <app-button variant="outline" (click)="goHome()">Go to Dashboard</app-button>
+    </div>
+  }
+
+  <!-- Error: Expired -->
+  @else if (error() === 'expired') {
+    <div class="shared-view__state">
+      <span class="material-symbols-outlined shared-view__state-icon">schedule</span>
+      <h2 class="shared-view__state-title">Link Expired</h2>
+      <p class="shared-view__state-text">This share link has expired. Ask the owner to share it again.</p>
+      <app-button variant="outline" (click)="goHome()">Go to Dashboard</app-button>
+    </div>
+  }
+
+  <!-- Saved Confirmation -->
+  @else if (saved()) {
+    <div class="shared-view__state">
+      <span class="material-symbols-outlined shared-view__state-icon shared-view__state-icon--success">check_circle</span>
+      <h2 class="shared-view__state-title">Plan Saved!</h2>
+      <p class="shared-view__state-text">The plan has been added to your workout plans.</p>
+      <app-button variant="gradient" (click)="goToPlans()">Go to My Plans</app-button>
+    </div>
+  }
+
+  <!-- Plan Preview -->
+  @else if (previewPlan(); as shared) {
+    <div class="shared-view__body">
+      <!-- Plan Header Card -->
+      <app-card [elevation]="1" padding="lg" accentBorder="primary">
+        <div class="plan-header">
+          <h2 class="plan-header__name">{{ shared.planSnapshot.name }}</h2>
+          @if (shared.planSnapshot.description) {
+            <p class="plan-header__desc">{{ shared.planSnapshot.description }}</p>
+          }
+          <div class="plan-header__meta">
+            <app-badge variant="surface" size="sm">
+              <span class="material-symbols-outlined plan-header__meta-icon">person</span>
+              Shared by {{ shared.sharedByName }}
+            </app-badge>
+            <app-badge variant="primary" size="sm">
+              {{ shared.planSnapshot.days.length }} Days/Week
+            </app-badge>
+            <app-badge variant="surface" size="sm">
+              <span class="material-symbols-outlined plan-header__meta-icon">schedule</span>
+              {{ expiryText() }}
+            </app-badge>
+          </div>
+        </div>
+      </app-card>
+
+      <!-- Day Cards -->
+      @for (day of shared.planSnapshot.days; track day.dayNumber) {
+        <app-card [elevation]="0" padding="md">
+          <div class="day-card">
+            <div class="day-card__header">
+              <div class="day-card__number">{{ day.dayNumber }}</div>
+              <div class="day-card__info">
+                <h3 class="day-card__name">{{ day.name }}</h3>
+                <div class="day-card__badges">
+                  <app-badge variant="surface" size="sm">
+                    {{ getExerciseCount(day) }} Exercises
+                  </app-badge>
+                  @for (type of getGroupTypes(day); track type) {
+                    <app-badge
+                      [variant]="type === 'SS' ? 'primary' : 'tertiary'"
+                      size="sm"
+                    >{{ type }}</app-badge>
+                  }
+                </div>
+              </div>
+            </div>
+
+            <!-- Exercise List -->
+            <div class="day-card__exercises">
+              @for (group of day.exerciseGroups; track $index) {
+                @if (group.type !== 'single') {
+                  <div class="exercise-group-label">
+                    {{ group.type === 'superset' ? 'Superset' : 'Circuit' }}
+                  </div>
+                }
+                @for (exercise of group.exercises; track exercise.exerciseId) {
+                  <div class="exercise-row">
+                    <span class="exercise-row__name">{{ exercise.exerciseName }}</span>
+                    <span class="exercise-row__sets">{{ exercise.sets.length }} sets</span>
+                  </div>
+                }
+                @if (group.restSeconds > 0) {
+                  <div class="exercise-row exercise-row--rest">
+                    <span class="material-symbols-outlined exercise-row__rest-icon">timer</span>
+                    {{ group.restSeconds }}s rest
+                  </div>
+                }
+              }
+            </div>
+          </div>
+        </app-card>
+      }
+
+      <!-- Spacer for fixed bottom bar -->
+      <div class="shared-view__bottom-spacer"></div>
+    </div>
+
+    <!-- Fixed Bottom Bar -->
+    <div class="shared-view__bottom-bar">
+      <app-button
+        variant="gradient"
+        size="lg"
+        [fullWidth]="true"
+        [loading]="saving()"
+        icon="download"
+        (click)="savePlan()"
+      >
+        Save to My Plans
+      </app-button>
+    </div>
+  }
+</div>

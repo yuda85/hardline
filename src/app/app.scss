@@ -8,12 +8,10 @@
   background-color: var(--surface);
 }
 
-.splash__brand {
-  font-family: var(--font-headline);
-  font-weight: 800;
-  font-size: 2.5rem;
-  color: var(--primary);
-  letter-spacing: -0.02em;
+.splash__logo {
+  width: clamp(200px, 50vw, 320px);
+  height: auto;
+  object-fit: contain;
 }
 
 .splash__spinner {

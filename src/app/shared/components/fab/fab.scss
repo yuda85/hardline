@@ -1,0 +1,30 @@
+:host {
+  display: contents;
+}
+
+.fab {
+  position: fixed;
+  bottom: 7rem;
+  right: 1.5rem;
+  z-index: 40;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 50%;
+  border: none;
+  background: linear-gradient(135deg, #3cd7ff, #009ebe);
+  color: var(--on-primary);
+  box-shadow: 0 8px 32px rgba(60, 215, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 200ms ease;
+
+  &:active {
+    transform: scale(0.9);
+  }
+
+  .material-symbols-outlined {
+    font-size: 1.5rem;
+  }
+}

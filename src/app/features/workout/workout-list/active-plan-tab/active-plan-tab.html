@@ -1,0 +1,149 @@
+@if (!activePlan()) {
+  <!-- Empty State -->
+  <div class="empty">
+    <div class="empty__icon-wrap">
+      <span class="material-symbols-outlined empty__icon" style="font-variation-settings: 'FILL' 1">
+        fitness_center
+      </span>
+    </div>
+    <h3 class="empty__title">No active plan selected</h3>
+    <p class="empty__text">Star a workout plan to see your training days here.</p>
+    <app-button variant="gradient" [pill]="true" icon="arrow_forward" (click)="switchTab.emit()">
+      Browse Plans
+    </app-button>
+  </div>
+} @else {
+  <!-- Plan Info -->
+  <div class="plan-info">
+    <div class="plan-info__accent"></div>
+    <h3 class="plan-info__name">{{ activePlan()!.name }}</h3>
+    @if (activePlan()!.description) {
+      <p class="plan-info__desc">{{ activePlan()!.description }}</p>
+    }
+    <div class="plan-info__stats">
+      <span class="plan-info__stat">
+        <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1">calendar_today</span>
+        {{ activePlan()!.days.length }} days
+      </span>
+      <span class="plan-info__divider"></span>
+      <span class="plan-info__stat">
+        <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1">fitness_center</span>
+        {{ getTotalExercises() }} exercises
+      </span>
+    </div>
+
+    <!-- Start Today's Workout -->
+    @if (currentDay(); as today) {
+      <button class="start-today" (click)="onStartDay(activePlan()!.id!, today.dayNumber)">
+        <span
+          class="material-symbols-outlined start-today__icon"
+          style="font-variation-settings: 'FILL' 1"
+        >play_arrow</span>
+        <div class="start-today__text">
+          <span class="start-today__label">Start Workout</span>
+          <span class="start-today__day">Day {{ today.dayNumber }}: {{ today.name }}</span>
+        </div>
+      </button>
+    }
+  </div>
+
+  <div class="days">
+    @for (day of activePlan()!.days; track day.dayNumber) {
+      @if (isRestDay(day)) {
+        <!-- Rest Day -->
+        <div class="day-card day-card--rest">
+          <div class="day-card__icon-box day-card__icon-box--rest">
+            <span class="material-symbols-outlined">hotel</span>
+          </div>
+          <div class="day-card__info">
+            <h3 class="day-card__name">{{ day.name }}</h3>
+            <p class="day-card__meta">Active Recovery</p>
+          </div>
+        </div>
+      } @else {
+        <!-- Workout Day -->
+        <div class="day-card" [class.day-card--expanded]="expandedDay() === day.dayNumber">
+          <button
+            class="day-card__header"
+            (click)="toggleDay(day.dayNumber)"
+            [attr.aria-expanded]="expandedDay() === day.dayNumber"
+          >
+            <div class="day-card__icon-box">
+              <span
+                class="material-symbols-outlined"
+                [style.font-variation-settings]="expandedDay() === day.dayNumber ? '\'FILL\' 1' : '\'FILL\' 0'"
+              >fitness_center</span>
+            </div>
+            <div class="day-card__info">
+              <h3 class="day-card__name">Day {{ day.dayNumber }}: {{ day.name }}</h3>
+              <p class="day-card__meta">{{ getExerciseCount(day) }} exercises &bull; {{ getEstimatedMinutes(day) }} mins</p>
+            </div>
+            <span
+              class="material-symbols-outlined day-card__chevron"
+              [class.day-card__chevron--open]="expandedDay() === day.dayNumber"
+            >expand_more</span>
+          </button>
+
+          @if (expandedDay() === day.dayNumber) {
+            <div class="day-card__body" @expandCollapse>
+              @for (group of day.exerciseGroups; track $index) {
+                @if (group.type === 'superset' || group.type === 'circuit') {
+                  <!-- Superset / Circuit Group -->
+                  <div class="superset-group">
+                    <div class="superset-group__header">
+                      <span class="material-symbols-outlined superset-group__icon">all_inclusive</span>
+                      <span class="superset-group__label">
+                        {{ group.type === 'superset' ? 'Superset' : 'Circuit' }}
+                      </span>
+                    </div>
+                    <div class="superset-group__grid">
+                      @for (exercise of group.exercises; track exercise.exerciseId; let i = $index) {
+                        <div class="superset-group__exercise" [class.superset-group__exercise--border]="i > 0">
+                          <p class="superset-group__exercise-label">Exercise {{ exerciseLetter(i) }}</p>
+                          <p class="superset-group__exercise-name">{{ exercise.exerciseName }}</p>
+                          <p class="superset-group__exercise-sets">{{ formatSets(exercise.sets) }}</p>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                } @else {
+                  <!-- Single Exercise -->
+                  @for (exercise of group.exercises; track exercise.exerciseId) {
+                    <div class="exercise-row">
+                      <div class="exercise-row__rail"></div>
+                      <div class="exercise-row__content">
+                        <div class="exercise-row__left">
+                          @if (getGroupLabel(group)) {
+                            <span class="exercise-row__category">{{ getGroupLabel(group) }}</span>
+                          }
+                          <h4 class="exercise-row__name">{{ exercise.exerciseName }}</h4>
+                        </div>
+                        <div class="exercise-row__right">
+                          <p class="exercise-row__sets">{{ formatSets(exercise.sets) }}</p>
+                        </div>
+                      </div>
+                    </div>
+                  }
+                }
+              }
+
+              <!-- Start Workout Button -->
+              <div class="day-card__action">
+                <button
+                  class="start-btn"
+                  (click)="onStartDay(activePlan()!.id!, day.dayNumber)"
+                >
+                  <span
+                    class="material-symbols-outlined"
+                    style="font-variation-settings: 'FILL' 1"
+                  >play_arrow</span>
+                  START WORKOUT
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    }
+  </div>
+}

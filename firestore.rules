@@ -52,5 +52,18 @@ service cloud.firestore {
     match /personalRecords/{docId} {
       allow read, write: if request.auth != null;
     }
+
+    // ── Shared Plans ──
+    // Any authenticated user can read (needed for share links).
+    // Only the plan owner can create. No updates. Owner can delete (revoke).
+    // Consider adding a Firestore TTL policy on expiresAt for auto-cleanup.
+    match /sharedPlans/{docId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null
+        && request.resource.data.sharedByUserId == request.auth.uid;
+      allow delete: if request.auth != null
+        && resource.data.sharedByUserId == request.auth.uid;
+      allow update: if false;
+    }
   }
 }

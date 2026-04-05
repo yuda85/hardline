@@ -30,8 +30,10 @@ const MUSCLE_KEYWORDS: Record<MuscleGroup, string[]> = {
   [MuscleGroup.Chest]: ['bench', 'fly', 'push-up', 'pushup', 'chest press', 'pec'],
   [MuscleGroup.Back]: ['row', 'pull-up', 'pullup', 'pulldown', 'lat', 'back'],
   [MuscleGroup.Shoulders]: ['overhead press', 'ohp', 'lateral raise', 'shoulder', 'delt', 'military press'],
-  [MuscleGroup.Legs]: ['squat', 'leg press', 'lunge', 'calf', 'leg curl', 'leg extension', 'hamstring', 'glute', 'hip thrust'],
-  [MuscleGroup.Arms]: ['curl', 'tricep', 'extension', 'hammer', 'dip', 'bicep', 'preacher'],
+  [MuscleGroup.UpperLegs]: ['squat', 'leg press', 'lunge', 'leg curl', 'leg extension', 'hamstring', 'glute', 'hip thrust'],
+  [MuscleGroup.LowerLegs]: ['calf', 'calf raise', 'tibialis'],
+  [MuscleGroup.Biceps]: ['curl', 'hammer', 'bicep', 'preacher'],
+  [MuscleGroup.Triceps]: ['tricep', 'pushdown', 'skull crusher', 'extension', 'dip'],
   [MuscleGroup.Core]: ['plank', 'crunch', 'ab', 'sit-up', 'situp', 'oblique', 'cable twist'],
   [MuscleGroup.FullBody]: ['deadlift', 'clean', 'snatch', 'thruster'],
 };
@@ -40,8 +42,10 @@ const MUSCLE_LABELS: Record<MuscleGroup, string> = {
   [MuscleGroup.Chest]: 'Chest',
   [MuscleGroup.Back]: 'Back',
   [MuscleGroup.Shoulders]: 'Shoulders',
-  [MuscleGroup.Legs]: 'Legs',
-  [MuscleGroup.Arms]: 'Arms',
+  [MuscleGroup.UpperLegs]: 'Upper Legs',
+  [MuscleGroup.LowerLegs]: 'Lower Legs',
+  [MuscleGroup.Biceps]: 'Biceps',
+  [MuscleGroup.Triceps]: 'Triceps',
   [MuscleGroup.Core]: 'Core',
   [MuscleGroup.FullBody]: 'Full Body',
 };
@@ -269,8 +273,10 @@ export class DailyWorkoutService {
       MuscleGroup.Chest,
       MuscleGroup.Back,
       MuscleGroup.Shoulders,
-      MuscleGroup.Legs,
-      MuscleGroup.Arms,
+      MuscleGroup.UpperLegs,
+      MuscleGroup.LowerLegs,
+      MuscleGroup.Biceps,
+      MuscleGroup.Triceps,
       MuscleGroup.Core,
     ];
 

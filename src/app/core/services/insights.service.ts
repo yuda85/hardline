@@ -59,8 +59,10 @@ const MUSCLE_KEYWORDS: Record<MuscleGroup, string[]> = {
   [MuscleGroup.Chest]: ['bench', 'fly', 'push-up', 'pushup', 'chest press', 'pec'],
   [MuscleGroup.Back]: ['row', 'pull-up', 'pullup', 'pulldown', 'lat', 'back'],
   [MuscleGroup.Shoulders]: ['overhead press', 'ohp', 'lateral raise', 'shoulder', 'delt', 'military press'],
-  [MuscleGroup.Legs]: ['squat', 'leg press', 'lunge', 'calf', 'leg curl', 'leg extension', 'hamstring', 'glute', 'hip thrust'],
-  [MuscleGroup.Arms]: ['curl', 'tricep', 'extension', 'hammer', 'dip', 'bicep', 'preacher'],
+  [MuscleGroup.UpperLegs]: ['squat', 'leg press', 'lunge', 'leg curl', 'leg extension', 'hamstring', 'glute', 'hip thrust'],
+  [MuscleGroup.LowerLegs]: ['calf', 'calf raise', 'tibialis'],
+  [MuscleGroup.Biceps]: ['curl', 'hammer', 'bicep', 'preacher'],
+  [MuscleGroup.Triceps]: ['tricep', 'pushdown', 'skull crusher', 'extension', 'dip'],
   [MuscleGroup.Core]: ['plank', 'crunch', 'ab', 'sit-up', 'situp', 'oblique', 'cable twist'],
   [MuscleGroup.FullBody]: ['deadlift', 'clean', 'snatch', 'thruster'],
 };
@@ -69,8 +71,10 @@ const MUSCLE_LABELS: Record<MuscleGroup, string> = {
   [MuscleGroup.Chest]: 'Chest',
   [MuscleGroup.Back]: 'Back',
   [MuscleGroup.Shoulders]: 'Shoulders',
-  [MuscleGroup.Legs]: 'Legs',
-  [MuscleGroup.Arms]: 'Arms',
+  [MuscleGroup.UpperLegs]: 'Upper Legs',
+  [MuscleGroup.LowerLegs]: 'Lower Legs',
+  [MuscleGroup.Biceps]: 'Biceps',
+  [MuscleGroup.Triceps]: 'Triceps',
   [MuscleGroup.Core]: 'Core',
   [MuscleGroup.FullBody]: 'Full Body',
 };
@@ -123,7 +127,7 @@ export class InsightsService {
 
               // Deadlift hits both back and legs
               if (muscleGroup === MuscleGroup.FullBody) {
-                for (const mg of [MuscleGroup.Back, MuscleGroup.Legs]) {
+                for (const mg of [MuscleGroup.Back, MuscleGroup.UpperLegs]) {
                   const c = lastTrained.get(mg);
                   if (!c || setDate > c) lastTrained.set(mg, setDate);
                 }
@@ -132,7 +136,7 @@ export class InsightsService {
           }
         }
 
-        const groups = [MuscleGroup.Chest, MuscleGroup.Back, MuscleGroup.Shoulders, MuscleGroup.Legs, MuscleGroup.Arms, MuscleGroup.Core];
+        const groups = [MuscleGroup.Chest, MuscleGroup.Back, MuscleGroup.Shoulders, MuscleGroup.UpperLegs, MuscleGroup.LowerLegs, MuscleGroup.Biceps, MuscleGroup.Triceps, MuscleGroup.Core];
         return groups.map(group => {
           const date = lastTrained.get(group) ?? null;
           const hoursAgo = date ? (now.getTime() - date.getTime()) / (1000 * 60 * 60) : null;

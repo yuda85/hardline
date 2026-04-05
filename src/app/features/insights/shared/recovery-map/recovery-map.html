@@ -1,86 +1,34 @@
 <div class="recovery-map">
   <!-- Front View -->
   <div class="recovery-map__body">
-    <svg viewBox="0 0 120 240" class="recovery-map__svg">
-      <!-- Head -->
-      <ellipse cx="60" cy="24" rx="14" ry="16" fill="#2a2a2a" />
-
-      <!-- Neck -->
-      <rect x="53" y="38" width="14" height="10" rx="3" fill="#2a2a2a" />
-
-      <!-- Shoulders -->
-      <g [class]="classFor(MuscleGroup.Shoulders)">
-        <ellipse cx="30" cy="56" rx="12" ry="8" [attr.fill]="colorFor(MuscleGroup.Shoulders)" />
-        <ellipse cx="90" cy="56" rx="12" ry="8" [attr.fill]="colorFor(MuscleGroup.Shoulders)" />
-      </g>
-
-      <!-- Chest -->
-      <g [class]="classFor(MuscleGroup.Chest)">
-        <path d="M38,50 Q60,48 82,50 L82,78 Q60,84 38,78 Z" [attr.fill]="colorFor(MuscleGroup.Chest)" rx="4" />
-      </g>
-
-      <!-- Arms -->
-      <g [class]="classFor(MuscleGroup.Arms)">
-        <rect x="14" y="62" width="12" height="40" rx="6" [attr.fill]="colorFor(MuscleGroup.Arms)" />
-        <rect x="94" y="62" width="12" height="40" rx="6" [attr.fill]="colorFor(MuscleGroup.Arms)" />
-        <!-- Forearms -->
-        <rect x="14" y="104" width="10" height="32" rx="5" fill="#2a2a2a" />
-        <rect x="96" y="104" width="10" height="32" rx="5" fill="#2a2a2a" />
-      </g>
-
-      <!-- Core -->
-      <g [class]="classFor(MuscleGroup.Core)">
-        <path d="M42,80 L78,80 L76,120 L44,120 Z" [attr.fill]="colorFor(MuscleGroup.Core)" rx="4" />
-      </g>
-
-      <!-- Legs -->
-      <g [class]="classFor(MuscleGroup.Legs)">
-        <!-- Quads -->
-        <rect x="36" y="124" width="18" height="48" rx="8" [attr.fill]="colorFor(MuscleGroup.Legs)" />
-        <rect x="66" y="124" width="18" height="48" rx="8" [attr.fill]="colorFor(MuscleGroup.Legs)" />
-        <!-- Lower legs -->
-        <rect x="38" y="176" width="14" height="44" rx="6" fill="#2a2a2a" />
-        <rect x="68" y="176" width="14" height="44" rx="6" fill="#2a2a2a" />
-      </g>
+    <svg class="recovery-map__svg" viewBox="0 0 100 200">
+      @for (region of anteriorData; track $index) {
+        @for (poly of region.points; track $index) {
+          <polygon
+            class="recovery-map__polygon"
+            [class.pulse-glow]="classFor(region.group) === 'pulse-glow'"
+            [attr.points]="poly"
+            [style.fill]="colorFor(region.group)"
+          />
+        }
+      }
     </svg>
     <span class="recovery-map__label">Front</span>
   </div>
 
   <!-- Back View -->
   <div class="recovery-map__body">
-    <svg viewBox="0 0 120 240" class="recovery-map__svg">
-      <!-- Head -->
-      <ellipse cx="60" cy="24" rx="14" ry="16" fill="#2a2a2a" />
-
-      <!-- Neck -->
-      <rect x="53" y="38" width="14" height="10" rx="3" fill="#2a2a2a" />
-
-      <!-- Shoulders (back) -->
-      <g [class]="classFor(MuscleGroup.Shoulders)">
-        <ellipse cx="30" cy="56" rx="12" ry="8" [attr.fill]="colorFor(MuscleGroup.Shoulders)" />
-        <ellipse cx="90" cy="56" rx="12" ry="8" [attr.fill]="colorFor(MuscleGroup.Shoulders)" />
-      </g>
-
-      <!-- Back -->
-      <g [class]="classFor(MuscleGroup.Back)">
-        <path d="M38,50 Q60,48 82,50 L80,120 Q60,126 40,120 Z" [attr.fill]="colorFor(MuscleGroup.Back)" rx="4" />
-      </g>
-
-      <!-- Arms (back - triceps) -->
-      <g [class]="classFor(MuscleGroup.Arms)">
-        <rect x="14" y="62" width="12" height="40" rx="6" [attr.fill]="colorFor(MuscleGroup.Arms)" />
-        <rect x="94" y="62" width="12" height="40" rx="6" [attr.fill]="colorFor(MuscleGroup.Arms)" />
-        <rect x="14" y="104" width="10" height="32" rx="5" fill="#2a2a2a" />
-        <rect x="96" y="104" width="10" height="32" rx="5" fill="#2a2a2a" />
-      </g>
-
-      <!-- Hamstrings / Glutes -->
-      <g [class]="classFor(MuscleGroup.Legs)">
-        <rect x="36" y="124" width="18" height="48" rx="8" [attr.fill]="colorFor(MuscleGroup.Legs)" />
-        <rect x="66" y="124" width="18" height="48" rx="8" [attr.fill]="colorFor(MuscleGroup.Legs)" />
-        <rect x="38" y="176" width="14" height="44" rx="6" fill="#2a2a2a" />
-        <rect x="68" y="176" width="14" height="44" rx="6" fill="#2a2a2a" />
-      </g>
+    <svg class="recovery-map__svg" viewBox="0 0 100 200">
+      @for (region of posteriorData; track $index) {
+        @for (poly of region.points; track $index) {
+          <polygon
+            class="recovery-map__polygon"
+            [class.pulse-glow]="classFor(region.group) === 'pulse-glow'"
+            [attr.points]="poly"
+            [style.fill]="colorFor(region.group)"
+          />
+        }
+      }
     </svg>
     <span class="recovery-map__label">Back</span>
   </div>

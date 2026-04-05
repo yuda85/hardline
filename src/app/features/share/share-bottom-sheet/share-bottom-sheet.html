@@ -1,0 +1,37 @@
+<!-- Backdrop -->
+<div class="sheet__backdrop" (click)="onBackdropClick()"></div>
+
+<!-- Sheet -->
+<div class="sheet">
+  <div class="sheet__handle"></div>
+
+  <div class="sheet__content">
+    <span class="material-symbols-outlined sheet__icon" style="font-variation-settings: 'FILL' 1">share</span>
+    <h3 class="sheet__title">Plan Shared!</h3>
+    <p class="sheet__subtitle">Anyone with this link can view and save your plan.</p>
+
+    <!-- URL Display -->
+    <div class="sheet__url-row">
+      <input
+        class="sheet__url-input"
+        type="text"
+        [value]="shareUrl()"
+        readonly
+        (click)="$any($event.target).select()"
+      />
+      <app-button
+        [variant]="copied() ? 'secondary' : 'primary'"
+        size="sm"
+        [icon]="copied() ? 'check' : 'content_copy'"
+        (click)="onCopy()"
+      >
+        {{ copied() ? 'Copied!' : 'Copy' }}
+      </app-button>
+    </div>
+
+    <app-badge variant="surface" size="sm">
+      <span class="material-symbols-outlined sheet__badge-icon">schedule</span>
+      Expires in 7 days
+    </app-badge>
+  </div>
+</div>

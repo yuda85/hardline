@@ -6,8 +6,10 @@ export enum MuscleGroup {
   Chest = 'chest',
   Back = 'back',
   Shoulders = 'shoulders',
-  Legs = 'legs',
-  Arms = 'arms',
+  UpperLegs = 'upper_legs',
+  LowerLegs = 'lower_legs',
+  Biceps = 'biceps',
+  Triceps = 'triceps',
   Core = 'core',
   FullBody = 'full_body',
 }
@@ -96,4 +98,21 @@ export interface PersonalRecord extends FirestoreDoc {
   weight: number;
   reps: number;
   date: Date;
+}
+
+// ── Shared Plans ──
+
+export interface SharedPlanSnapshot {
+  name: string;
+  description?: string;
+  days: WorkoutDay[];
+}
+
+export interface SharedPlan extends FirestoreDoc {
+  shareId: string;
+  planId: string;
+  sharedByUserId: string;
+  sharedByName: string;
+  expiresAt: Date;
+  planSnapshot: SharedPlanSnapshot;
 }

@@ -1,0 +1,241 @@
+@use '../../../shared/styles/components' as c;
+
+// ── Page Container ──
+
+.shared-view {
+  min-height: 100dvh;
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+}
+
+// ── Top Bar ──
+
+.shared-view__top-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid rgba(65, 71, 85, 0.15);
+}
+
+.shared-view__back {
+  @include c.touch-target;
+  background: none;
+  border: none;
+  color: var(--on-surface-variant);
+  cursor: pointer;
+  border-radius: 0.5rem;
+
+  &:hover {
+    color: var(--on-surface);
+  }
+}
+
+.shared-view__logo {
+  font-family: var(--font-headline);
+  font-weight: 800;
+  font-size: 1.25rem;
+  color: var(--primary);
+  letter-spacing: -0.02em;
+}
+
+// ── Body ──
+
+.shared-view__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.25rem;
+  max-width: 56rem;
+  margin: 0 auto;
+  width: 100%;
+}
+
+// ── State Screens (error, saved) ──
+
+.shared-view__state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 2rem;
+  text-align: center;
+}
+
+.shared-view__state-icon {
+  font-size: 3rem;
+  color: var(--on-surface-variant);
+
+  &--success {
+    color: var(--primary);
+  }
+}
+
+.shared-view__state-title {
+  font-family: var(--font-headline);
+  font-weight: 800;
+  font-size: 1.5rem;
+  color: var(--on-surface);
+}
+
+.shared-view__state-text {
+  font-size: 0.875rem;
+  color: var(--on-surface-variant);
+  max-width: 280px;
+}
+
+// ── Plan Header ──
+
+.plan-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.plan-header__name {
+  font-family: var(--font-headline);
+  font-weight: 800;
+  font-size: 1.5rem;
+  color: var(--on-surface);
+  letter-spacing: -0.02em;
+}
+
+.plan-header__desc {
+  font-size: 0.875rem;
+  color: var(--on-surface-variant);
+  line-height: 1.5;
+}
+
+.plan-header__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.plan-header__meta-icon {
+  font-size: 0.875rem;
+  vertical-align: middle;
+  margin-right: 0.125rem;
+}
+
+// ── Day Cards ──
+
+.day-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.day-card__header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.day-card__number {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  background: var(--surface-container);
+  color: var(--primary);
+  font-family: var(--font-headline);
+  font-weight: 800;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.day-card__info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.day-card__name {
+  font-family: var(--font-headline);
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--on-surface);
+}
+
+.day-card__badges {
+  display: flex;
+  gap: 0.375rem;
+}
+
+// ── Exercise List ──
+
+.day-card__exercises {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding-left: 3rem;
+}
+
+.exercise-group-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--primary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 0.25rem;
+}
+
+.exercise-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.25rem 0;
+  font-size: 0.8125rem;
+
+  &--rest {
+    color: var(--on-surface-variant);
+    justify-content: flex-start;
+    gap: 0.25rem;
+    font-size: 0.75rem;
+  }
+}
+
+.exercise-row__name {
+  color: var(--on-surface);
+}
+
+.exercise-row__sets {
+  color: var(--on-surface-variant);
+  font-size: 0.75rem;
+}
+
+.exercise-row__rest-icon {
+  font-size: 0.875rem;
+}
+
+// ── Fixed Bottom Bar ──
+
+.shared-view__bottom-spacer {
+  height: 5rem;
+}
+
+.shared-view__bottom-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 1rem 1.25rem;
+  padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+  background: var(--surface);
+  border-top: 1px solid rgba(65, 71, 85, 0.15);
+  z-index: 20;
+
+  app-button {
+    max-width: 56rem;
+    margin: 0 auto;
+    display: block;
+  }
+}

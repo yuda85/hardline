@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { onboardingGuard } from './core/guards/onboarding.guard';
+import { sharedPlanGuard } from './core/guards/shared-plan.guard';
 
 export const routes: Routes = [
   {
@@ -12,6 +13,14 @@ export const routes: Routes = [
     canActivate: [authGuard],
     loadComponent: () =>
       import('./features/profile/onboarding/onboarding').then(m => m.OnboardingComponent),
+  },
+  {
+    path: 'shared/:shareId',
+    canActivate: [sharedPlanGuard],
+    loadComponent: () =>
+      import('./features/share/shared-plan-view/shared-plan-view').then(
+        m => m.SharedPlanViewComponent,
+      ),
   },
   {
     path: '',
