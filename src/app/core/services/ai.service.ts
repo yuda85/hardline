@@ -17,6 +17,13 @@ interface AIMealResponse {
 
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
 
+function normalizeExerciseId(raw: unknown): string {
+  const s = String(raw || '');
+  if (s.startsWith('ex-')) return s;
+  const num = s.replace(/\D/g, '');
+  return num ? `ex-${num}` : s;
+}
+
 const MEAL_PARSE_PROMPT = `You are a nutrition analysis assistant. Given a text description of food, extract structured nutritional information.
 
 RULES:
@@ -174,7 +181,7 @@ export class AIService {
           const exercises = (
             (g['exercises'] as Record<string, unknown>[]) ?? []
           ).map(e => ({
-            exerciseId: String(e['exerciseId'] || ''),
+            exerciseId: normalizeExerciseId(e['exerciseId']),
             sets: Array.isArray(e['sets'])
               ? (e['sets'] as unknown[]).map(s => Math.max(1, Number(s) || 8))
               : [8, 8, 8],
