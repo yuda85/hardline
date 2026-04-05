@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { State, Action, StateContext, Selector } from '@ngxs/store';
 import { tap, switchMap, take } from 'rxjs/operators';
+import { firstValueFrom } from 'rxjs';
 import { Auth } from './auth.actions';
 import { AuthStateModel, AUTH_STATE_DEFAULTS } from './auth.model';
 import { AuthService } from '../../core/services/auth.service';
@@ -84,15 +85,26 @@ export class AuthState {
         throw new Error('Login succeeded but no user returned');
       }
 
-      const profile: UserProfile = {
-        uid: firebaseUser.uid,
-        displayName: firebaseUser.displayName ?? '',
-        email: firebaseUser.email ?? '',
-        photoURL: firebaseUser.photoURL,
-        goals: DEFAULT_USER_GOALS,
-        preferences: DEFAULT_USER_PREFERENCES,
-        onboardingComplete: false,
-      };
+      const existing = await firstValueFrom(
+        this.userRepo.getByUid(firebaseUser.uid).pipe(take(1)),
+      );
+
+      const profile: UserProfile = existing
+        ? {
+            ...existing,
+            displayName: firebaseUser.displayName ?? '',
+            email: firebaseUser.email ?? '',
+            photoURL: firebaseUser.photoURL,
+          }
+        : {
+            uid: firebaseUser.uid,
+            displayName: firebaseUser.displayName ?? '',
+            email: firebaseUser.email ?? '',
+            photoURL: firebaseUser.photoURL,
+            goals: DEFAULT_USER_GOALS,
+            preferences: DEFAULT_USER_PREFERENCES,
+            onboardingComplete: false,
+          };
 
       await this.userRepo.createOrUpdate(profile);
       ctx.dispatch(new Auth.LoginSuccess(profile));
