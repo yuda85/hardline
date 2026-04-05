@@ -45,7 +45,9 @@
       "Bash(gh api:*)",
       "Bash(python3 -c \"import json,sys; data=json.load\\(sys.stdin\\); [print\\(n['path']\\) for n in data.get\\('tree',[]\\) if n['type']=='blob']\")",
       "Bash(grep -i \"\\\\.ts$\")",
-      "Bash(node -e \"console.log\\(require\\('./node_modules/rxjs/package.json'\\).version\\)\")"
+      "Bash(node -e \"console.log\\(require\\('./node_modules/rxjs/package.json'\\).version\\)\")",
+      "Bash(npm list:*)",
+      "Bash(npx ruflo:*)"
     ]
   }
 }

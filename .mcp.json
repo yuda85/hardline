@@ -9,6 +9,7 @@
         "start"
       ],
       "env": {
+        "PATH": "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin",
         "npm_config_update_notifier": "false",
         "CLAUDE_FLOW_MODE": "v3",
         "CLAUDE_FLOW_HOOKS_ENABLED": "true",
