@@ -187,6 +187,30 @@ export class DayDetailComponent implements OnInit, OnDestroy {
     this.showExercisePicker.set(true);
   }
 
+  protected onMultipleExercisesPicked(exercises: Exercise[]) {
+    const target = this.pickerTarget();
+    if (!target) return;
+
+    this.dayData.update(d => {
+      if (!d) return d;
+      const updated = JSON.parse(JSON.stringify(d)) as WorkoutDay;
+      const defaultSets: PlanSet[] = [{ targetReps: 10 }, { targetReps: 10 }, { targetReps: 10 }];
+
+      for (const exercise of exercises) {
+        updated.exerciseGroups.push({
+          type: 'single',
+          exercises: [{ exerciseId: exercise.id!, exerciseName: exercise.name, sets: defaultSets }],
+          restSeconds: 60,
+        });
+      }
+
+      return updated;
+    });
+
+    this.showExercisePicker.set(false);
+    this.pickerTarget.set(null);
+  }
+
   protected onExercisePicked(exercise: Exercise) {
     const target = this.pickerTarget();
     if (!target) return;

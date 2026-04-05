@@ -135,6 +135,34 @@ export class PlanEditorComponent implements OnInit, OnDestroy {
     this.showExercisePicker.set(true);
   }
 
+  protected onMultipleExercisesPicked(exercises: Exercise[]) {
+    const target = this.pickerTarget();
+    if (!target) return;
+
+    this.days.update(days => {
+      const updated = [...days];
+      const day = { ...updated[target.dayIdx] };
+      const groups = [...day.exerciseGroups];
+
+      for (const exercise of exercises) {
+        const newGroup: ExerciseGroup = {
+          type: 'single',
+          exercises: [{ exerciseId: exercise.id!, exerciseName: exercise.name, sets: [{ targetReps: 10 }, { targetReps: 10 }, { targetReps: 10 }] }],
+          restSeconds: 60,
+        };
+        groups.push(newGroup);
+      }
+
+      day.exerciseGroups = groups;
+      updated[target.dayIdx] = day;
+      return updated;
+    });
+
+    this.showExercisePicker.set(false);
+    this.pickerTarget.set(null);
+    this.autoSave();
+  }
+
   protected onExercisePicked(exercise: Exercise) {
     const target = this.pickerTarget();
     if (!target) return;

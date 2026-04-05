@@ -147,25 +147,74 @@
           </div>
         </section>
 
+        <!-- Selected Exercises -->
+        <section class="smart__section">
+          <div class="smart__section-header">
+            <h2 class="smart__section-title">Exercises (optional)</h2>
+            <span class="smart__section-line"></span>
+          </div>
+          <p class="smart__section-hint">Pick specific exercises or let AI choose for you</p>
+
+          @if (selectedExercises().length > 0) {
+            <div class="smart__exercise-list">
+              @for (ex of selectedExercises(); track ex.id) {
+                <div class="smart__exercise-item">
+                  <div class="smart__exercise-item-info">
+                    <span class="smart__exercise-item-name">{{ ex.name }}</span>
+                    <span class="smart__exercise-item-meta">{{ ex.muscleGroup }} · {{ ex.equipment }}</span>
+                  </div>
+                  <button class="smart__exercise-remove" (click)="removeExercise(ex)">
+                    <span class="material-symbols-outlined">close</span>
+                  </button>
+                </div>
+              }
+            </div>
+          }
+
+          <button type="button" class="smart__add-exercises-btn" (click)="showPicker.set(true)">
+            <span class="material-symbols-outlined">add</span>
+            {{ selectedExercises().length > 0 ? 'Add More Exercises' : 'Select Exercises' }}
+          </button>
+        </section>
+
         @if (generateError()) {
           <div class="smart__error">{{ generateError() }}</div>
         }
 
-        <!-- Generate -->
+        <!-- Actions -->
         <div class="smart__submit">
+          @if (selectedExercises().length > 0) {
+            <app-button variant="primary" type="button" (click)="startQuickWorkout()">
+              <span class="material-symbols-outlined">play_arrow</span>
+              Start Quick Workout ({{ selectedExercises().length }})
+            </app-button>
+            <div class="smart__or-divider">
+              <span class="smart__or-line"></span>
+              <span class="smart__or-text">or</span>
+              <span class="smart__or-line"></span>
+            </div>
+          }
           @if (generating()) {
-            <app-button variant="primary" [disabled]="true">
+            <app-button variant="ghost" [disabled]="true">
               <span class="material-symbols-outlined smart__spin">neurology</span>
               Analyzing recovery...
             </app-button>
           } @else {
-            <app-button variant="primary" type="submit">
+            <app-button variant="ghost" type="submit">
               <span class="material-symbols-outlined">neurology</span>
-              Generate Smart Workout
+              Generate with AI
             </app-button>
           }
         </div>
       </form>
+
+      @if (showPicker()) {
+        <app-exercise-picker
+          [multiSelect]="true"
+          (pickedMultiple)="onExercisesPicked($event)"
+          (closed)="showPicker.set(false)"
+        />
+      }
     }
   </div>
 </div>

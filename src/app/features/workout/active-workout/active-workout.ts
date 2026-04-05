@@ -50,6 +50,9 @@ export class ActiveWorkoutComponent implements OnInit, OnDestroy {
   protected readonly showFinishConfirm = signal(false);
   protected readonly showAbandonConfirm = signal(false);
 
+  // Carousel animation
+  protected readonly slideDirection = signal<'none' | 'left' | 'right' | 'enter-left' | 'enter-right'>('none');
+
   // Rest timer state
   protected readonly resting = signal(false);
   protected readonly restTimeLeft = signal(0);
@@ -355,27 +358,48 @@ export class ActiveWorkoutComponent implements OnInit, OnDestroy {
     const s = this.session();
     if (!s) return;
     const group = s.exerciseGroups[this.currentGroupIndex()];
-    if (this.currentExerciseIndex() < group.exercises.length - 1) {
-      this.currentExerciseIndex.update(i => i + 1);
-    } else if (this.currentGroupIndex() < s.exerciseGroups.length - 1) {
-      this.currentGroupIndex.update(i => i + 1);
-      this.currentExerciseIndex.set(0);
-    }
-    this.weight.set(0);
-    this.reps.set(0);
+    const canAdvance =
+      this.currentExerciseIndex() < group.exercises.length - 1 ||
+      this.currentGroupIndex() < s.exerciseGroups.length - 1;
+    if (!canAdvance) return;
+
+    this.animateSlide('left', () => {
+      if (this.currentExerciseIndex() < group.exercises.length - 1) {
+        this.currentExerciseIndex.update(i => i + 1);
+      } else {
+        this.currentGroupIndex.update(i => i + 1);
+        this.currentExerciseIndex.set(0);
+      }
+      this.weight.set(0);
+      this.reps.set(0);
+    });
   }
 
   protected goPrevExercise() {
     this.clearRestTimer();
-    if (this.currentExerciseIndex() > 0) {
-      this.currentExerciseIndex.update(i => i - 1);
-    } else if (this.currentGroupIndex() > 0) {
-      this.currentGroupIndex.update(i => i - 1);
-      const group = this.session()?.exerciseGroups[this.currentGroupIndex()];
-      this.currentExerciseIndex.set((group?.exercises.length ?? 1) - 1);
-    }
-    this.weight.set(0);
-    this.reps.set(0);
+    const canGoBack = this.currentExerciseIndex() > 0 || this.currentGroupIndex() > 0;
+    if (!canGoBack) return;
+
+    this.animateSlide('right', () => {
+      if (this.currentExerciseIndex() > 0) {
+        this.currentExerciseIndex.update(i => i - 1);
+      } else {
+        this.currentGroupIndex.update(i => i - 1);
+        const group = this.session()?.exerciseGroups[this.currentGroupIndex()];
+        this.currentExerciseIndex.set((group?.exercises.length ?? 1) - 1);
+      }
+      this.weight.set(0);
+      this.reps.set(0);
+    });
+  }
+
+  private animateSlide(direction: 'left' | 'right', onMid: () => void) {
+    this.slideDirection.set(direction);
+    setTimeout(() => {
+      onMid();
+      this.slideDirection.set(direction === 'left' ? 'enter-right' : 'enter-left');
+      setTimeout(() => this.slideDirection.set('none'), 130);
+    }, 120);
   }
 
   protected addRestTime() {

@@ -210,7 +210,9 @@
 @if (showExercisePicker()) {
   <app-exercise-picker
     [filterMuscleGroup]="pickerTarget()?.swapMuscleGroup ?? null"
+    [multiSelect]="pickerTarget()?.mode === 'add'"
     (picked)="onExercisePicked($event)"
+    (pickedMultiple)="onMultipleExercisesPicked($event)"
     (closed)="showExercisePicker.set(false); pickerTarget.set(null)"
   />
 }

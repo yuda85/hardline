@@ -194,6 +194,112 @@
   color: var(--error);
 }
 
+// Selected exercises
+.smart__section-hint {
+  font-size: 0.75rem;
+  color: var(--on-surface-variant);
+  margin: 0 0 0.75rem;
+}
+
+.smart__exercise-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  margin-bottom: 0.75rem;
+}
+
+.smart__exercise-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem;
+  background: var(--surface-container);
+  border-radius: 0.75rem;
+  min-height: 44px;
+}
+
+.smart__exercise-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.smart__exercise-item-name {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--on-surface);
+}
+
+.smart__exercise-item-meta {
+  font-size: 0.6875rem;
+  color: var(--on-surface-variant);
+  text-transform: capitalize;
+}
+
+.smart__exercise-remove {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: transparent;
+  border: none;
+  color: var(--on-surface-variant);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  min-width: 44px;
+  min-height: 44px;
+  transition: color 200ms ease;
+
+  .material-symbols-outlined { font-size: 1.125rem; }
+
+  &:hover { color: var(--error); }
+}
+
+.smart__add-exercises-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border-radius: 0.75rem;
+  border: 1px dashed var(--outline-variant);
+  background: transparent;
+  color: var(--on-surface-variant);
+  font-family: var(--font-headline);
+  font-weight: 600;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  min-height: 44px;
+  transition: all 200ms ease;
+
+  .material-symbols-outlined { font-size: 1.125rem; color: var(--primary-container); }
+
+  &:hover { background: var(--surface-container); border-color: var(--primary-container); color: var(--on-surface); }
+}
+
+.smart__or-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0.75rem 0;
+}
+
+.smart__or-line {
+  flex: 1;
+  height: 1px;
+  background: var(--outline-variant);
+}
+
+.smart__or-text {
+  font-size: 0.75rem;
+  color: var(--on-surface-variant);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
 // Submit
 .smart__submit {
   padding-top: 0.5rem;

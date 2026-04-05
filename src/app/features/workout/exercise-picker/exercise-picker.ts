@@ -13,9 +13,12 @@ import { EXERCISES } from '../exercise-data';
 })
 export class ExercisePickerComponent {
   readonly filterMuscleGroup = input<MuscleGroup | null>(null);
+  readonly multiSelect = input(false);
   readonly picked = output<Exercise>();
+  readonly pickedMultiple = output<Exercise[]>();
   readonly closed = output<void>();
 
+  protected readonly selectedExercises = signal<Exercise[]>([]);
   protected readonly searchQuery = signal('');
   protected readonly selectedGroup = signal<MuscleGroup | ''>('');
   protected readonly showCreateForm = signal(false);
@@ -74,7 +77,27 @@ export class ExercisePickerComponent {
   }
 
   protected selectExercise(exercise: Exercise) {
-    this.picked.emit(exercise);
+    if (this.multiSelect()) {
+      this.toggleSelection(exercise);
+    } else {
+      this.picked.emit(exercise);
+    }
+  }
+
+  protected toggleSelection(exercise: Exercise) {
+    this.selectedExercises.update(list => {
+      const exists = list.find(e => e.id === exercise.id);
+      return exists ? list.filter(e => e.id !== exercise.id) : [...list, exercise];
+    });
+  }
+
+  protected isSelected(exercise: Exercise): boolean {
+    return this.selectedExercises().some(e => e.id === exercise.id);
+  }
+
+  protected confirmSelection() {
+    this.pickedMultiple.emit(this.selectedExercises());
+    this.selectedExercises.set([]);
   }
 
   protected createExercise() {

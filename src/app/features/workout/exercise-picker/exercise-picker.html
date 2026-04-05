@@ -8,7 +8,7 @@
 
   <!-- Header -->
   <div class="ep-header">
-    <h2 class="ep-title">Pick Exercise</h2>
+    <h2 class="ep-title">{{ multiSelect() ? 'Select Exercises' : 'Pick Exercise' }}</h2>
     <button class="ep-close" (click)="closed.emit()" aria-label="Close">
       <span class="material-symbols-outlined">close</span>
     </button>
@@ -48,9 +48,15 @@
   <!-- Exercise list -->
   <div class="ep-list">
     @for (exercise of filteredExercises(); track exercise.id) {
-      <div class="ep-exercise" (click)="selectExercise(exercise)">
+      <div class="ep-exercise"
+        [class.ep-exercise--selected]="multiSelect() && isSelected(exercise)"
+        (click)="selectExercise(exercise)">
         <div class="ep-exercise__icon-box">
-          <span class="material-symbols-outlined ep-exercise__icon">fitness_center</span>
+          @if (multiSelect() && isSelected(exercise)) {
+            <span class="material-symbols-outlined ep-exercise__icon ep-exercise__icon--check" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+          } @else {
+            <span class="material-symbols-outlined ep-exercise__icon">fitness_center</span>
+          }
         </div>
         <div class="ep-exercise__info">
           <span class="ep-exercise__name">{{ exercise.name }}</span>
@@ -59,7 +65,9 @@
             <span class="ep-badge ep-badge--equip">{{ exercise.equipment }}</span>
           </div>
         </div>
-        <span class="material-symbols-outlined ep-exercise__add">add_circle</span>
+        @if (!multiSelect()) {
+          <span class="material-symbols-outlined ep-exercise__add">add_circle</span>
+        }
       </div>
     } @empty {
       <div class="ep-empty">
@@ -68,6 +76,17 @@
       </div>
     }
   </div>
+
+  <!-- Multi-select confirm bar -->
+  @if (multiSelect() && selectedExercises().length > 0) {
+    <div class="ep-multi-bar">
+      <span class="ep-multi-count">{{ selectedExercises().length }} selected</span>
+      <button class="ep-multi-done" (click)="confirmSelection()">
+        <span class="material-symbols-outlined">check</span>
+        Done
+      </button>
+    </div>
+  }
 
   <!-- Bottom CTA / Create form -->
   <div class="ep-bottom">

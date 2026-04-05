@@ -19,8 +19,9 @@
           <div class="aw__header-progress-fill" [style.width.%]="totalProgress()"></div>
         </div>
       </div>
-      <button class="aw__header-btn" (click)="showAbandonConfirm.set(true)">
-        <span class="material-symbols-outlined">close</span>
+      <button class="aw__finish-btn" (click)="showAbandonConfirm.set(true)">
+        <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">flag</span>
+        <span>Finish</span>
       </button>
     </div>
   </header>
@@ -65,7 +66,12 @@
       }
 
       <!-- Exercise carousel -->
-      <section class="aw__carousel" (touchstart)="onTouchStart($event)" (touchend)="onTouchEnd($event)">
+      <section class="aw__carousel"
+        [class.aw__slide-out-left]="slideDirection() === 'left'"
+        [class.aw__slide-out-right]="slideDirection() === 'right'"
+        [class.aw__slide-in-left]="slideDirection() === 'enter-left'"
+        [class.aw__slide-in-right]="slideDirection() === 'enter-right'"
+        (touchstart)="onTouchStart($event)" (touchend)="onTouchEnd($event)">
         <!-- Left arrow overlay -->
         @if (flatExerciseIndex() > 0) {
           <button class="aw__carousel-arrow aw__carousel-arrow--left" (click)="goPrevExercise()">
@@ -74,11 +80,6 @@
         }
 
         <div class="aw__carousel-track">
-          <!-- Previous card peek -->
-          <div class="aw__carousel-peek aw__carousel-peek--prev">
-            <div class="aw__peek-card"></div>
-          </div>
-
           <!-- Current exercise card -->
           <div class="aw__exercise-card">
             <!-- Muscle group badge -->
@@ -161,10 +162,6 @@
             </div>
           </div>
 
-          <!-- Next card peek -->
-          <div class="aw__carousel-peek aw__carousel-peek--next">
-            <div class="aw__peek-card"></div>
-          </div>
         </div>
 
         <!-- Right arrow overlay -->
