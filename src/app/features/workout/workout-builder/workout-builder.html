@@ -52,7 +52,7 @@
 
         <div class="builder__actions">
           <app-button variant="ghost" (click)="generate()">Regenerate</app-button>
-          <app-button variant="primary" (click)="savePlan(plan)">Save Plan</app-button>
+          <app-button variant="primary" (click)="makeActivePlan()">Make Active Plan</app-button>
         </div>
       </div>
     } @else {
@@ -287,3 +287,23 @@
     }
   </div>
 </div>
+
+@if (generating()) {
+  <div class="builder__overlay">
+    <div class="builder__overlay-spinner"></div>
+    <p class="builder__overlay-text">Building your program...</p>
+  </div>
+}
+
+@if (showSuccessDialog()) {
+  <div class="builder__dialog-backdrop" (click)="showSuccessDialog.set(false)"></div>
+  <div class="builder__dialog">
+    <span class="material-symbols-outlined builder__dialog-icon">check_circle</span>
+    <h3 class="builder__dialog-title">Program is Ready!</h3>
+    <p class="builder__dialog-text">{{ generatedPlan()?.name }} has been saved.</p>
+    <div class="builder__dialog-actions">
+      <app-button variant="primary" (click)="makeActivePlan()">Make Active Plan</app-button>
+      <app-button variant="ghost" (click)="viewPlan()">View Plan</app-button>
+    </div>
+  </div>
+}

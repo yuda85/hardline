@@ -48,7 +48,9 @@
       "Bash(node -e \"console.log\\(require\\('./node_modules/rxjs/package.json'\\).version\\)\")",
       "Bash(npm list:*)",
       "Bash(npx ruflo:*)",
-      "Bash(export PATH=\"/opt/homebrew/bin:$PATH\")"
+      "Bash(export PATH=\"/opt/homebrew/bin:$PATH\")",
+      "Bash(grep -E \"\\\\.\\(ts|html\\)$\")",
+      "Bash(export PATH=\"/opt/homebrew/bin:/usr/local/bin:$PATH\")"
     ]
   }
 }

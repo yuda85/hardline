@@ -200,7 +200,7 @@ export class DayDetailComponent implements OnInit, OnDestroy {
         updated.exerciseGroups.push({
           type: 'single',
           exercises: [{ exerciseId: exercise.id!, exerciseName: exercise.name, sets: defaultSets }],
-          restSeconds: 90,
+          restSeconds: 60,
         });
       } else if (target.mode === 'superset') {
         updated.exerciseGroups.push({

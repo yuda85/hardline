@@ -1,9 +1,10 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, effect } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Store } from '@ngxs/store';
 import { Workout } from '../../../store/workout/workout.actions';
 import { WorkoutState } from '../../../store/workout/workout.state';
+import { Profile } from '../../../store/profile/profile.actions';
 import {
   ButtonComponent,
   CardComponent,
@@ -18,7 +19,7 @@ import {
   RepRangePreference,
   SplitPreference,
 } from '../../../core/models/ai-workout.model';
-import { FitnessGoal, MuscleGroup, WorkoutPlan } from '../../../core/models';
+import { FitnessGoal, MuscleGroup } from '../../../core/models';
 
 @Component({
   selector: 'app-workout-builder',
@@ -34,6 +35,18 @@ export class WorkoutBuilderComponent {
   protected readonly generating = this.store.selectSignal(WorkoutState.generating);
   protected readonly generatedPlan = this.store.selectSignal(WorkoutState.generatedPlan);
   protected readonly generateError = this.store.selectSignal(WorkoutState.generateError);
+  protected readonly savedPlanId = this.store.selectSignal(WorkoutState.savedPlanId);
+  protected readonly showSuccessDialog = signal(false);
+
+  constructor() {
+    effect(() => {
+      const plan = this.generatedPlan();
+      const generating = this.generating();
+      if (plan && !generating) {
+        this.showSuccessDialog.set(true);
+      }
+    });
+  }
 
   // Form state
   protected readonly freeTextGoal = signal('');
@@ -159,9 +172,19 @@ export class WorkoutBuilderComponent {
     this.store.dispatch(new Workout.GeneratePlan(input));
   }
 
-  protected savePlan(plan: WorkoutPlan) {
-    this.store.dispatch(new Workout.SaveGeneratedPlan(plan));
+  protected makeActivePlan() {
+    const planId = this.savedPlanId();
+    if (planId) {
+      this.store.dispatch(new Profile.SetActivePlan(planId));
+    }
     this.router.navigate(['/workouts']);
+  }
+
+  protected viewPlan() {
+    const planId = this.savedPlanId();
+    if (planId) {
+      this.router.navigate(['/workouts', 'edit', planId]);
+    }
   }
 
   protected goBack() {

@@ -1,0 +1,79 @@
+<div class="backdrop" (click)="closed.emit()"></div>
+
+<div class="sheet">
+  <div class="sheet__handle"></div>
+
+  <div class="sheet__header">
+    <h3 class="sheet__title">History &mdash; {{ exerciseName() }}</h3>
+    <button class="sheet__close" (click)="closed.emit()">
+      <span class="material-symbols-outlined">close</span>
+    </button>
+  </div>
+
+  <div class="bento">
+    <div class="bento__card bento__card--chart">
+      <span class="bento__label">1RM Progression</span>
+      <span class="bento__value">{{ currentOneRepMax() | number:'1.0-0' }} kg</span>
+      <svg class="bento__svg" viewBox="0 0 100 40" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="var(--primary-container)" stop-opacity="0.15" />
+            <stop offset="100%" stop-color="var(--primary-container)" stop-opacity="0" />
+          </linearGradient>
+        </defs>
+        @if (chartPolyline()) {
+          <polygon [attr.points]="chartAreaPoints()" fill="url(#chartGradient)" />
+          <polyline
+            [attr.points]="chartPolyline()"
+            fill="none"
+            stroke="var(--primary-container)"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        }
+      </svg>
+    </div>
+
+    <div class="bento__card bento__card--stat">
+      <span class="bento__label">Max Set</span>
+      <span class="bento__value">{{ maxWeight() }} kg</span>
+      <span class="bento__sublabel">Personal Best</span>
+    </div>
+  </div>
+
+  @if (historyEntries().length > 0) {
+    <div class="history__header">
+      <span class="history__col history__col--date">Date</span>
+      <span class="history__col history__col--set">Best Set</span>
+      <span class="history__col history__col--rm">Est. 1RM</span>
+    </div>
+
+    <div class="history__list">
+      @for (entry of historyEntries(); track $index; let first = $first) {
+        <div
+          class="history__row"
+          [class.history__row--active]="first"
+          (click)="selectWeight(bestSetForEntry(entry).weight)"
+        >
+          <span class="history__col history__col--date">
+            {{ entry.date | date:'MMM d' }}
+          </span>
+          <span class="history__col history__col--set">
+            {{ bestSetForEntry(entry).weight }} kg &times; {{ bestSetForEntry(entry).reps }}
+          </span>
+          <span class="history__col history__col--rm">
+            {{ entry.best1RM | number:'1.0-0' }} kg
+          </span>
+        </div>
+      }
+    </div>
+
+    <button
+      class="sheet__cta"
+      (click)="selectWeight(bestSetForEntry(historyEntries()[0]).weight)"
+    >
+      Use this weight
+    </button>
+  }
+</div>

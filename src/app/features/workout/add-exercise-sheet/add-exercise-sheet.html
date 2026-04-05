@@ -1,0 +1,92 @@
+<div class="aes-backdrop" (click)="closed.emit()"></div>
+
+<div class="aes-sheet">
+  <div class="aes-handle"></div>
+
+  <div class="aes-header">
+    <h2 class="aes-title">Add Exercise</h2>
+    <button class="aes-close" (click)="closed.emit()">
+      <span class="material-symbols-outlined">close</span>
+    </button>
+  </div>
+
+  @if (!selectedExercise()) {
+    <div class="aes-search-wrapper">
+      <div class="aes-search">
+        <span class="material-symbols-outlined aes-search__icon">search</span>
+        <input
+          type="text"
+          class="aes-search__input"
+          placeholder="Search exercises..."
+          [ngModel]="searchQuery()"
+          (ngModelChange)="searchQuery.set($event)"
+        />
+      </div>
+    </div>
+
+    <div class="aes-list">
+      @for (group of groupedExercises(); track group.group) {
+        <div class="aes-group-header">{{ muscleGroupLabel(group.group) }}</div>
+
+        @for (ex of group.exercises; track ex.id) {
+          <div class="aes-exercise" (click)="selectExercise(ex)">
+            <span class="aes-exercise__name">{{ ex.name }}</span>
+            <span class="aes-exercise__badge">{{ ex.equipment }}</span>
+          </div>
+        }
+      }
+
+      @if (groupedExercises().length === 0) {
+        <div class="aes-empty">
+          <span class="material-symbols-outlined aes-empty__icon">search_off</span>
+          <p class="aes-empty__text">No exercises found</p>
+        </div>
+      }
+    </div>
+  }
+
+  @if (selectedExercise(); as ex) {
+    <div class="aes-selected">
+      <div class="aes-selected__card">
+        <span class="aes-selected__name">{{ ex.name }}</span>
+        <div class="aes-selected__badges">
+          <span class="aes-selected__badge aes-selected__badge--equip">{{ ex.equipment }}</span>
+          <span class="aes-selected__badge aes-selected__badge--muscle">{{ muscleGroupLabel(ex.muscleGroup) }}</span>
+        </div>
+      </div>
+
+      <div class="aes-config">
+        <div class="aes-config__control">
+          <label class="aes-config__label">Sets</label>
+          <div class="aes-config__stepper">
+            <button class="aes-config__stepper-btn" (click)="incrementSets(-1)">
+              <span class="material-symbols-outlined">remove</span>
+            </button>
+            <span class="aes-config__stepper-value">{{ sets() }}</span>
+            <button class="aes-config__stepper-btn" (click)="incrementSets(1)">
+              <span class="material-symbols-outlined">add</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="aes-config__control">
+          <label class="aes-config__label">Target Reps</label>
+          <div class="aes-config__stepper">
+            <button class="aes-config__stepper-btn" (click)="incrementReps(-1)">
+              <span class="material-symbols-outlined">remove</span>
+            </button>
+            <span class="aes-config__stepper-value">{{ targetReps() }}</span>
+            <button class="aes-config__stepper-btn" (click)="incrementReps(1)">
+              <span class="material-symbols-outlined">add</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="aes-actions">
+        <button class="aes-actions__ghost" (click)="cancelSelection()">Cancel</button>
+        <button class="aes-actions__cta" (click)="confirmAdd()">Add Exercise</button>
+      </div>
+    </div>
+  }
+</div>

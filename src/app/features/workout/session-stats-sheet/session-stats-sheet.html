@@ -1,0 +1,70 @@
+<div class="stats-sheet__backdrop" (click)="closed.emit()"></div>
+
+<div class="stats-sheet">
+  <div class="stats-sheet__handle"></div>
+
+  <div class="stats-sheet__header">
+    <h3 class="stats-sheet__heading">SESSION STATS</h3>
+    <button class="stats-sheet__close" (click)="closed.emit()" type="button">
+      <span class="material-symbols-outlined">close</span>
+    </button>
+  </div>
+
+  <div class="stats-sheet__hero">
+    {{ formattedDuration() }}
+  </div>
+
+  <div class="stats-sheet__bento">
+    <div class="stats-sheet__card">
+      <span class="stats-sheet__card-value">{{ formatVolume(totalVolume()) }}</span>
+      <span class="stats-sheet__card-label">kg volume</span>
+    </div>
+    <div class="stats-sheet__card">
+      <span class="stats-sheet__card-value">{{ setsDone() }} / {{ setsTotal() }}</span>
+      <span class="stats-sheet__card-label">sets</span>
+    </div>
+    <div class="stats-sheet__card stats-sheet__card--pr">
+      <span class="stats-sheet__card-value">{{ prsHit() }}</span>
+      <span class="stats-sheet__card-label">PRs hit</span>
+    </div>
+    <div class="stats-sheet__card">
+      <span class="stats-sheet__card-value">{{ estimatedCalories() }}</span>
+      <span class="stats-sheet__card-label">kcal</span>
+    </div>
+  </div>
+
+  @if (muscleGroupVolume().length > 0) {
+    <div class="stats-sheet__section">
+      <h4 class="stats-sheet__section-title">Volume by Muscle Group</h4>
+
+      @for (entry of muscleGroupVolume(); track entry.group) {
+        <div class="stats-sheet__bar-row">
+          <span class="stats-sheet__bar-label">{{ formatMuscleGroup(entry.group) }}</span>
+          <div class="stats-sheet__bar-track">
+            <div class="stats-sheet__bar-fill" [style.width]="barWidth(entry.volume)"></div>
+          </div>
+          <span class="stats-sheet__bar-value">{{ formatVolume(entry.volume) }} kg</span>
+        </div>
+      }
+    </div>
+  }
+
+  @if (exerciseBreakdown().length > 0) {
+    <div class="stats-sheet__section">
+      <h4 class="stats-sheet__section-title">Exercise Breakdown</h4>
+
+      @for (ex of exerciseBreakdown(); track ex.name) {
+        <div class="stats-sheet__exercise-row">
+          <div class="stats-sheet__exercise-header">
+            <span class="stats-sheet__exercise-name">{{ ex.name }}</span>
+            <span class="stats-sheet__exercise-sets">{{ ex.setsCompleted }} / {{ ex.setsTotal }} sets</span>
+          </div>
+          <div class="stats-sheet__exercise-details">
+            <span class="stats-sheet__exercise-volume">{{ formatVolume(ex.volume) }} kg</span>
+            <span class="stats-sheet__exercise-best">Best: {{ ex.bestSet }}</span>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

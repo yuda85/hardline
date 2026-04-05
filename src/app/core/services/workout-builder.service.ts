@@ -171,7 +171,7 @@ Return this exact JSON structure:
           "exercises": [
             { "exerciseId": "ex-1", "sets": [8, 8, 6, 6], "notes": "optional" }
           ],
-          "restSeconds": 90
+          "restSeconds": 60
         }
       ]
     }

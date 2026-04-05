@@ -3,7 +3,12 @@ import { State, Action, StateContext, Selector, Store } from '@ngxs/store';
 import { tap, take } from 'rxjs/operators';
 import { Workout } from './workout.actions';
 import { Energy } from '../energy/energy.actions';
-import { WorkoutStateModel, WORKOUT_STATE_DEFAULTS, LastSessionData } from './workout.model';
+import {
+  WorkoutStateModel,
+  WORKOUT_STATE_DEFAULTS,
+  LastSessionData,
+  ExerciseHistoryEntry,
+} from './workout.model';
 import { WorkoutRepository } from '../../data/repositories/workout.repository';
 import { SessionRepository } from '../../data/repositories/session.repository';
 import { PRRepository } from '../../data/repositories/pr.repository';
@@ -73,6 +78,11 @@ export class WorkoutState {
   }
 
   @Selector()
+  static exerciseHistory(state: WorkoutStateModel): Record<string, ExerciseHistoryEntry[]> {
+    return state.exerciseHistory;
+  }
+
+  @Selector()
   static generatedPlan(state: WorkoutStateModel): WorkoutPlan | null {
     return state.generatedPlan;
   }
@@ -90,6 +100,11 @@ export class WorkoutState {
   @Selector()
   static generateError(state: WorkoutStateModel): string | null {
     return state.generateError;
+  }
+
+  @Selector()
+  static savedPlanId(state: WorkoutStateModel): string | null {
+    return state.savedPlanId;
   }
 
   @Action(Workout.FetchPlans)
@@ -373,10 +388,31 @@ export class WorkoutState {
     ctx: StateContext<WorkoutStateModel>,
     action: Workout.GeneratePlan,
   ) {
-    ctx.patchState({ generating: true, generatedPlan: null, generateError: null });
+    const prevSavedId = ctx.getState().savedPlanId;
+    ctx.patchState({ generating: true, generatedPlan: null, generateError: null, savedPlanId: null });
     try {
       const plan = await this.builderService.buildPlan(action.input);
-      ctx.patchState({ generatedPlan: plan, generating: false });
+
+      // Delete previously auto-saved plan on regeneration
+      if (prevSavedId) {
+        await this.workoutRepo.remove(prevSavedId).catch(() => {});
+      }
+
+      // Auto-save the generated plan
+      const uid = this.store.selectSnapshot(AuthState.uid);
+      if (uid) {
+        const { id, createdAt, updatedAt, ...planData } = plan;
+        planData.userId = uid;
+        const savedId = await this.workoutRepo.create(planData);
+        ctx.patchState({
+          generatedPlan: { ...plan, id: savedId },
+          generating: false,
+          savedPlanId: savedId,
+        });
+        ctx.dispatch(new Workout.FetchPlans());
+      } else {
+        ctx.patchState({ generatedPlan: plan, generating: false });
+      }
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Failed to generate workout plan';
       console.error('GeneratePlan error:', e);
@@ -449,6 +485,95 @@ export class WorkoutState {
     await this.workoutRepo.update(activePlanId, { days: updatedDays });
     ctx.patchState({ dailyWorkout: null });
     ctx.dispatch(new Workout.FetchPlans());
+  }
+
+  @Action(Workout.LoadExerciseHistory)
+  loadExerciseHistory(ctx: StateContext<WorkoutStateModel>, action: Workout.LoadExerciseHistory) {
+    const uid = this.store.selectSnapshot(AuthState.uid);
+    if (!uid) return;
+
+    return this.sessionRepo.getHistory(uid, 20).pipe(
+      take(1),
+      tap(sessions => {
+        const entries: ExerciseHistoryEntry[] = [];
+
+        for (const session of sessions) {
+          if (!session.completedAt) continue;
+
+          for (const group of session.exerciseGroups) {
+            for (const ex of group.exercises) {
+              if (ex.exerciseId !== action.exerciseId) continue;
+
+              const completedSets = ex.sets
+                .filter(s => s.completed && s.weight > 0)
+                .map(s => ({ weight: s.weight, reps: s.actualReps }));
+
+              if (completedSets.length === 0) continue;
+
+              let best1RM = 0;
+              for (const s of completedSets) {
+                if (s.reps > 0 && s.reps <= 10) {
+                  const est = this.oneRMService.calculate(s.weight, s.reps);
+                  if (est > best1RM) best1RM = est;
+                }
+              }
+
+              entries.push({
+                date: session.startedAt,
+                dayName: session.dayNumber ? `Day ${session.dayNumber}` : 'Workout',
+                sets: completedSets,
+                best1RM,
+              });
+            }
+          }
+        }
+
+        ctx.patchState({
+          exerciseHistory: {
+            ...ctx.getState().exerciseHistory,
+            [action.exerciseId]: entries,
+          },
+        });
+      }),
+    );
+  }
+
+  @Action(Workout.AddExerciseToSession)
+  async addExerciseToSession(
+    ctx: StateContext<WorkoutStateModel>,
+    action: Workout.AddExerciseToSession,
+  ) {
+    const state = ctx.getState();
+    if (!state.activeSession) return;
+
+    const newSets: SessionSet[] = Array.from({ length: action.exercise.sets }, () => ({
+      targetReps: action.exercise.targetReps,
+      actualReps: 0,
+      weight: 0,
+      completed: false,
+    }));
+
+    const newGroup: SessionExerciseGroup = {
+      type: 'single',
+      restSeconds: 90,
+      exercises: [
+        {
+          exerciseId: action.exercise.exerciseId,
+          exerciseName: action.exercise.exerciseName,
+          sets: newSets,
+        },
+      ],
+    };
+
+    const updatedGroups = [...state.activeSession.exerciseGroups, newGroup];
+    const updatedSession = { ...state.activeSession, exerciseGroups: updatedGroups };
+    ctx.patchState({ activeSession: updatedSession });
+
+    if (state.activeSession.id) {
+      await this.sessionRepo.update(state.activeSession.id, {
+        exerciseGroups: updatedGroups,
+      });
+    }
   }
 
   @Action(Workout.Reset)

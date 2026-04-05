@@ -1,17 +1,28 @@
-import { Component, inject, OnInit, OnDestroy, signal, computed } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, signal, computed, ElementRef, viewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Store } from '@ngxs/store';
 import { Workout } from '../../../store/workout/workout.actions';
 import { WorkoutState } from '../../../store/workout/workout.state';
 import { OneRepMaxService } from '../../../core/services/one-rep-max.service';
-import { ButtonComponent, IconButtonComponent, BadgeComponent } from '../../../shared/components';
+import { calculatePlates, PlateResult } from '../../../core/utils/plate-calculator';
 import { ExerciseListSheetComponent } from '../exercise-list-sheet/exercise-list-sheet';
+import { ExerciseHistorySheetComponent } from '../exercise-history-sheet/exercise-history-sheet';
+import { SessionStatsSheetComponent } from '../session-stats-sheet/session-stats-sheet';
+import { AddExerciseSheetComponent } from '../add-exercise-sheet/add-exercise-sheet';
+import { SessionExercise, MuscleGroup } from '../../../core/models';
+import { EXERCISES } from '../exercise-data';
 
 @Component({
   selector: 'app-active-workout',
   standalone: true,
-  imports: [FormsModule, ButtonComponent, IconButtonComponent, BadgeComponent, ExerciseListSheetComponent],
+  imports: [
+    FormsModule,
+    ExerciseListSheetComponent,
+    ExerciseHistorySheetComponent,
+    SessionStatsSheetComponent,
+    AddExerciseSheetComponent,
+  ],
   templateUrl: './active-workout.html',
   styleUrl: './active-workout.scss',
 })
@@ -25,22 +36,44 @@ export class ActiveWorkoutComponent implements OnInit, OnDestroy {
   protected readonly loading = this.store.selectSignal(WorkoutState.loading);
   protected readonly lastSessionData = this.store.selectSignal(WorkoutState.lastSessionData);
   protected readonly prs = this.store.selectSignal(WorkoutState.prs);
+  protected readonly exerciseHistory = this.store.selectSignal(WorkoutState.exerciseHistory);
 
+  // Navigation state
   protected readonly currentGroupIndex = signal(0);
   protected readonly currentExerciseIndex = signal(0);
+
+  // UI toggles
   protected readonly showExerciseList = signal(false);
-  protected readonly resting = signal(false);
-  protected readonly restTimeLeft = signal(0);
-  protected readonly weight = signal(0);
-  protected readonly reps = signal(0);
-  protected readonly elapsedSeconds = signal(0);
-  protected readonly newPR = signal<string | null>(null);
+  protected readonly showHistorySheet = signal(false);
+  protected readonly showStatsSheet = signal(false);
+  protected readonly showAddExercise = signal(false);
   protected readonly showFinishConfirm = signal(false);
   protected readonly showAbandonConfirm = signal(false);
+
+  // Rest timer state
+  protected readonly resting = signal(false);
+  protected readonly restTimeLeft = signal(0);
+
+  // Input state
+  protected readonly weight = signal(0);
+  protected readonly reps = signal(0);
+
+  // Session timer
+  protected readonly elapsedSeconds = signal(0);
+
+  // PR tracking
+  protected readonly newPR = signal<string | null>(null);
+  protected readonly prsHitCount = signal(0);
 
   private restInterval: ReturnType<typeof setInterval> | null = null;
   private timerInterval: ReturnType<typeof setInterval> | null = null;
   private wakeLock: WakeLockSentinel | null = null;
+
+  // Swipe tracking
+  private touchStartX = 0;
+  private touchStartY = 0;
+
+  // ── Computed ──
 
   protected readonly currentGroup = computed(() => {
     return this.session()?.exerciseGroups[this.currentGroupIndex()] ?? null;
@@ -130,8 +163,117 @@ export class ActiveWorkoutComponent implements OnInit, OnDestroy {
     const total = group.restSeconds;
     const left = this.restTimeLeft();
     if (total <= 0) return 0;
-    return ((total - left) / total) * 552; // 552 = 2*pi*r where r=88
+    return ((total - left) / total) * 816; // 2*pi*130
   });
+
+  // ── New computed for redesign ──
+
+  protected readonly totalVolume = computed(() => {
+    const s = this.session();
+    if (!s) return 0;
+    let vol = 0;
+    for (const g of s.exerciseGroups) {
+      for (const ex of g.exercises) {
+        for (const set of ex.sets) {
+          if (set.completed) vol += set.weight * set.actualReps;
+        }
+      }
+    }
+    return Math.round(vol);
+  });
+
+  protected readonly completedSetsTotal = computed(() => {
+    const s = this.session();
+    if (!s) return { done: 0, total: 0 };
+    let done = 0, total = 0;
+    for (const g of s.exerciseGroups) {
+      for (const ex of g.exercises) {
+        total += ex.sets.length;
+        done += ex.sets.filter(set => set.completed).length;
+      }
+    }
+    return { done, total };
+  });
+
+  protected readonly estimatedCalories = computed(() => {
+    // Rough estimate: ~0.05 kcal per kg lifted + base metabolic cost of time
+    const vol = this.totalVolume();
+    const minutes = this.elapsedSeconds() / 60;
+    return Math.round(vol * 0.05 + minutes * 5);
+  });
+
+  protected readonly nextExerciseInfo = computed((): SessionExercise | null => {
+    const s = this.session();
+    if (!s) return null;
+    const gi = this.currentGroupIndex();
+    const ei = this.currentExerciseIndex();
+    const group = s.exerciseGroups[gi];
+    if (ei < group.exercises.length - 1) {
+      return group.exercises[ei + 1];
+    }
+    if (gi < s.exerciseGroups.length - 1) {
+      return s.exerciseGroups[gi + 1].exercises[0];
+    }
+    return null;
+  });
+
+  protected readonly nextExercisePlates = computed((): PlateResult | null => {
+    const next = this.nextExerciseInfo();
+    if (!next) return null;
+    const lastData = this.lastSessionData()[next.exerciseId];
+    if (!lastData || lastData.length === 0) return null;
+    return calculatePlates(lastData[0].weight);
+  });
+
+  protected readonly nextExerciseLastWeight = computed(() => {
+    const next = this.nextExerciseInfo();
+    if (!next) return null;
+    const lastData = this.lastSessionData()[next.exerciseId];
+    if (!lastData || lastData.length === 0) return null;
+    return lastData[0];
+  });
+
+  protected readonly prDistanceKg = computed(() => {
+    const pr = this.exercisePR();
+    if (!pr) return null;
+    const w = this.weight();
+    const r = this.reps();
+    if (w <= 0 || r <= 0) return null;
+    const est = this.oneRM.calculate(w, r || 1);
+    const diff = pr.oneRepMax - est;
+    return diff > 0 ? Math.round(diff * 10) / 10 : 0;
+  });
+
+  protected readonly currentExerciseMuscleGroup = computed(() => {
+    const ex = this.currentExercise();
+    if (!ex) return '';
+    const match = EXERCISES.find(e => e.id === ex.exerciseId);
+    return match?.muscleGroup ?? '';
+  });
+
+  protected readonly currentExerciseEquipment = computed(() => {
+    const ex = this.currentExercise();
+    if (!ex) return '';
+    const match = EXERCISES.find(e => e.id === ex.exerciseId);
+    return match?.equipment ?? '';
+  });
+
+  protected readonly workoutDayName = computed(() => {
+    const s = this.session();
+    if (!s) return '';
+    const plan = this.store.selectSnapshot(WorkoutState.activePlan);
+    if (!plan) return `Day ${s.dayNumber}`;
+    const day = plan.days.find(d => d.dayNumber === s.dayNumber);
+    return day?.name ?? `Day ${s.dayNumber}`;
+  });
+
+  protected readonly currentExerciseHistory = computed(() => {
+    const ex = this.currentExercise();
+    if (!ex) return [];
+    return this.exerciseHistory()[ex.exerciseId] ?? [];
+  });
+
+  // ── Lifecycle ──
 
   ngOnInit() {
     const planId = this.route.snapshot.paramMap.get('planId');
@@ -153,6 +295,8 @@ export class ActiveWorkoutComponent implements OnInit, OnDestroy {
     this.releaseWakeLock();
   }
 
+  // ── Actions ──
+
   protected completeSet() {
     const gi = this.currentGroupIndex();
     const ei = this.currentExerciseIndex();
@@ -167,6 +311,7 @@ export class ActiveWorkoutComponent implements OnInit, OnDestroy {
       const pr = this.exercisePR();
       if (!pr || estimated > pr.oneRepMax) {
         this.newPR.set(`New PR! Est. 1RM: ${estimated}kg`);
+        this.prsHitCount.update(c => c + 1);
         setTimeout(() => this.newPR.set(null), 3000);
       }
     }
@@ -188,6 +333,14 @@ export class ActiveWorkoutComponent implements OnInit, OnDestroy {
     return this.oneRM.calculate(weight, reps);
   }
 
+  protected incrementWeight(delta: number) {
+    this.weight.update(w => Math.max(0, +(w + delta).toFixed(2)));
+  }
+
+  protected incrementReps(delta: number) {
+    this.reps.update(r => Math.max(0, r + delta));
+  }
+
   protected navigateTo(target: { groupIndex: number; exerciseIndex: number }) {
     this.clearRestTimer();
     this.currentGroupIndex.set(target.groupIndex);
@@ -197,7 +350,7 @@ export class ActiveWorkoutComponent implements OnInit, OnDestroy {
     this.reps.set(0);
   }
 
-  protected nextExercise() {
+  protected goNextExercise() {
     this.clearRestTimer();
     const s = this.session();
     if (!s) return;
@@ -212,7 +365,7 @@ export class ActiveWorkoutComponent implements OnInit, OnDestroy {
     this.reps.set(0);
   }
 
-  protected prevExercise() {
+  protected goPrevExercise() {
     this.clearRestTimer();
     if (this.currentExerciseIndex() > 0) {
       this.currentExerciseIndex.update(i => i - 1);
@@ -233,6 +386,33 @@ export class ActiveWorkoutComponent implements OnInit, OnDestroy {
     this.clearRestTimer();
   }
 
+  protected openHistory() {
+    const ex = this.currentExercise();
+    if (ex) {
+      this.store.dispatch(new Workout.LoadExerciseHistory(ex.exerciseId));
+    }
+    this.showHistorySheet.set(true);
+  }
+
+  protected onHistoryWeightSelected(weight: number) {
+    this.weight.set(weight);
+    this.showHistorySheet.set(false);
+  }
+
+  protected onAddExercise(exercise: { exerciseId: string; exerciseName: string; sets: number; targetReps: number }) {
+    this.store.dispatch(new Workout.AddExerciseToSession(exercise)).subscribe(() => {
+      this.showAddExercise.set(false);
+      // Navigate to the newly added exercise (last group, first exercise)
+      const s = this.session();
+      if (s) {
+        this.currentGroupIndex.set(s.exerciseGroups.length - 1);
+        this.currentExerciseIndex.set(0);
+        this.weight.set(0);
+        this.reps.set(0);
+      }
+    });
+  }
+
   protected finishWorkout() {
     this.store.dispatch(new Workout.FinishSession()).subscribe(() => {
       this.router.navigate(['/workouts', 'summary']);
@@ -244,6 +424,25 @@ export class ActiveWorkoutComponent implements OnInit, OnDestroy {
       this.router.navigate(['/workouts']);
     });
   }
+
+  // ── Swipe gestures ──
+
+  protected onTouchStart(e: TouchEvent) {
+    this.touchStartX = e.touches[0].clientX;
+    this.touchStartY = e.touches[0].clientY;
+  }
+
+  protected onTouchEnd(e: TouchEvent) {
+    const dx = e.changedTouches[0].clientX - this.touchStartX;
+    const dy = e.changedTouches[0].clientY - this.touchStartY;
+    // Only trigger if horizontal swipe is dominant and > 50px
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+      if (dx < 0) this.goNextExercise();
+      else this.goPrevExercise();
+    }
+  }
+
+  // ── Internal ──
 
   private startRestTimer(seconds: number) {
     this.resting.set(true);

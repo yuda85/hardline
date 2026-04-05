@@ -76,6 +76,23 @@ export namespace Workout {
     constructor(public planId: string, public dayNumber: number, public day: WorkoutDay) {}
   }
 
+  export class LoadExerciseHistory {
+    static readonly type = '[Workout] Load Exercise History';
+    constructor(public exerciseId: string) {}
+  }
+
+  export class AddExerciseToSession {
+    static readonly type = '[Workout] Add Exercise To Session';
+    constructor(
+      public exercise: {
+        exerciseId: string;
+        exerciseName: string;
+        sets: number;
+        targetReps: number;
+      },
+    ) {}
+  }
+
   export class Reset {
     static readonly type = '[Workout] Reset';
   }

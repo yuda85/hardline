@@ -8,24 +8,50 @@
 @if (session(); as s) {
   <!-- Sticky header -->
   <header class="aw__header">
-    <button class="aw__close" (click)="showAbandonConfirm.set(true)">
-      <span class="material-symbols-outlined">close</span>
-    </button>
-    <div class="aw__timer">
-      <div class="aw__timer-display">
-        <span class="material-symbols-outlined aw__timer-icon" style="font-variation-settings: 'FILL' 1;">timer</span>
-        <span class="aw__timer-value">{{ formattedTime() }}</span>
-      </div>
-      <span class="aw__timer-label">Elapsed</span>
+    <div class="aw__header-left">
+      <span class="material-symbols-outlined aw__header-icon" style="font-variation-settings: 'FILL' 1;">timer</span>
+      <h1 class="aw__header-title">ACTIVE SESSION</h1>
     </div>
-    <div class="aw__progress-info">
-      <span class="aw__progress-pct">{{ totalProgress() }}%</span>
-      <span class="aw__progress-label">Done</span>
+    <div class="aw__header-right">
+      <div class="aw__header-progress">
+        <span class="aw__header-progress-label">Progress</span>
+        <div class="aw__header-progress-bar">
+          <div class="aw__header-progress-fill" [style.width.%]="totalProgress()"></div>
+        </div>
+      </div>
+      <button class="aw__header-btn" (click)="showAbandonConfirm.set(true)">
+        <span class="material-symbols-outlined">close</span>
+      </button>
     </div>
   </header>
 
-  <div class="aw__progress-bar">
-    <div class="aw__progress-fill" [style.width.%]="totalProgress()"></div>
+  <!-- Persistent stats bar -->
+  <section class="aw__stats-bar" (click)="showStatsSheet.set(true)">
+    <div class="aw__stat">
+      <span class="aw__stat-label">Volume</span>
+      <span class="aw__stat-value aw__stat-value--primary">{{ totalVolume().toLocaleString() }}<span class="aw__stat-unit">kg</span></span>
+    </div>
+    <div class="aw__stat">
+      <span class="aw__stat-label">Sets</span>
+      <span class="aw__stat-value">{{ completedSetsTotal().done }}/{{ completedSetsTotal().total }}</span>
+    </div>
+    <div class="aw__stat">
+      <span class="aw__stat-label">PRs</span>
+      <span class="aw__stat-value aw__stat-value--tertiary">{{ prsHitCount() }} hit</span>
+    </div>
+    <div class="aw__stat">
+      <span class="aw__stat-label">Cals</span>
+      <span class="aw__stat-value">{{ estimatedCalories() }}</span>
+    </div>
+  </section>
+
+  <!-- Timer section -->
+  <div class="aw__timer-section">
+    <span class="aw__timer-big">{{ formattedTime() }}</span>
+    <div class="aw__timer-subtitle">
+      <div class="aw__timer-pulse"></div>
+      <span class="aw__timer-dayname">{{ workoutDayName() }}</span>
+    </div>
   </div>
 
   @if (currentGroup(); as group) {
@@ -38,167 +64,248 @@
         </div>
       }
 
-      <!-- Exercise info -->
-      <div class="aw__exercise-info">
-        <div class="aw__exercise-counter">
-          <span class="aw__exercise-label">Exercise {{ flatExerciseIndex() + 1 }} of {{ totalExerciseCount() }}</span>
-          @if (exercisePR(); as pr) {
-            <div class="aw__pr-chip">
-              <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">workspace_premium</span>
-              <span>PR: {{ pr.oneRepMax }}kg</span>
-            </div>
-          }
-        </div>
-        <h1 class="aw__exercise-name">{{ exercise.exerciseName }}</h1>
-      </div>
-
-      <!-- Set progress dots -->
-      <div class="aw__set-dots">
-        @for (set of exercise.sets; track $index; let i = $index) {
-          <div class="aw__dot-col">
-            <div class="aw__dot"
-              [class.aw__dot--done]="set.completed"
-              [class.aw__dot--current]="!set.completed && i === completedSetsCount()"
-            >
-              @if (set.completed) {
-                <span class="material-symbols-outlined">check</span>
-              } @else {
-                <span class="aw__dot-num">{{ i + 1 }}</span>
-              }
-            </div>
-            <span class="aw__dot-label" [class.aw__dot-label--current]="!set.completed && i === completedSetsCount()">
-              {{ !set.completed && i === completedSetsCount() ? 'SET' : (i + 1).toString() }}
-            </span>
-          </div>
+      <!-- Exercise carousel -->
+      <section class="aw__carousel" (touchstart)="onTouchStart($event)" (touchend)="onTouchEnd($event)">
+        <!-- Left arrow overlay -->
+        @if (flatExerciseIndex() > 0) {
+          <button class="aw__carousel-arrow aw__carousel-arrow--left" (click)="goPrevExercise()">
+            <span class="material-symbols-outlined">chevron_left</span>
+          </button>
         }
-      </div>
 
-      <!-- Previous performance card -->
-      @if (lastData(); as prevSets) {
-        @if (prevSets[0]; as prev) {
-          <div class="aw__history-card">
-            <h3 class="aw__history-title">Previous Performance</h3>
-            <div class="aw__history-data">
-              <div class="aw__history-metric">
-                <span class="aw__history-value">{{ prev.weight }}</span>
-                <span class="aw__history-unit">kg</span>
-              </div>
-              <span class="aw__history-x">&times;</span>
-              <div class="aw__history-metric">
-                <span class="aw__history-value">{{ prev.reps }}</span>
-                <span class="aw__history-unit">reps</span>
-              </div>
-            </div>
+        <div class="aw__carousel-track">
+          <!-- Previous card peek -->
+          <div class="aw__carousel-peek aw__carousel-peek--prev">
+            <div class="aw__peek-card"></div>
           </div>
-        }
-      }
 
-      <!-- Completed sets log -->
-      @if (completedSetsCount() > 0) {
-        <div class="aw__completed-log">
-          @for (set of exercise.sets; track $index) {
-            @if (set.completed) {
-              <div class="aw__completed-row">
-                <span class="aw__completed-num">{{ $index + 1 }}</span>
-                <span class="aw__completed-data">{{ set.weight }}kg &times; {{ set.actualReps }}</span>
-                @if (set.weight > 0 && set.actualReps > 0 && set.actualReps <= 10) {
-                  <span class="aw__completed-1rm">~{{ calculate1RM(set.weight, set.actualReps) }}kg 1RM</span>
+          <!-- Current exercise card -->
+          <div class="aw__exercise-card">
+            <!-- Muscle group badge -->
+            <div class="aw__muscle-badge">
+              <span>{{ currentExerciseMuscleGroup() }}</span>
+            </div>
+
+            <div class="aw__card-body">
+              <h2 class="aw__exercise-name">{{ exercise.exerciseName }}</h2>
+              <p class="aw__exercise-equipment">
+                <span class="material-symbols-outlined aw__equipment-icon">fitness_center</span>
+                {{ currentExerciseEquipment() }}
+              </p>
+
+              <!-- Set tracker grid -->
+              <div class="aw__set-tracker">
+                @for (set of exercise.sets; track $index; let i = $index) {
+                  @if (set.completed) {
+                    <!-- Completed set row -->
+                    <div class="aw__set-row aw__set-row--done">
+                      <div class="aw__set-accent"></div>
+                      <span class="aw__set-label">SET {{ i + 1 }}</span>
+                      <div class="aw__set-data">
+                        <span class="aw__set-weight">{{ set.weight }} <span class="aw__set-unit">kg</span></span>
+                        <span class="aw__set-reps">{{ set.actualReps }} <span class="aw__set-unit">reps</span></span>
+                      </div>
+                      <span class="material-symbols-outlined aw__set-check" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                    </div>
+                  } @else if (i === completedSetsCount()) {
+                    <!-- Active set -->
+                    <div class="aw__set-active">
+                      <div class="aw__set-active-header">
+                        <span class="aw__set-active-label">SET {{ i + 1 }} ACTIVE</span>
+                        @if (prDistanceKg() !== null && prDistanceKg()! > 0) {
+                          <div class="aw__pr-distance">
+                            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+                            <span>{{ prDistanceKg() }} kg from PR</span>
+                          </div>
+                        }
+                        @if (prDistanceKg() === 0) {
+                          <div class="aw__pr-distance aw__pr-distance--hit">
+                            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+                            <span>New PR!</span>
+                          </div>
+                        }
+                      </div>
+
+                      <div class="aw__input-grid">
+                        <!-- Weight input -->
+                        <div class="aw__input-col">
+                          <label class="aw__input-label">Weight (kg)</label>
+                          <input type="number" inputmode="decimal" class="aw__input"
+                            [ngModel]="weight()" (ngModelChange)="weight.set($event)" />
+                          @if (lastData(); as prevSets) {
+                            @if (prevSets[0]; as prev) {
+                              <p class="aw__input-hint">Last: <strong>{{ prev.weight }}</strong></p>
+                            }
+                          }
+                        </div>
+
+                        <!-- Reps input -->
+                        <div class="aw__input-col">
+                          <label class="aw__input-label">Reps</label>
+                          <input type="number" inputmode="numeric" class="aw__input"
+                            [ngModel]="reps()" (ngModelChange)="reps.set($event)" />
+                          @if (lastData(); as prevSets) {
+                            @if (prevSets[0]; as prev) {
+                              <p class="aw__input-hint">Last: <strong>{{ prev.reps }}</strong></p>
+                            }
+                          }
+                        </div>
+                      </div>
+
+                    </div>
+                  }
                 }
               </div>
-            }
-          }
+            </div>
+          </div>
+
+          <!-- Next card peek -->
+          <div class="aw__carousel-peek aw__carousel-peek--next">
+            <div class="aw__peek-card"></div>
+          </div>
         </div>
-      }
+
+        <!-- Right arrow overlay -->
+        @if (flatExerciseIndex() < totalExerciseCount() - 1) {
+          <button class="aw__carousel-arrow aw__carousel-arrow--right" (click)="goNextExercise()">
+            <span class="material-symbols-outlined">chevron_right</span>
+          </button>
+        }
+      </section>
+
+      <!-- Main action area -->
+      <div class="aw__action-area">
+        @if (!isExerciseDone() && !isAllDone()) {
+          <button class="aw__cta" (click)="completeSet()">
+            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+            Complete Set {{ completedSetsCount() + 1 }}
+          </button>
+        } @else if (isAllDone()) {
+          <button class="aw__cta" (click)="showFinishConfirm.set(true)">
+            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">flag</span>
+            Finish Workout
+          </button>
+        } @else {
+          <button class="aw__cta" (click)="goNextExercise()">
+            <span class="material-symbols-outlined">arrow_forward</span>
+            Next Exercise
+          </button>
+        }
+
+        <!-- Quick action row -->
+        <div class="aw__quick-actions">
+          <button class="aw__quick-btn" (click)="openHistory()">
+            <div class="aw__quick-icon">
+              <span class="material-symbols-outlined">history</span>
+            </div>
+            <span class="aw__quick-label">Log</span>
+          </button>
+          <button class="aw__quick-btn" (click)="showExerciseList.set(true)">
+            <div class="aw__quick-icon">
+              <span class="material-symbols-outlined">format_list_bulleted</span>
+            </div>
+            <span class="aw__quick-label">Exercises</span>
+          </button>
+          <button class="aw__quick-btn" (click)="showAddExercise.set(true)">
+            <div class="aw__quick-icon">
+              <span class="material-symbols-outlined">add</span>
+            </div>
+            <span class="aw__quick-label">Add</span>
+          </button>
+          <button class="aw__quick-btn" (click)="addSet()">
+            <div class="aw__quick-icon">
+              <span class="material-symbols-outlined">replay</span>
+            </div>
+            <span class="aw__quick-label">+ Set</span>
+          </button>
+        </div>
+      </div>
 
       <!-- Rest overlay -->
       @if (resting()) {
         <div class="aw__rest-overlay">
-          <div class="aw__rest-card">
-            <div class="aw__rest-ring">
-              <svg class="aw__rest-svg" viewBox="0 0 192 192">
-                <circle class="aw__rest-track" cx="96" cy="96" r="88" />
-                <circle class="aw__rest-progress" cx="96" cy="96" r="88"
-                  [style.stroke-dashoffset]="552 - restProgress()" />
+          <div class="aw__rest-scrim"></div>
+
+          <div class="aw__rest-content">
+            <!-- Timer ring -->
+            <div class="aw__rest-ring-container">
+              <svg class="aw__rest-svg" viewBox="0 0 288 288">
+                <circle class="aw__rest-track" cx="144" cy="144" r="130" />
+                <circle class="aw__rest-progress" cx="144" cy="144" r="130"
+                  [style.stroke-dashoffset]="816 - restProgress()" />
               </svg>
               <div class="aw__rest-center">
-                <span class="aw__rest-label">Resting</span>
-                <span class="aw__rest-time">{{ restTimeLeft() }}</span>
+                <p class="aw__rest-label">Resting</p>
+                <div class="aw__rest-countdown">
+                  <span class="aw__rest-time">{{ restTimeLeft() }}</span>
+                  <span class="aw__rest-unit">s</span>
+                </div>
               </div>
             </div>
-            <button class="aw__rest-skip" (click)="skipRest()">
-              <span class="material-symbols-outlined">fast_forward</span>
-              Skip Rest
-            </button>
+
+            <!-- Quick actions -->
+            <div class="aw__rest-actions">
+              <button class="aw__rest-btn aw__rest-btn--secondary" (click)="addRestTime()">
+                <span class="material-symbols-outlined">add</span>
+                <span>15s</span>
+              </button>
+              <button class="aw__rest-btn aw__rest-btn--primary" (click)="skipRest()">
+                <span class="material-symbols-outlined">skip_next</span>
+                <span>Skip</span>
+              </button>
+            </div>
           </div>
+
+          <!-- Next exercise preview -->
+          @if (nextExerciseInfo(); as nextEx) {
+            <div class="aw__rest-preview">
+              <div class="aw__rest-preview-card">
+                <div class="aw__rest-preview-header">
+                  <div>
+                    <span class="aw__rest-preview-badge">Upcoming</span>
+                    <h3 class="aw__rest-preview-name">{{ nextEx.exerciseName }}</h3>
+                  </div>
+                  <div class="aw__rest-preview-icon">
+                    <span class="material-symbols-outlined">fitness_center</span>
+                  </div>
+                </div>
+
+                <div class="aw__rest-preview-stats">
+                  <div class="aw__rest-preview-stat">
+                    <p class="aw__rest-preview-stat-label">Target</p>
+                    <p class="aw__rest-preview-stat-value">{{ nextEx.sets.length }} x {{ nextEx.sets[0]?.targetReps || '?' }}</p>
+                  </div>
+                  @if (nextExerciseLastWeight(); as lastW) {
+                    <div class="aw__rest-preview-stat">
+                      <p class="aw__rest-preview-stat-label">Last Weight</p>
+                      <p class="aw__rest-preview-stat-value aw__rest-preview-stat-value--accent">{{ lastW.weight }}kg</p>
+                    </div>
+                  }
+                </div>
+
+                @if (nextExercisePlates(); as plates) {
+                  @if (plates.perSide.length > 0) {
+                    <div class="aw__rest-plate-calc">
+                      <span class="material-symbols-outlined aw__plate-icon">calculate</span>
+                      <div class="aw__plate-info">
+                        <p class="aw__plate-label">Plate Loading (Per Side)</p>
+                        <p class="aw__plate-values">
+                          @for (plate of plates.perSide; track $index; let last = $last) {
+                            <span>{{ plate }}kg</span>
+                            @if (!last) {
+                              <span class="aw__plate-sep">+</span>
+                            }
+                          }
+                        </p>
+                      </div>
+                    </div>
+                  }
+                }
+              </div>
+            </div>
+          }
         </div>
       }
-
-      <!-- Thumb zone (fixed bottom) -->
-      <div class="aw__input-zone">
-        @if (!isExerciseDone() && !isAllDone()) {
-          @if (currentSet(); as cs) {
-            <p class="aw__target">Target: {{ cs.targetReps }} reps</p>
-          }
-          <div class="aw__inputs">
-            <div class="aw__input-group">
-              <label class="aw__input-label">Weight (kg)</label>
-              <input type="number" inputmode="decimal" class="aw__input"
-                [ngModel]="weight()" (ngModelChange)="weight.set($event)" />
-              @if (lastData(); as prevSets) {
-                @if (prevSets[0]; as prev) {
-                  <p class="aw__input-hint">Last: <strong>{{ prev.weight }}</strong></p>
-                }
-              }
-            </div>
-            <div class="aw__input-group">
-              <label class="aw__input-label">Reps</label>
-              <input type="number" inputmode="numeric" class="aw__input"
-                [ngModel]="reps()" (ngModelChange)="reps.set($event)" />
-              @if (lastData(); as prevSets) {
-                @if (prevSets[0]; as prev) {
-                  <p class="aw__input-hint">Last: <strong>{{ prev.reps }}</strong></p>
-                }
-              }
-            </div>
-          </div>
-          <button class="aw__complete-btn" (click)="completeSet()">
-            Complete Set {{ completedSetsCount() + 1 }}
-            <span class="material-symbols-outlined">arrow_forward</span>
-          </button>
-        } @else {
-          <div class="aw__done-state">
-            <span class="material-symbols-outlined aw__done-icon">check_circle</span>
-            <p class="aw__done-text">{{ isAllDone() ? 'All exercises done!' : 'Exercise complete!' }}</p>
-            @if (isAllDone()) {
-              <button class="aw__complete-btn" (click)="showFinishConfirm.set(true)">
-                Finish Workout
-                <span class="material-symbols-outlined">flag</span>
-              </button>
-            } @else {
-              <button class="aw__complete-btn" (click)="nextExercise()">
-                Next Exercise
-                <span class="material-symbols-outlined">arrow_forward</span>
-              </button>
-            }
-          </div>
-        }
-
-        <!-- Bottom nav -->
-        <nav class="aw__nav">
-          <button class="aw__nav-btn" [class.aw__nav-btn--disabled]="flatExerciseIndex() === 0" (click)="prevExercise()">
-            <span class="material-symbols-outlined">skip_previous</span>
-            <span class="aw__nav-label">Previous</span>
-          </button>
-          <button class="aw__nav-exercises" (click)="showExerciseList.set(true)">
-            <span class="material-symbols-outlined">format_list_bulleted</span>
-            <span>Exercises</span>
-          </button>
-          <button class="aw__nav-btn" (click)="nextExercise()">
-            <span class="material-symbols-outlined">skip_next</span>
-            <span class="aw__nav-label">Next</span>
-          </button>
-        </nav>
-      </div>
     }
   }
 
@@ -210,6 +317,39 @@
       [currentExerciseIndex]="currentExerciseIndex()"
       (closed)="showExerciseList.set(false)"
       (selected)="navigateTo($event)"
+    />
+  }
+
+  <!-- Exercise history sheet -->
+  @if (showHistorySheet()) {
+    <app-exercise-history-sheet
+      [exerciseName]="currentExercise()?.exerciseName ?? ''"
+      [historyEntries]="currentExerciseHistory()"
+      [currentPR]="exercisePR()"
+      (closed)="showHistorySheet.set(false)"
+      (weightSelected)="onHistoryWeightSelected($event)"
+    />
+  }
+
+  <!-- Session stats sheet -->
+  @if (showStatsSheet()) {
+    <app-session-stats-sheet
+      [totalVolume]="totalVolume()"
+      [setsDone]="completedSetsTotal().done"
+      [setsTotal]="completedSetsTotal().total"
+      [prsHit]="prsHitCount()"
+      [estimatedCalories]="estimatedCalories()"
+      [elapsedSeconds]="elapsedSeconds()"
+      [exerciseGroups]="s.exerciseGroups"
+      (closed)="showStatsSheet.set(false)"
+    />
+  }
+
+  <!-- Add exercise sheet -->
+  @if (showAddExercise()) {
+    <app-add-exercise-sheet
+      (closed)="showAddExercise.set(false)"
+      (exerciseAdded)="onAddExercise($event)"
     />
   }
 

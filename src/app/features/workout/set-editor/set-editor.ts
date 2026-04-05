@@ -11,7 +11,7 @@ import { PlanSet } from '../../../core/models';
 })
 export class SetEditorComponent {
   readonly sets = input.required<PlanSet[]>();
-  readonly restSeconds = input(90);
+  readonly restSeconds = input(60);
   readonly notes = input('');
   readonly mode = input<'panel' | 'inline'>('panel');
 

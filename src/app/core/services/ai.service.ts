@@ -192,7 +192,7 @@ export class AIService {
           return {
             type: type === 'superset' ? ('superset' as const) : ('single' as const),
             exercises,
-            restSeconds: Math.max(30, Number(g['restSeconds']) || 90),
+            restSeconds: Math.max(30, Number(g['restSeconds']) || 60),
           };
         },
       ),

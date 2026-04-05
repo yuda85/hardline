@@ -148,7 +148,7 @@ export class PlanEditorComponent implements OnInit, OnDestroy {
         const newGroup: ExerciseGroup = {
           type: 'single',
           exercises: [{ exerciseId: exercise.id!, exerciseName: exercise.name, sets: [{ targetReps: 10 }, { targetReps: 10 }, { targetReps: 10 }] }],
-          restSeconds: 90,
+          restSeconds: 60,
         };
         groups.push(newGroup);
       } else if (target.mode === 'superset') {
