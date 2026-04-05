@@ -131,7 +131,8 @@
                         <div class="aw__input-col">
                           <label class="aw__input-label">Weight (kg)</label>
                           <input type="number" inputmode="decimal" class="aw__input"
-                            [ngModel]="weight()" (ngModelChange)="weight.set($event)" />
+                            [ngModel]="weight()" (ngModelChange)="weight.set($event)"
+                            (focus)="$event.target.select()" />
                           @if (lastData(); as prevSets) {
                             @if (prevSets[0]; as prev) {
                               <p class="aw__input-hint">Last: <strong>{{ prev.weight }}</strong></p>
@@ -143,7 +144,8 @@
                         <div class="aw__input-col">
                           <label class="aw__input-label">Reps</label>
                           <input type="number" inputmode="numeric" class="aw__input"
-                            [ngModel]="reps()" (ngModelChange)="reps.set($event)" />
+                            [ngModel]="reps()" (ngModelChange)="reps.set($event)"
+                            (focus)="$event.target.select()" />
                           @if (lastData(); as prevSets) {
                             @if (prevSets[0]; as prev) {
                               <p class="aw__input-hint">Last: <strong>{{ prev.reps }}</strong></p>
