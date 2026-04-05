@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { State, Action, StateContext, Selector, Store } from '@ngxs/store';
 import { tap, take, switchMap } from 'rxjs/operators';
-import { from } from 'rxjs';
+import { from, Observable } from 'rxjs';
 import { Weight } from './weight.actions';
 import { WeightStateModel, WEIGHT_STATE_DEFAULTS, ViewRange } from './weight.model';
 import { WeightRepository } from '../../data/repositories/weight.repository';
@@ -178,13 +178,13 @@ export class WeightState {
     if (!uid) return;
 
     const today = toDateString(new Date());
+    const existing = ctx.getState().todayEntry;
 
-    return from(this.weightRepo.create({
-      userId: uid,
-      date: today,
-      weightKg: action.weightKg,
-      notes: action.notes,
-    })).pipe(
+    const save$: Observable<unknown> = existing?.id
+      ? from(this.weightRepo.update(existing.id, { weightKg: action.weightKg, notes: action.notes }))
+      : from(this.weightRepo.create({ userId: uid, date: today, weightKg: action.weightKg, notes: action.notes }));
+
+    return save$.pipe(
       switchMap(() => this.weightRepo.getByDate(uid, today).pipe(take(1))),
       tap(entries => {
         const todayEntry = entries[0] ?? null;
