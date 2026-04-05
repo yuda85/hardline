@@ -5,6 +5,7 @@ import { Store } from '@ngxs/store';
 import { Energy } from '../../../store/energy/energy.actions';
 import { EnergyState } from '../../../store/energy/energy.state';
 import { AuthState } from '../../../store/auth/auth.state';
+import { Profile } from '../../../store/profile/profile.actions';
 import { EnergyCalcService } from '../../../core/services/energy-calc.service';
 import { ButtonComponent, CardComponent, BadgeComponent } from '../../../shared/components';
 import { MacroBarsComponent } from '../shared/macro-bars/macro-bars';
@@ -141,6 +142,23 @@ export class GoalsSetupComponent implements OnInit {
     this.store.dispatch(new Energy.SaveGoalSettings(settings)).subscribe(() => {
       this.saving.set(false);
       this.router.navigate(['/energy']);
+
+      // Sync to Profile store so profile page stays current
+      this.store.dispatch(new Profile.UpdateGoals({
+        dailyCalories: p.dailyCalories,
+        dailyProtein: p.dailyProtein,
+        dailyCarbs: p.dailyCarbs,
+        dailyFat: p.dailyFat,
+        currentWeight: v.weightKg,
+        heightCm: v.heightCm,
+        age: v.age,
+        sex: v.sex,
+        fitnessGoal: v.goal,
+        rateOfChange: v.rateOfChange,
+        activityLevel: v.activityLevel,
+        macroPreference: v.macroPreference,
+        weeklyWorkouts: v.weeklyTrainingFrequency,
+      }));
     });
   }
 

@@ -188,11 +188,28 @@
 
     <app-card [elevation]="1" padding="lg">
       <h3 class="profile__section-title">Daily Nutrition Goals</h3>
+      <div class="profile__calc-preview">
+        <div class="profile__calc-stat">
+          <span class="profile__calc-value">{{ preview().bmr }}</span>
+          <span class="profile__calc-label">BMR</span>
+        </div>
+        <div class="profile__calc-stat">
+          <span class="profile__calc-value">{{ preview().tdee }}</span>
+          <span class="profile__calc-label">TDEE</span>
+        </div>
+        <div class="profile__calc-stat">
+          <span class="profile__calc-value">{{ preview().suggestedCalories }}</span>
+          <span class="profile__calc-label">Suggested</span>
+        </div>
+      </div>
       <form [formGroup]="goalsForm" class="profile__edit-form">
         <div class="profile__edit-row">
           <div class="profile__edit-field">
             <label for="edit-cal">Calories (kcal)</label>
             <input id="edit-cal" type="number" formControlName="dailyCalories" />
+            @if (macroCalories !== goalsForm.getRawValue().dailyCalories) {
+              <span class="profile__macro-mismatch">Macros total: {{ macroCalories }} kcal</span>
+            }
           </div>
         </div>
         <div class="profile__edit-row">
@@ -209,6 +226,11 @@
             <input id="edit-fat" type="number" formControlName="dailyFat" />
           </div>
         </div>
+        @if (macrosOverridden()) {
+          <button type="button" class="profile__reset-link" (click)="resetToCalculated()">
+            Reset to calculated values
+          </button>
+        }
       </form>
     </app-card>
 

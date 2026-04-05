@@ -139,8 +139,9 @@ const BUILDER_SYSTEM_PROMPT = `You are an elite strength & conditioning coach de
 CRITICAL RULES:
 - Return ONLY valid JSON, no markdown, no explanation
 - ONLY use exercise IDs from the provided exercise library
-- Each day MUST have at least the stated minimum exercises — this is non-negotiable
-- Each day should have between minExercises and maxExercises
+- Each day should have between minExercises and maxExercises exercises
+- Focused days (1-2 muscle groups) may have fewer exercises with more sets per exercise — quality over quantity
+- Do NOT add filler exercises just to meet the count — a well-programmed 4-exercise Arms day beats a padded 6-exercise one
 - Include 3-4 sets per exercise (not just 1-2)
 - Respect the muscle group assignments for each day
 - Use 'superset' type to pair antagonist muscles or save time
@@ -214,18 +215,23 @@ export class WorkoutBuilderService {
 
     const budgets = this.computeBudgets(input, split);
 
-    const maxExercises = Math.min(10, Math.floor(input.minutesPerWorkout / 7));
-    const minExercises = Math.max(5, Math.min(maxExercises, Math.floor(input.minutesPerWorkout / 10)));
+    const timeBasedMax = Math.min(12, Math.floor(input.minutesPerWorkout / 6));
+    const timeBasedMin = Math.max(2, Math.floor(input.minutesPerWorkout / 12));
     const maxSets = Math.floor(input.minutesPerWorkout / 2.5);
 
-    const daySkeletons: DaySkeleton[] = split.days.map((d, i) => ({
-      dayNumber: i + 1,
-      name: d.name,
-      muscleGroups: d.muscleGroups,
-      minExercises,
-      maxExercises,
-      maxSets,
-    }));
+    const daySkeletons: DaySkeleton[] = split.days.map((d, i) => {
+      const mgCount = d.muscleGroups.length;
+      const dayMin = Math.min(Math.max(mgCount, timeBasedMin), timeBasedMax);
+      const dayMax = Math.max(dayMin + 2, timeBasedMax);
+      return {
+        dayNumber: i + 1,
+        name: d.name,
+        muscleGroups: d.muscleGroups,
+        minExercises: dayMin,
+        maxExercises: dayMax,
+        maxSets,
+      };
+    });
 
     return {
       input,
@@ -334,25 +340,29 @@ export class WorkoutBuilderService {
       }
 
       if (skeleton) {
-        // Minimum exercise check — this is an error, not warning
-        if (dayExerciseCount < skeleton.minExercises) {
+        // Exercise count check — only error if way under minimum
+        if (dayExerciseCount < skeleton.minExercises - 1) {
           errors.push({
             field: `${dayPrefix}.exercises`,
-            message: `Only ${dayExerciseCount} exercises, need at least ${skeleton.minExercises}`,
+            message: `Only ${dayExerciseCount} exercises, need at least ${skeleton.minExercises - 1}`,
           });
+        } else if (dayExerciseCount < skeleton.minExercises) {
+          warnings.push(
+            `${dayPrefix}: ${dayExerciseCount} exercises, ideally ${skeleton.minExercises}+`,
+          );
         }
 
-        if (daySetCount > skeleton.maxSets + 4) {
+        if (daySetCount > skeleton.maxSets + 6) {
           errors.push({
             field: `${dayPrefix}.sets`,
             message: `${daySetCount} sets exceeds budget of ${skeleton.maxSets} by too much`,
           });
-        } else if (daySetCount > skeleton.maxSets + 2) {
+        } else if (daySetCount > skeleton.maxSets + 3) {
           warnings.push(
             `${dayPrefix}: ${daySetCount} sets slightly exceeds budget of ${skeleton.maxSets}`,
           );
         }
-        if (dayExerciseCount > skeleton.maxExercises + 1) {
+        if (dayExerciseCount > skeleton.maxExercises + 2) {
           warnings.push(
             `${dayPrefix}: ${dayExerciseCount} exercises exceeds budget of ${skeleton.maxExercises}`,
           );

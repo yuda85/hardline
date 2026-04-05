@@ -1,12 +1,16 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Store } from '@ngxs/store';
+import { Subject } from 'rxjs';
+import { takeUntil, distinctUntilChanged, map } from 'rxjs/operators';
 import { AuthState } from '../../../store/auth/auth.state';
 import { ProfileState } from '../../../store/profile/profile.state';
 import { Profile } from '../../../store/profile/profile.actions';
+import { Energy } from '../../../store/energy/energy.actions';
+import { EnergyCalcService } from '../../../core/services/energy-calc.service';
 import { ButtonComponent, CardComponent, BadgeComponent } from '../../../shared/components';
 import {
-  Sex, FitnessGoal, RateOfChange, ActivityLevel, MacroPreference,
+  Sex, FitnessGoal, RateOfChange, ActivityLevel, MacroPreference, GoalSettings,
 } from '../../../core/models/energy.model';
 
 @Component({
@@ -16,15 +20,23 @@ import {
   templateUrl: './profile-page.html',
   styleUrl: './profile-page.scss',
 })
-export class ProfilePageComponent implements OnInit {
+export class ProfilePageComponent implements OnInit, OnDestroy {
   private readonly store = inject(Store);
   private readonly fb = inject(FormBuilder);
+  private readonly calc = inject(EnergyCalcService);
+  private readonly destroy$ = new Subject<void>();
+
+  // Suppress programmatic patch loops
+  private suppressCalorieWatch = false;
+  private suppressMacroWatch = false;
 
   protected readonly user = this.store.selectSignal(AuthState.user);
   protected readonly goals = this.store.selectSignal(ProfileState.goals);
   protected readonly preferences = this.store.selectSignal(ProfileState.preferences);
   protected readonly editing = signal(false);
   protected readonly saving = signal(false);
+  protected readonly macrosOverridden = signal(false);
+  protected readonly preview = signal({ bmr: 0, tdee: 0, suggestedCalories: 0 });
 
   protected readonly goalsForm = this.fb.nonNullable.group({
     dailyCalories: [2000, [Validators.required, Validators.min(800), Validators.max(10000)]],
@@ -78,7 +90,42 @@ export class ProfilePageComponent implements OnInit {
   ngOnInit() {
     this.store.dispatch(new Profile.FetchGoals()).subscribe(() => {
       this.populateForms();
+      this.recalcPreview();
     });
+
+    // 1. Body stats / goal / activity changes → recalculate preview + auto-update calories/macros
+    this.goalsForm.valueChanges.pipe(
+      takeUntil(this.destroy$),
+      map(v => `${v.currentWeight}-${v.heightCm}-${v.age}-${v.sex}-${v.fitnessGoal}-${v.rateOfChange}-${v.activityLevel}-${v.macroPreference}`),
+      distinctUntilChanged(),
+    ).subscribe(() => this.recalcPreview());
+
+    // 2. Calories manual edit → rescale macros
+    this.goalsForm.controls.dailyCalories.valueChanges.pipe(
+      takeUntil(this.destroy$),
+    ).subscribe(cal => {
+      if (this.suppressCalorieWatch) return;
+      if (!this.macrosOverridden()) {
+        this.rescaleMacros(cal);
+      }
+    });
+
+    // 3. Individual macro edits → redistribute others
+    for (const field of ['dailyProtein', 'dailyCarbs', 'dailyFat'] as const) {
+      this.goalsForm.controls[field].valueChanges.pipe(
+        takeUntil(this.destroy$),
+      ).subscribe(newVal => {
+        if (this.suppressMacroWatch) return;
+        this.macrosOverridden.set(true);
+        this.goalsForm.patchValue({ macroPreference: 'custom' }, { emitEvent: false });
+        this.redistributeMacros(field, newVal);
+      });
+    }
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   protected startEditing() {
@@ -88,6 +135,16 @@ export class ProfilePageComponent implements OnInit {
 
   protected cancelEditing() {
     this.editing.set(false);
+  }
+
+  protected resetToCalculated() {
+    this.macrosOverridden.set(false);
+    this.recalcPreview();
+  }
+
+  protected get macroCalories(): number {
+    const v = this.goalsForm.getRawValue();
+    return v.dailyProtein * 4 + v.dailyCarbs * 4 + v.dailyFat * 9;
   }
 
   protected async save() {
@@ -121,8 +178,90 @@ export class ProfilePageComponent implements OnInit {
       () => {
         this.saving.set(false);
         this.editing.set(false);
+
+        // Sync to Energy store so dashboard/daily summaries stay current
+        const uid = this.store.selectSnapshot(AuthState.uid);
+        if (uid) {
+          const p = this.preview();
+          const energySettings: Omit<GoalSettings, 'id' | 'createdAt' | 'updatedAt'> = {
+            userId: uid,
+            age: v.age,
+            sex: v.sex,
+            heightCm: v.heightCm,
+            weightKg: v.currentWeight,
+            goal: v.fitnessGoal,
+            rateOfChange: v.rateOfChange,
+            weeklyTrainingFrequency: v.weeklyWorkouts,
+            dailyStepsTarget: 8000,
+            activityLevel: v.activityLevel,
+            macroPreference: v.macroPreference,
+            bmr: p.bmr,
+            tdee: p.tdee,
+            dailyCalories: v.dailyCalories,
+            dailyProtein: v.dailyProtein,
+            dailyCarbs: v.dailyCarbs,
+            dailyFat: v.dailyFat,
+          };
+          this.store.dispatch(new Energy.SaveGoalSettings(energySettings));
+        }
       },
     );
+  }
+
+  private recalcPreview() {
+    const v = this.goalsForm.getRawValue();
+    const result = this.calc.calculateFullGoals({
+      weightKg: v.currentWeight,
+      heightCm: v.heightCm,
+      age: v.age,
+      sex: v.sex,
+      activityLevel: v.activityLevel,
+      goal: v.fitnessGoal,
+      rateOfChange: v.rateOfChange,
+      macroPreference: v.macroPreference === 'custom' ? 'balanced' : v.macroPreference,
+    });
+
+    this.preview.set({ bmr: result.bmr, tdee: result.tdee, suggestedCalories: result.dailyCalories });
+
+    if (!this.macrosOverridden()) {
+      this.suppressCalorieWatch = true;
+      this.suppressMacroWatch = true;
+      this.goalsForm.patchValue({
+        dailyCalories: result.dailyCalories,
+        dailyProtein: result.dailyProtein,
+        dailyCarbs: result.dailyCarbs,
+        dailyFat: result.dailyFat,
+      }, { emitEvent: false });
+      this.suppressCalorieWatch = false;
+      this.suppressMacroWatch = false;
+    }
+  }
+
+  private rescaleMacros(newCalories: number) {
+    const v = this.goalsForm.getRawValue();
+    const macros = this.calc.recalcMacrosFromCalories(newCalories, v.dailyProtein, v.dailyCarbs, v.dailyFat);
+    this.suppressMacroWatch = true;
+    this.goalsForm.patchValue({
+      dailyProtein: macros.protein,
+      dailyCarbs: macros.carbs,
+      dailyFat: macros.fat,
+    }, { emitEvent: false });
+    this.suppressMacroWatch = false;
+  }
+
+  private redistributeMacros(changedField: 'dailyProtein' | 'dailyCarbs' | 'dailyFat', newValue: number) {
+    const v = this.goalsForm.getRawValue();
+    const macroField = changedField.replace('daily', '').toLowerCase() as 'protein' | 'carbs' | 'fat';
+    const result = this.calc.adjustMacroKeepCalories(
+      v.dailyCalories, macroField, newValue, v.dailyProtein, v.dailyCarbs, v.dailyFat,
+    );
+    this.suppressMacroWatch = true;
+    const patch: Record<string, number> = {};
+    if (changedField !== 'dailyProtein') patch['dailyProtein'] = result.protein;
+    if (changedField !== 'dailyCarbs') patch['dailyCarbs'] = result.carbs;
+    if (changedField !== 'dailyFat') patch['dailyFat'] = result.fat;
+    this.goalsForm.patchValue(patch, { emitEvent: false });
+    this.suppressMacroWatch = false;
   }
 
   private populateForms() {
