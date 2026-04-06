@@ -59,9 +59,75 @@
     </div>
   </app-card>
 
-  <!-- Card 2: PR Board -->
+  <!-- Card 2: Training Frequency (moved below recovery) -->
+  <app-card [elevation]="1" padding="lg">
+    <!-- Streak hero -->
+    <div class="freq__streak-hero">
+      <div class="freq__streak-ring" [class.freq__streak-ring--active]="heatmapStats().streak > 0">
+        <span class="material-symbols-outlined freq__streak-flame"
+          [class.freq__streak-flame--active]="heatmapStats().streak > 0"
+          style="font-variation-settings: 'FILL' 1;">local_fire_department</span>
+      </div>
+      <div class="freq__streak-info">
+        <span class="freq__streak-count">{{ heatmapStats().streak }}</span>
+        <span class="freq__streak-label">Day Streak</span>
+      </div>
+    </div>
+
+    <!-- Monthly calendars (scrollable) -->
+    <div class="freq__calendar-scroll" #calendarScroll>
+      @for (month of allMonths(); track month.label) {
+        <div class="freq__month">
+          <h3 class="freq__month-title">{{ month.label }}</h3>
+          <div class="freq__cal-header">
+            @for (label of ['S','M','T','W','T','F','S']; track $index) {
+              <span class="freq__cal-day-label">{{ label }}</span>
+            }
+          </div>
+          <div class="freq__cal-grid">
+            @for (week of month.weeks; track $index) {
+              @for (cell of week; track $index) {
+                @if (cell.day) {
+                  <div
+                    class="freq__cal-cell"
+                    [class.freq__cal-cell--trained]="cell.trained"
+                    [class.freq__cal-cell--today]="cell.isToday"
+                    [class.freq__cal-cell--future]="cell.isFuture"
+                  >
+                    <span class="freq__cal-num">{{ cell.day }}</span>
+                  </div>
+                } @else {
+                  <div class="freq__cal-cell freq__cal-cell--empty"></div>
+                }
+              }
+            }
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Stats row -->
+    <div class="freq__stats">
+      <div class="freq__stat">
+        <span class="freq__stat-value">{{ heatmapStats().workoutDays }}</span>
+        <span class="freq__stat-label">Workouts</span>
+      </div>
+      <div class="freq__stat-divider"></div>
+      <div class="freq__stat">
+        <span class="freq__stat-value">{{ heatmapStats().avgPerWeek }}</span>
+        <span class="freq__stat-label">Avg / Week</span>
+      </div>
+      <div class="freq__stat-divider"></div>
+      <div class="freq__stat">
+        <span class="freq__stat-value">{{ heatmapStats().longestStreak }}</span>
+        <span class="freq__stat-label">Best Streak</span>
+      </div>
+    </div>
+  </app-card>
+
+  <!-- Card 3: PR Board -->
   @if (prBoard().length > 0) {
-    <section>
+    <section class="insights__pr-section">
       <h2 class="insights__section-title insights__section-title--outer">PR Board — Big Lifts</h2>
       <div class="insights__pr-scroll">
         @for (pr of prBoard(); track pr.exerciseId) {
@@ -76,7 +142,7 @@
     </section>
   }
 
-  <!-- Card 3: Weekly Volume Trend -->
+  <!-- Card 4: Weekly Volume Trend -->
   <app-card [elevation]="1" padding="lg">
     <div class="insights__card-header">
       <h2 class="insights__section-title">Weekly Volume</h2>
@@ -104,42 +170,6 @@
     <div class="insights__volume-summary">
       <span class="insights__volume-number">{{ currentWeekVolume() | number }}</span>
       <span class="insights__volume-unit">kg this week</span>
-    </div>
-  </app-card>
-
-  <!-- Card 4: Training Heatmap -->
-  <app-card [elevation]="1" padding="lg">
-    <div class="insights__card-header">
-      <h2 class="insights__section-title">Frequency</h2>
-      @if (heatmapStats().streak > 0) {
-        <app-badge variant="tertiary" size="sm">{{ heatmapStats().streak }} day streak</app-badge>
-      }
-    </div>
-
-    <div class="insights__heatmap">
-      @for (week of heatmapWeeks(); track $index) {
-        <div class="insights__heatmap-col">
-          @for (day of week; track day.date) {
-            <div
-              class="insights__heatmap-cell"
-              [class.insights__heatmap-cell--1]="day.intensity === 1"
-              [class.insights__heatmap-cell--2]="day.intensity === 2"
-              [class.insights__heatmap-cell--3]="day.intensity === 3"
-            ></div>
-          }
-        </div>
-      }
-    </div>
-
-    <div class="insights__heatmap-stats">
-      <div>
-        <span class="insights__heatmap-num">{{ heatmapStats().workoutDays }}</span>
-        <span class="insights__heatmap-label">workouts</span>
-      </div>
-      <div class="insights__heatmap-right">
-        <span class="insights__heatmap-num">{{ heatmapStats().avgPerWeek }}</span>
-        <span class="insights__heatmap-label">avg / week</span>
-      </div>
     </div>
   </app-card>
 

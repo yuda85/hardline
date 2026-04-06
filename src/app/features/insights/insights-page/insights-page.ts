@@ -1,8 +1,10 @@
-import { Component, inject, signal, OnInit, computed } from '@angular/core';
+import { Component, inject, signal, OnInit, computed, ElementRef, ViewChild, AfterViewInit } from '@angular/core';
 import { DatePipe, DecimalPipe } from '@angular/common';
+import { toDate, toDateString } from '../../../core/services/date.util';
 import { Store } from '@ngxs/store';
 import { CardComponent, BadgeComponent } from '../../../shared/components';
 import { RecoveryMapComponent } from '../shared/recovery-map/recovery-map';
+import { AuthState } from '../../../store/auth/auth.state';
 import { SparklineComponent } from '../shared/sparkline/sparkline';
 import {
   InsightsService,
@@ -22,14 +24,18 @@ type TimeRange = 'week' | 'month' | '3months';
   templateUrl: './insights-page.html',
   styleUrl: './insights-page.scss',
 })
-export class InsightsPageComponent implements OnInit {
+export class InsightsPageComponent implements OnInit, AfterViewInit {
   private readonly insights = inject(InsightsService);
+  private readonly store = inject(Store);
+
+  @ViewChild('calendarScroll') calendarScrollRef?: ElementRef<HTMLElement>;
 
   protected readonly timeRange = signal<TimeRange>('month');
   protected readonly recovery = signal<RecoveryStatus[]>([]);
   protected readonly prBoard = signal<PRBoardEntry[]>([]);
   protected readonly weeklyVolume = signal<WeeklyVolume[]>([]);
   protected readonly heatmap = signal<HeatmapDay[]>([]);
+  protected readonly allTimeHeatmap = signal<HeatmapDay[]>([]);
   protected readonly momentum = signal<WeightMomentum | null>(null);
 
   protected readonly maxVolume = computed(() => {
@@ -81,7 +87,7 @@ export class InsightsPageComponent implements OnInit {
   });
 
   protected readonly heatmapStats = computed(() => {
-    const days = this.heatmap();
+    const days = this.allTimeHeatmap();
     const workoutDays = days.filter(d => d.intensity > 0).length;
     const totalWeeks = Math.max(1, this.heatmapWeeks().length);
     const avgPerWeek = Math.round(workoutDays / totalWeeks * 10) / 10;
@@ -93,7 +99,89 @@ export class InsightsPageComponent implements OnInit {
       else break;
     }
 
-    return { workoutDays, avgPerWeek, streak };
+    // Longest streak
+    let longestStreak = 0;
+    let currentRun = 0;
+    for (const day of days) {
+      if (day.intensity > 0) {
+        currentRun++;
+        if (currentRun > longestStreak) longestStreak = currentRun;
+      } else {
+        currentRun = 0;
+      }
+    }
+
+    return { workoutDays, avgPerWeek, streak, longestStreak };
+  });
+
+  /** All months from user signup to now, each with a calendar grid */
+  /** Format a local date as YYYY-MM-DD (local timezone, not UTC) */
+  private localDateStr(d: Date): string {
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }
+
+  protected readonly allMonths = computed(() => {
+    const heatmapDays = this.allTimeHeatmap();
+    const trainedDates = new Set(heatmapDays.filter(d => d.intensity > 0).map(d => d.date));
+
+    const now = new Date();
+    const todayLocal = this.localDateStr(now);
+
+    // Determine start month from user's createdAt
+    const user = this.store.selectSnapshot(AuthState.user);
+    const createdAt = user?.createdAt ? toDate(user.createdAt) : now;
+    const startYear = createdAt.getFullYear();
+    const startMonth = createdAt.getMonth();
+
+    const months: { label: string; weeks: { day: number | null; trained: boolean; isToday: boolean; isFuture: boolean }[][] }[] = [];
+
+    let y = now.getFullYear();
+    let m = now.getMonth();
+
+    // Build months from current back to signup month
+    while (y > startYear || (y === startYear && m >= startMonth)) {
+      const daysInMonth = new Date(y, m + 1, 0).getDate();
+      const firstDayOfWeek = new Date(y, m, 1).getDay();
+      const label = new Date(y, m, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+      const weeks: typeof months[0]['weeks'] = [];
+      let currentWeek: typeof weeks[0] = [];
+
+      for (let i = 0; i < firstDayOfWeek; i++) {
+        currentWeek.push({ day: null, trained: false, isToday: false, isFuture: false });
+      }
+
+      for (let d = 1; d <= daysInMonth; d++) {
+        const date = new Date(y, m, d);
+        const localStr = this.localDateStr(date);
+        // Check both local and UTC formats since heatmap data uses UTC
+        const utcStr = toDateString(date);
+        currentWeek.push({
+          day: d,
+          trained: trainedDates.has(utcStr) || trainedDates.has(localStr),
+          isToday: localStr === todayLocal,
+          isFuture: date > now,
+        });
+        if (currentWeek.length === 7) {
+          weeks.push(currentWeek);
+          currentWeek = [];
+        }
+      }
+      if (currentWeek.length > 0) {
+        while (currentWeek.length < 7) {
+          currentWeek.push({ day: null, trained: false, isToday: false, isFuture: false });
+        }
+        weeks.push(currentWeek);
+      }
+
+      months.push({ label, weeks });
+
+      // Go to previous month
+      m--;
+      if (m < 0) { m = 11; y--; }
+    }
+
+    return months; // newest first
   });
 
   protected readonly sortedRecovery = computed(() => {
@@ -108,6 +196,10 @@ export class InsightsPageComponent implements OnInit {
     this.loadData();
   }
 
+  ngAfterViewInit() {
+    // Scroll starts at top (current month) — no action needed since newest is first
+  }
+
   protected setTimeRange(range: TimeRange) {
     this.timeRange.set(range);
     this.loadTimeRangeData();
@@ -118,6 +210,12 @@ export class InsightsPageComponent implements OnInit {
     this.insights.getPRBoard().subscribe(data => this.prBoard.set(data));
     this.insights.getWeightMomentum().subscribe(data => this.momentum.set(data));
     this.loadTimeRangeData();
+
+    // Load all-time heatmap for the frequency calendar
+    const user = this.store.selectSnapshot(AuthState.user);
+    const createdAt = user?.createdAt ? toDate(user.createdAt) : new Date();
+    const daysSinceSignup = Math.ceil((Date.now() - createdAt.getTime()) / (24 * 60 * 60 * 1000)) + 2;
+    this.insights.getTrainingHeatmap(Math.max(daysSinceSignup, 60)).subscribe(data => this.allTimeHeatmap.set(data));
   }
 
   private loadTimeRangeData() {

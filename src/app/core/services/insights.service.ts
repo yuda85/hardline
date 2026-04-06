@@ -276,16 +276,20 @@ export class InsightsService {
     return this.sessionRepo.getByDateRange(uid, startDate, now).pipe(
       map(allSessions => {
         const sessions = allSessions.filter(s => s.completedAt != null);
-        // Aggregate volume per day
+        // Aggregate volume per day and track which days had any completed sets
         const dayVolume = new Map<string, number>();
+        const dayTrained = new Set<string>();
         for (const session of sessions) {
           const dateStr = toDateString(session.startedAt);
           let vol = dayVolume.get(dateStr) ?? 0;
           for (const group of session.exerciseGroups ?? []) {
             for (const ex of group.exercises) {
               for (const set of ex.sets) {
-                if (set.completed && set.weight > 0) {
-                  vol += set.weight * set.actualReps;
+                if (set.completed) {
+                  dayTrained.add(dateStr);
+                  if (set.weight > 0) {
+                    vol += set.weight * set.actualReps;
+                  }
                 }
               }
             }
@@ -297,18 +301,19 @@ export class InsightsService {
         const volumes = [...dayVolume.values()];
         const maxVol = Math.max(...volumes, 1);
 
-        // Generate all days
+        // Generate all days (inclusive of today)
         const result: HeatmapDay[] = [];
-        for (let i = 0; i < days; i++) {
+        for (let i = 0; i <= days; i++) {
           const d = new Date(startDate.getTime() + i * 24 * 60 * 60 * 1000);
           const dateStr = toDateString(d);
           const volume = dayVolume.get(dateStr) ?? 0;
+          const trained = dayTrained.has(dateStr);
           const ratio = volume / maxVol;
 
           let intensity: 0 | 1 | 2 | 3 = 0;
           if (ratio > 0.66) intensity = 3;
           else if (ratio > 0.33) intensity = 2;
-          else if (ratio > 0) intensity = 1;
+          else if (ratio > 0 || trained) intensity = 1;
 
           result.push({
             date: dateStr,

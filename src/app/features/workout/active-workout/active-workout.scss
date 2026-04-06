@@ -6,7 +6,7 @@
   display: block;
   min-height: 100dvh;
   background: var(--surface);
-  padding-bottom: 16rem;
+  padding-bottom: 20rem;
   overscroll-behavior: contain;
 }
 
@@ -433,12 +433,13 @@
   font-family: var(--font-headline);
   font-weight: 800;
   font-size: 1.5rem;
-  letter-spacing: -0.03em;
+  letter-spacing: 0.02em;
   color: var(--on-surface);
   text-transform: uppercase;
   line-height: 1.1;
   margin: 0 0 0.25rem;
   padding-right: 4rem;
+  word-spacing: 0.1em;
 }
 
 .aw__exercise-equipment {
@@ -662,7 +663,13 @@
 
 // --- Action area ---
 .aw__action-area {
-  padding: 0 1rem 2rem;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 30;
+  padding: 1rem 1rem calc(5rem + env(safe-area-inset-bottom));
+  background: linear-gradient(to top, var(--surface) 60%, transparent);
 }
 
 .aw__cta {
@@ -709,7 +716,7 @@
   display: flex;
   justify-content: center;
   gap: 2rem;
-  margin-top: 1.5rem;
+  margin-top: 0.75rem;
 }
 
 .aw__quick-btn {
