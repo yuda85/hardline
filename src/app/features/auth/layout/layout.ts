@@ -1,9 +1,13 @@
-import { Component, inject, OnInit } from '@angular/core';
-import { Router, RouterOutlet } from '@angular/router';
+import { Component, inject, OnInit, computed } from '@angular/core';
+import { Router, RouterOutlet, NavigationEnd } from '@angular/router';
+import { filter } from 'rxjs/operators';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { Store } from '@ngxs/store';
 import { SideNavComponent, BottomNavComponent } from '../../../shared/components';
 import { Auth } from '../../../store/auth/auth.actions';
 import { AuthState } from '../../../store/auth/auth.state';
+import { Workout } from '../../../store/workout/workout.actions';
+import { WorkoutState } from '../../../store/workout/workout.state';
 import { Weight } from '../../../store/weight/weight.actions';
 import { WeightState } from '../../../store/weight/weight.state';
 import { WeightPromptComponent } from '../../weight/weight-prompt/weight-prompt';
@@ -22,6 +26,28 @@ export class LayoutComponent implements OnInit {
 
   protected readonly user = this.store.selectSignal(AuthState.user);
   protected readonly showWeightPrompt = this.store.selectSignal(WeightState.showPrompt);
+  protected readonly activeSession = this.store.selectSignal(WorkoutState.activeSession);
+  protected readonly isInSession = this.store.selectSignal(WorkoutState.isInSession);
+
+  private readonly navEvents = toSignal(
+    this.router.events.pipe(filter(e => e instanceof NavigationEnd)),
+  );
+
+  protected readonly showResumeBanner = computed(() => {
+    this.navEvents(); // re-evaluate on navigation
+    return this.isInSession() && !this.router.url.includes('/workouts/active');
+  });
+
+  protected readonly sessionElapsed = computed(() => {
+    const session = this.activeSession();
+    if (!session) return '';
+    const startedAt = session.startedAt instanceof Date
+      ? session.startedAt
+      : (session.startedAt as any)?.toDate?.() ?? new Date(session.startedAt);
+    const mins = Math.floor((Date.now() - startedAt.getTime()) / 60000);
+    if (mins < 60) return `${mins}m`;
+    return `${Math.floor(mins / 60)}h ${mins % 60}m`;
+  });
 
   protected readonly navItems: NavItem[] = [
     { icon: 'grid_view', label: 'Dashboard', route: '/dashboard' },
@@ -35,6 +61,14 @@ export class LayoutComponent implements OnInit {
 
   ngOnInit() {
     this.store.dispatch(new Weight.CheckToday());
+    this.store.dispatch(new Workout.CheckActiveSession());
+  }
+
+  protected resumeWorkout() {
+    const session = this.activeSession();
+    if (session) {
+      this.router.navigate(['/workouts', 'active', session.planId, session.dayNumber]);
+    }
   }
 
   protected onWeightSaved(data: { weightKg: number; notes?: string }) {

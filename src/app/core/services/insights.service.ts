@@ -11,6 +11,7 @@ import { OneRepMaxService } from './one-rep-max.service';
 import { toDate, toDateString } from './date.util';
 import { MuscleGroup, WorkoutSession } from '../models/workout.model';
 import { FitnessGoal } from '../models/energy.model';
+import { EXERCISES } from '../../features/workout/exercise-data';
 
 // ── Interfaces ──
 
@@ -53,19 +54,27 @@ export interface WeightMomentum {
   weeklyAverages: number[];
 }
 
-// ── Muscle group keyword mapping ──
+// ── Exercise ID → muscle group lookup (authoritative source) ──
 
-const MUSCLE_KEYWORDS: Record<MuscleGroup, string[]> = {
-  [MuscleGroup.Chest]: ['bench', 'fly', 'push-up', 'pushup', 'chest press', 'pec'],
-  [MuscleGroup.Back]: ['row', 'pull-up', 'pullup', 'pulldown', 'lat', 'back'],
-  [MuscleGroup.Shoulders]: ['overhead press', 'ohp', 'lateral raise', 'shoulder', 'delt', 'military press'],
-  [MuscleGroup.UpperLegs]: ['squat', 'leg press', 'lunge', 'leg curl', 'leg extension', 'hamstring', 'glute', 'hip thrust'],
-  [MuscleGroup.LowerLegs]: ['calf', 'calf raise', 'tibialis'],
-  [MuscleGroup.Biceps]: ['curl', 'hammer', 'bicep', 'preacher'],
-  [MuscleGroup.Triceps]: ['tricep', 'pushdown', 'skull crusher', 'extension', 'dip'],
-  [MuscleGroup.Core]: ['plank', 'crunch', 'ab', 'sit-up', 'situp', 'oblique', 'cable twist'],
-  [MuscleGroup.FullBody]: ['deadlift', 'clean', 'snatch', 'thruster'],
-};
+const EXERCISE_MUSCLE_MAP = new Map<string, MuscleGroup>(
+  EXERCISES.filter(e => e.id).map(e => [e.id!, e.muscleGroup]),
+);
+
+// ── Keyword fallback for custom exercises not in the library ──
+// Order matters: groups with specific multi-word keywords first to avoid substring collisions.
+// Within each group, longer keywords are listed first.
+
+const MUSCLE_KEYWORD_FALLBACK: [MuscleGroup, string[]][] = [
+  [MuscleGroup.UpperLegs, ['leg extension', 'leg press', 'leg curl', 'hip thrust', 'split squat', 'back squat', 'front squat', 'hack squat', 'goblet squat', 'hamstring', 'glute', 'squat', 'lunge']],
+  [MuscleGroup.LowerLegs, ['calf raise', 'tibialis', 'calf']],
+  [MuscleGroup.Chest, ['chest press', 'push-up', 'pushup', 'bench', 'fly', 'pec']],
+  [MuscleGroup.Shoulders, ['overhead press', 'military press', 'lateral raise', 'shoulder', 'delt', 'ohp']],
+  [MuscleGroup.Back, ['pull-up', 'pullup', 'pulldown', 'lat', 'row', 'back']],
+  [MuscleGroup.Triceps, ['skull crusher', 'tricep', 'pushdown', 'dip']],
+  [MuscleGroup.Biceps, ['preacher', 'bicep', 'hammer', 'curl']],
+  [MuscleGroup.Core, ['cable twist', 'sit-up', 'situp', 'oblique', 'plank', 'crunch', 'ab']],
+  [MuscleGroup.FullBody, ['deadlift', 'thruster', 'clean', 'snatch']],
+];
 
 const MUSCLE_LABELS: Record<MuscleGroup, string> = {
   [MuscleGroup.Chest]: 'Chest',
@@ -107,13 +116,14 @@ export class InsightsService {
     const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
     return this.sessionRepo.getByDateRange(uid, sevenDaysAgo, now).pipe(
-      map(sessions => {
+      map(allSessions => {
+        const sessions = allSessions.filter(s => s.completedAt != null);
         const lastTrained = new Map<MuscleGroup, Date>();
 
         for (const session of sessions) {
           for (const group of session.exerciseGroups ?? []) {
             for (const ex of group.exercises) {
-              const muscleGroup = this.guessMusceGroup(ex.exerciseName);
+              const muscleGroup = EXERCISE_MUSCLE_MAP.get(ex.exerciseId) ?? this.guessMusceGroup(ex.exerciseName);
               const completedSets = ex.sets.filter(s => s.completed);
               if (completedSets.length === 0) continue;
 
@@ -211,7 +221,8 @@ export class InsightsService {
     const startDate = new Date(now.getTime() - weeks * 7 * 24 * 60 * 60 * 1000);
 
     return this.sessionRepo.getByDateRange(uid, startDate, now).pipe(
-      map(sessions => {
+      map(allSessions => {
+        const sessions = allSessions.filter(s => s.completedAt != null);
         const weekMap = new Map<string, number>();
 
         for (const session of sessions) {
@@ -263,7 +274,8 @@ export class InsightsService {
     const startDate = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
 
     return this.sessionRepo.getByDateRange(uid, startDate, now).pipe(
-      map(sessions => {
+      map(allSessions => {
+        const sessions = allSessions.filter(s => s.completedAt != null);
         // Aggregate volume per day
         const dayVolume = new Map<string, number>();
         for (const session of sessions) {
@@ -364,9 +376,9 @@ export class InsightsService {
 
   private guessMusceGroup(exerciseName: string): MuscleGroup {
     const lower = exerciseName.toLowerCase();
-    for (const [group, keywords] of Object.entries(MUSCLE_KEYWORDS)) {
+    for (const [group, keywords] of MUSCLE_KEYWORD_FALLBACK) {
       if (keywords.some(kw => lower.includes(kw))) {
-        return group as MuscleGroup;
+        return group;
       }
     }
     return MuscleGroup.FullBody;

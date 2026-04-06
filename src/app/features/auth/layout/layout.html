@@ -4,6 +4,20 @@
   <router-outlet />
 </main>
 
+@if (showResumeBanner()) {
+  <div class="layout__resume-banner" (click)="resumeWorkout()">
+    <div class="layout__resume-pulse"></div>
+    <div class="layout__resume-info">
+      <span class="layout__resume-title">Workout in progress</span>
+      <span class="layout__resume-time">{{ sessionElapsed() }} elapsed</span>
+    </div>
+    <button class="layout__resume-btn">
+      <span class="material-symbols-outlined">play_arrow</span>
+      Resume
+    </button>
+  </div>
+}
+
 <app-bottom-nav [items]="navItems" (logoutClicked)="logout()" />
 
 @if (showWeightPrompt()) {

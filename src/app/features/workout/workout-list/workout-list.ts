@@ -17,12 +17,13 @@ import { BadgeComponent } from '../../../shared/components';
 import { FabComponent } from '../../../shared/components/fab/fab';
 import { ActivePlanTabComponent } from './active-plan-tab/active-plan-tab';
 import { MyPlansTabComponent } from './my-plans-tab/my-plans-tab';
+import { HistoryTabComponent } from './history-tab/history-tab';
 import { ShareBottomSheetComponent } from '../../share/share-bottom-sheet/share-bottom-sheet';
 
 @Component({
   selector: 'app-workout-list',
   standalone: true,
-  imports: [BadgeComponent, FabComponent, ActivePlanTabComponent, MyPlansTabComponent, ShareBottomSheetComponent],
+  imports: [BadgeComponent, FabComponent, ActivePlanTabComponent, MyPlansTabComponent, HistoryTabComponent, ShareBottomSheetComponent],
   templateUrl: './workout-list.html',
   styleUrl: './workout-list.scss',
 })
@@ -40,9 +41,10 @@ export class WorkoutListComponent implements OnInit {
   protected readonly loading = this.store.selectSignal(WorkoutState.loading);
   protected readonly seeding = signal(false);
   protected readonly importError = signal<string | null>(null);
-  protected readonly activeTab = signal<'active' | 'plans'>('active');
+  protected readonly activeTab = signal<'active' | 'plans' | 'history'>('active');
   protected readonly shareUrl = signal<string | null>(null);
   protected readonly shareLoading = signal(false);
+  protected readonly sessionHistory = this.store.selectSignal(WorkoutState.sessionHistory);
 
   /** Active plan always sorted to top */
   protected readonly plans = computed(() => {
@@ -64,7 +66,7 @@ export class WorkoutListComponent implements OnInit {
   });
 
   ngOnInit() {
-    this.store.dispatch([new Workout.FetchPlans(), new Profile.FetchGoals()]);
+    this.store.dispatch([new Workout.FetchPlans(), new Profile.FetchGoals(), new Workout.FetchSessionHistory()]);
     this.store.select(WorkoutState.plans).subscribe(() => this.myPlansTab?.clearVolumeCache());
   }
 
@@ -151,6 +153,30 @@ export class WorkoutListComponent implements OnInit {
       this.shareUrl.set(this.shareService.buildShareUrl(shareId));
     }
     this.shareLoading.set(false);
+  }
+
+  protected deleteSession(sessionId: string) {
+    this.store.dispatch(new Workout.DeleteSession(sessionId));
+  }
+
+  protected updateSessionSet(event: {
+    sessionId: string;
+    groupIndex: number;
+    exerciseIndex: number;
+    setIndex: number;
+    weight: number;
+    reps: number;
+  }) {
+    this.store.dispatch(
+      new Workout.UpdateSessionSet(
+        event.sessionId,
+        event.groupIndex,
+        event.exerciseIndex,
+        event.setIndex,
+        event.weight,
+        event.reps,
+      ),
+    );
   }
 
   protected async copyShareLink() {

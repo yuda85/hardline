@@ -58,6 +58,15 @@ export namespace Workout {
     ) {}
   }
 
+  export class RemoveSet {
+    static readonly type = '[Workout] Remove Set';
+    constructor(
+      public groupIndex: number,
+      public exerciseIndex: number,
+      public setIndex: number,
+    ) {}
+  }
+
   export class FinishSession {
     static readonly type = '[Workout] Finish Session';
   }
@@ -93,6 +102,10 @@ export namespace Workout {
     ) {}
   }
 
+  export class CheckActiveSession {
+    static readonly type = '[Workout] Check Active Session';
+  }
+
   export class Reset {
     static readonly type = '[Workout] Reset';
   }
@@ -125,5 +138,28 @@ export namespace Workout {
   export class AddDayToActivePlan {
     static readonly type = '[Workout] Add Day To Active Plan';
     constructor(public day: WorkoutDay) {}
+  }
+
+  // ── Session History ──
+
+  export class FetchSessionHistory {
+    static readonly type = '[Workout] Fetch Session History';
+  }
+
+  export class DeleteSession {
+    static readonly type = '[Workout] Delete Session';
+    constructor(public sessionId: string) {}
+  }
+
+  export class UpdateSessionSet {
+    static readonly type = '[Workout] Update Session Set';
+    constructor(
+      public sessionId: string,
+      public groupIndex: number,
+      public exerciseIndex: number,
+      public setIndex: number,
+      public weight: number,
+      public reps: number,
+    ) {}
   }
 }

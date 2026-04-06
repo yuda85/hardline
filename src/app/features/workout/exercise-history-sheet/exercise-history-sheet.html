@@ -36,9 +36,13 @@
     </div>
 
     <div class="bento__card bento__card--stat">
-      <span class="bento__label">Max Set</span>
-      <span class="bento__value">{{ maxWeight() }} kg</span>
-      <span class="bento__sublabel">Personal Best</span>
+      <span class="bento__label">Max Weight</span>
+      <span class="bento__value">{{ maxWeight() }}<span class="bento__unit">kg</span></span>
+      @if (currentPR(); as pr) {
+        <span class="bento__sublabel">{{ pr.weight }} kg &times; {{ pr.reps }}</span>
+      } @else {
+        <span class="bento__sublabel">Personal Best</span>
+      }
     </div>
   </div>
 

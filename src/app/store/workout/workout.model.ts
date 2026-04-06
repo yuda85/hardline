@@ -25,6 +25,7 @@ export interface WorkoutStateModel {
   generating: boolean;
   generateError: string | null;
   savedPlanId: string | null;
+  sessionHistory: WorkoutSession[];
 }
 
 export const WORKOUT_STATE_DEFAULTS: WorkoutStateModel = {
@@ -40,4 +41,5 @@ export const WORKOUT_STATE_DEFAULTS: WorkoutStateModel = {
   generating: false,
   generateError: null,
   savedPlanId: null,
+  sessionHistory: [],
 };

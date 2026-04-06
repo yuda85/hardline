@@ -57,11 +57,21 @@
 
   @if (currentGroup(); as group) {
     @if (currentExercise(); as exercise) {
-      <!-- PR Banner -->
+      <!-- PR Celebration Overlay -->
       @if (newPR(); as prMsg) {
-        <div class="aw__pr-banner">
-          <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">workspace_premium</span>
-          {{ prMsg }}
+        <div class="aw__pr-overlay" (click)="newPR.set(null)">
+          <div class="aw__confetti">
+            @for (i of confettiPieces; track i) {
+              <div class="aw__confetti-piece" [style.--i]="i"></div>
+            }
+          </div>
+          <div class="aw__pr-celebration">
+            <span class="material-symbols-outlined aw__pr-trophy" style="font-variation-settings: 'FILL' 1;">emoji_events</span>
+            <h2 class="aw__pr-title">NEW PR!</h2>
+            <p class="aw__pr-lift">{{ prMsg.split(' — ')[0] }}</p>
+            <p class="aw__pr-estimate">{{ prMsg.split(' — ')[1] }}</p>
+            <span class="aw__pr-tap">Tap to continue</span>
+          </div>
         </div>
       }
 
@@ -96,68 +106,61 @@
 
               <!-- Set tracker grid -->
               <div class="aw__set-tracker">
+                <!-- Header row -->
+                <div class="aw__set-header-row">
+                  <span class="aw__set-header-cell aw__set-header-cell--label">Set</span>
+                  <span class="aw__set-header-cell">Weight (kg)</span>
+                  <span class="aw__set-header-cell">Reps</span>
+                  <span class="aw__set-header-cell aw__set-header-cell--action"></span>
+                </div>
+
                 @for (set of exercise.sets; track $index; let i = $index) {
-                  @if (set.completed) {
-                    <!-- Completed set row -->
-                    <div class="aw__set-row aw__set-row--done">
+                  <div class="aw__set-row"
+                    [class.aw__set-row--done]="set.completed && editingSetIndex() !== i"
+                    [class.aw__set-row--editing]="set.completed && editingSetIndex() === i"
+                    [class.aw__set-row--current]="!set.completed && i === completedSetsCount()"
+                    [attr.data-set-index]="i"
+                    (click)="set.completed && editingSetIndex() !== i ? editSet(i) : null">
+                    @if (set.completed && editingSetIndex() !== i) {
                       <div class="aw__set-accent"></div>
-                      <span class="aw__set-label">SET {{ i + 1 }}</span>
-                      <div class="aw__set-data">
-                        <span class="aw__set-weight">{{ set.weight }} <span class="aw__set-unit">kg</span></span>
-                        <span class="aw__set-reps">{{ set.actualReps }} <span class="aw__set-unit">reps</span></span>
-                      </div>
-                      <span class="material-symbols-outlined aw__set-check" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                    }
+                    <span class="aw__set-num">{{ i + 1 }}</span>
+                    <input type="number" inputmode="decimal" class="aw__set-input aw__set-input--weight"
+                      [value]="set.completed ? set.weight : null"
+                      [placeholder]="lastData()?.[i]?.weight?.toString() ?? '0'"
+                      [disabled]="set.completed && editingSetIndex() !== i"
+                      (focus)="$event.target.select()"
+                      #weightInput />
+                    <input type="number" inputmode="numeric" class="aw__set-input aw__set-input--reps"
+                      [value]="set.completed ? set.actualReps : null"
+                      [placeholder]="set.targetReps.toString()"
+                      [disabled]="set.completed && editingSetIndex() !== i"
+                      (focus)="$event.target.select()"
+                      #repsInput />
+                    <div class="aw__set-actions">
+                      @if (set.completed && editingSetIndex() === i) {
+                        <button class="aw__set-save-btn" (click)="saveEditedSet(i, +weightInput.value, +repsInput.value); $event.stopPropagation()">
+                          <span class="material-symbols-outlined">check</span>
+                        </button>
+                      } @else if (set.completed) {
+                        <span class="material-symbols-outlined aw__set-check" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                      }
+                      @if (exercise.sets.length > 1) {
+                        <button class="aw__set-remove-btn" (click)="removeSet(i); $event.stopPropagation()">
+                          <span class="material-symbols-outlined">close</span>
+                        </button>
+                      }
                     </div>
-                  } @else if (i === completedSetsCount()) {
-                    <!-- Active set -->
-                    <div class="aw__set-active">
-                      <div class="aw__set-active-header">
-                        <span class="aw__set-active-label">SET {{ i + 1 }} ACTIVE</span>
-                        @if (prDistanceKg() !== null && prDistanceKg()! > 0) {
-                          <div class="aw__pr-distance">
-                            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
-                            <span>{{ prDistanceKg() }} kg from PR</span>
-                          </div>
-                        }
-                        @if (prDistanceKg() === 0) {
-                          <div class="aw__pr-distance aw__pr-distance--hit">
-                            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
-                            <span>New PR!</span>
-                          </div>
-                        }
-                      </div>
-
-                      <div class="aw__input-grid">
-                        <!-- Weight input -->
-                        <div class="aw__input-col">
-                          <label class="aw__input-label">Weight (kg)</label>
-                          <input type="number" inputmode="decimal" class="aw__input"
-                            [ngModel]="weight()" (ngModelChange)="weight.set($event)"
-                            (focus)="$event.target.select()" />
-                          @if (lastData(); as prevSets) {
-                            @if (prevSets[0]; as prev) {
-                              <p class="aw__input-hint">Last: <strong>{{ prev.weight }}</strong></p>
-                            }
-                          }
-                        </div>
-
-                        <!-- Reps input -->
-                        <div class="aw__input-col">
-                          <label class="aw__input-label">Reps</label>
-                          <input type="number" inputmode="numeric" class="aw__input"
-                            [ngModel]="reps()" (ngModelChange)="reps.set($event)"
-                            (focus)="$event.target.select()" />
-                          @if (lastData(); as prevSets) {
-                            @if (prevSets[0]; as prev) {
-                              <p class="aw__input-hint">Last: <strong>{{ prev.reps }}</strong></p>
-                            }
-                          }
-                        </div>
-                      </div>
-
-                    </div>
-                  }
+                  </div>
                 }
+
+                <!-- Add set -->
+                <div class="aw__set-tracker-footer">
+                  <button class="aw__add-set-pill" (click)="addSet()">
+                    <span class="material-symbols-outlined">add</span>
+                    Add Set
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -174,20 +177,20 @@
 
       <!-- Main action area -->
       <div class="aw__action-area">
-        @if (!isExerciseDone() && !isAllDone()) {
-          <button class="aw__cta" (click)="completeSet()">
-            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">check_circle</span>
-            Complete Set {{ completedSetsCount() + 1 }}
-          </button>
-        } @else if (isAllDone()) {
+        @if (isAllDone()) {
           <button class="aw__cta" (click)="showFinishConfirm.set(true)">
             <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">flag</span>
             Finish Workout
           </button>
-        } @else {
+        } @else if (isExerciseDone()) {
           <button class="aw__cta" (click)="goNextExercise()">
             <span class="material-symbols-outlined">arrow_forward</span>
             Next Exercise
+          </button>
+        } @else {
+          <button class="aw__cta" (click)="completeCurrentSet()">
+            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+            Complete Set {{ completedSetsCount() + 1 }}
           </button>
         }
 
@@ -210,12 +213,6 @@
               <span class="material-symbols-outlined">add</span>
             </div>
             <span class="aw__quick-label">Add</span>
-          </button>
-          <button class="aw__quick-btn" (click)="addSet()">
-            <div class="aw__quick-icon">
-              <span class="material-symbols-outlined">replay</span>
-            </div>
-            <span class="aw__quick-label">+ Set</span>
           </button>
         </div>
       </div>
@@ -385,6 +382,28 @@
         </button>
         <button class="aw__dialog-btn aw__dialog-btn--ghost" (click)="showAbandonConfirm.set(false)">
           Continue Workout
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Conflict dialog -->
+  @if (showConflictDialog()) {
+    <div class="aw__dialog-backdrop"></div>
+    <div class="aw__dialog">
+      <h3 class="aw__dialog-title">Active Workout Found</h3>
+      <p class="aw__dialog-text">You have an unfinished workout. What would you like to do?</p>
+      <div class="aw__dialog-actions aw__dialog-actions--stack">
+        <button class="aw__dialog-btn aw__dialog-btn--primary" (click)="onConflictFinishOld()">
+          <span class="material-symbols-outlined">save</span>
+          Save Old &amp; Start New
+        </button>
+        <button class="aw__dialog-btn aw__dialog-btn--outline" (click)="onConflictDiscardOld()">
+          <span class="material-symbols-outlined">delete</span>
+          Discard Old &amp; Start New
+        </button>
+        <button class="aw__dialog-btn aw__dialog-btn--ghost" (click)="onConflictCancel()">
+          Return to Old Workout
         </button>
       </div>
     </div>

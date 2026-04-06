@@ -49,6 +49,12 @@ export class ActiveWorkoutComponent implements OnInit, OnDestroy {
   protected readonly showAddExercise = signal(false);
   protected readonly showFinishConfirm = signal(false);
   protected readonly showAbandonConfirm = signal(false);
+  protected readonly showConflictDialog = signal(false);
+  private pendingPlanId: string | null = null;
+  private pendingDayNumber: number | null = null;
+
+  // Editing completed sets
+  protected readonly editingSetIndex = signal<number | null>(null);
 
   // Carousel animation
   protected readonly slideDirection = signal<'none' | 'left' | 'right' | 'enter-left' | 'enter-right'>('none');
@@ -66,11 +72,14 @@ export class ActiveWorkoutComponent implements OnInit, OnDestroy {
 
   // PR tracking
   protected readonly newPR = signal<string | null>(null);
-  protected readonly prsHitCount = signal(0);
+  private readonly prsHitExercises = signal<Set<string>>(new Set());
 
   private restInterval: ReturnType<typeof setInterval> | null = null;
   private timerInterval: ReturnType<typeof setInterval> | null = null;
   private wakeLock: WakeLockSentinel | null = null;
+
+  // Confetti pieces for PR celebration
+  protected readonly confettiPieces = Array.from({ length: 40 }, (_, i) => i);
 
   // Swipe tracking
   private touchStartX = 0;
@@ -198,6 +207,8 @@ export class ActiveWorkoutComponent implements OnInit, OnDestroy {
     return { done, total };
   });
 
+  protected readonly prsHitCount = computed(() => this.prsHitExercises().size);
+
   protected readonly estimatedCalories = computed(() => {
     // Rough estimate: ~0.05 kcal per kg lifted + base metabolic cost of time
     const vol = this.totalVolume();
@@ -285,11 +296,68 @@ export class ActiveWorkoutComponent implements OnInit, OnDestroy {
       this.router.navigate(['/workouts']);
       return;
     }
-    this.store.dispatch(new Workout.StartSession(planId, dayNumber));
+
+    const existing = this.session();
+    if (existing && existing.planId === planId && existing.dayNumber === dayNumber) {
+      // Resume existing session — calculate elapsed time from startedAt
+      this.initTimerFromSession(existing.startedAt);
+    } else if (existing) {
+      // Conflict: different workout is active — ask user
+      this.pendingPlanId = planId;
+      this.pendingDayNumber = dayNumber;
+      this.showConflictDialog.set(true);
+      this.initTimerFromSession(existing.startedAt);
+    } else {
+      // No active session — start fresh
+      this.store.dispatch(new Workout.StartSession(planId, dayNumber));
+      this.startTimer(0);
+    }
+
     this.acquireWakeLock();
+  }
+
+  private initTimerFromSession(startedAt: Date | any) {
+    const start = startedAt instanceof Date
+      ? startedAt
+      : startedAt?.toDate?.() ?? new Date(startedAt);
+    const elapsed = Math.floor((Date.now() - start.getTime()) / 1000);
+    this.startTimer(Math.max(0, elapsed));
+  }
+
+  private startTimer(initialSeconds: number) {
+    this.elapsedSeconds.set(initialSeconds);
     this.timerInterval = setInterval(() => {
       this.elapsedSeconds.update(s => s + 1);
     }, 1000);
+  }
+
+  protected onConflictFinishOld() {
+    this.store.dispatch(new Workout.FinishSession()).subscribe(() => {
+      this.showConflictDialog.set(false);
+      if (this.pendingPlanId && this.pendingDayNumber) {
+        this.store.dispatch(new Workout.StartSession(this.pendingPlanId, this.pendingDayNumber));
+        this.startTimer(0);
+      }
+    });
+  }
+
+  protected onConflictDiscardOld() {
+    this.store.dispatch(new Workout.AbandonSession()).subscribe(() => {
+      this.showConflictDialog.set(false);
+      if (this.pendingPlanId && this.pendingDayNumber) {
+        this.store.dispatch(new Workout.StartSession(this.pendingPlanId, this.pendingDayNumber));
+        this.startTimer(0);
+      }
+    });
+  }
+
+  protected onConflictCancel() {
+    this.showConflictDialog.set(false);
+    // Stay on the existing workout
+    const existing = this.session();
+    if (existing) {
+      this.router.navigate(['/workouts', 'active', existing.planId, existing.dayNumber]);
+    }
   }
 
   ngOnDestroy() {
@@ -300,36 +368,63 @@ export class ActiveWorkoutComponent implements OnInit, OnDestroy {
 
   // ── Actions ──
 
-  protected completeSet() {
+  protected completeCurrentSet() {
+    const si = this.completedSetsCount();
+    const el = document.querySelector(`.aw__set-row[data-set-index="${si}"]`);
+    const wInput = el?.querySelector<HTMLInputElement>('.aw__set-input--weight');
+    const rInput = el?.querySelector<HTMLInputElement>('.aw__set-input--reps');
+    const w = wInput ? +wInput.value : 0;
+    const r = rInput ? +rInput.value : 0;
+    this.completeSetAt(si, w, r);
+  }
+
+  protected completeSetAt(setIndex: number, w: number, r: number) {
     const gi = this.currentGroupIndex();
     const ei = this.currentExerciseIndex();
-    const si = this.completedSetsCount();
-    const w = this.weight() || 0;
-    const r = this.reps() || this.currentSet()?.targetReps || 0;
+    const ex = this.currentExercise();
+    if (!ex) return;
 
-    this.store.dispatch(new Workout.CompleteSet(gi, ei, si, r, w));
+    const targetReps = ex.sets[setIndex]?.targetReps || 10;
+    const actualW = w || 0;
+    const actualR = r || targetReps;
 
-    if (w > 0 && r > 0 && r <= 10) {
-      const estimated = this.oneRM.calculate(w, r);
-      const pr = this.exercisePR();
-      if (!pr || estimated > pr.oneRepMax) {
-        this.newPR.set(`New PR! Est. 1RM: ${estimated}kg`);
-        this.prsHitCount.update(c => c + 1);
-        setTimeout(() => this.newPR.set(null), 3000);
+    const exerciseId = ex.exerciseId;
+
+    // Check PR locally before dispatching — we have current PR data and can calculate 1RM
+    if (actualW > 0 && actualR > 0 && actualR <= 10) {
+      const estimated = this.oneRM.calculate(actualW, actualR);
+      const currentPR = this.prs()[exerciseId]?.oneRepMax ?? 0;
+      if (estimated > currentPR) {
+        this.newPR.set(`${actualW}kg × ${actualR} reps — Est. 1RM: ${Math.round(estimated)}kg`);
+        this.prsHitExercises.update(s => new Set([...s, exerciseId]));
       }
     }
 
+    this.store.dispatch(new Workout.CompleteSet(gi, ei, setIndex, actualR, actualW));
+
     const group = this.currentGroup();
-    if (si + 1 < this.totalSetsCount() && group) {
+    const nextUncompleted = ex.sets.findIndex((s, i) => i > setIndex && !s.completed);
+    if (nextUncompleted !== -1 && group) {
       this.startRestTimer(group.restSeconds);
     }
-
-    this.weight.set(0);
-    this.reps.set(0);
   }
 
   protected addSet() {
     this.store.dispatch(new Workout.AddSet(this.currentGroupIndex(), this.currentExerciseIndex()));
+  }
+
+  protected removeSet(setIndex: number) {
+    if (this.editingSetIndex() === setIndex) this.editingSetIndex.set(null);
+    this.store.dispatch(new Workout.RemoveSet(this.currentGroupIndex(), this.currentExerciseIndex(), setIndex));
+  }
+
+  protected editSet(setIndex: number) {
+    this.editingSetIndex.set(setIndex);
+  }
+
+  protected saveEditedSet(setIndex: number, w: number, r: number) {
+    this.editingSetIndex.set(null);
+    this.completeSetAt(setIndex, w, r);
   }
 
   protected calculate1RM(weight: number, reps: number): number {

@@ -44,6 +44,15 @@
     >
       My Plans
     </button>
+    <button
+      class="tab-bar__tab"
+      [class.tab-bar__tab--active]="activeTab() === 'history'"
+      role="tab"
+      [attr.aria-selected]="activeTab() === 'history'"
+      (click)="activeTab.set('history')"
+    >
+      History
+    </button>
   </div>
 
   <!-- Error Banner -->
@@ -58,6 +67,14 @@
         [activePlan]="activePlan()"
         (switchTab)="activeTab.set('plans')"
         (startDay)="startDay($event.planId, $event.dayNumber)"
+      />
+    }
+    @case ('history') {
+      <app-history-tab
+        [sessions]="sessionHistory()"
+        [loading]="loading()"
+        (deleteSession)="deleteSession($event)"
+        (updateSet)="updateSessionSet($event)"
       />
     }
     @case ('plans') {

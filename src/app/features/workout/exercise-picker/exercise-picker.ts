@@ -20,7 +20,7 @@ export class ExercisePickerComponent {
 
   protected readonly selectedExercises = signal<Exercise[]>([]);
   protected readonly searchQuery = signal('');
-  protected readonly selectedGroup = signal<MuscleGroup | ''>('');
+  protected readonly selectedGroups = signal<Set<MuscleGroup>>(new Set());
   protected readonly showCreateForm = signal(false);
   protected readonly customExercises = signal<Exercise[]>([]);
 
@@ -30,8 +30,7 @@ export class ExercisePickerComponent {
   protected readonly newEquipment = signal('Barbell');
   protected readonly newTags = signal('');
 
-  protected readonly muscleGroups: { value: MuscleGroup | ''; label: string }[] = [
-    { value: '', label: 'All' },
+  protected readonly muscleGroups: { value: MuscleGroup; label: string }[] = [
     { value: MuscleGroup.Chest, label: 'Chest' },
     { value: MuscleGroup.Back, label: 'Back' },
     { value: MuscleGroup.Shoulders, label: 'Shoulders' },
@@ -50,11 +49,13 @@ export class ExercisePickerComponent {
   protected readonly filteredExercises = computed(() => {
     let list = this.allExercises();
     const preFilter = this.filterMuscleGroup();
-    const group = preFilter ?? (this.selectedGroup() || null);
+    const groups = this.selectedGroups();
     const query = this.searchQuery().toLowerCase().trim();
 
-    if (group) {
-      list = list.filter(e => e.muscleGroup === group);
+    if (preFilter) {
+      list = list.filter(e => e.muscleGroup === preFilter);
+    } else if (groups.size > 0) {
+      list = list.filter(e => groups.has(e.muscleGroup));
     }
 
     if (query) {
@@ -72,8 +73,20 @@ export class ExercisePickerComponent {
   constructor() {
     const preFilter = this.filterMuscleGroup();
     if (preFilter) {
-      this.selectedGroup.set(preFilter);
+      this.selectedGroups.set(new Set([preFilter]));
     }
+  }
+
+  protected toggleGroup(group: MuscleGroup) {
+    this.selectedGroups.update(set => {
+      const next = new Set(set);
+      if (next.has(group)) {
+        next.delete(group);
+      } else {
+        next.add(group);
+      }
+      return next;
+    });
   }
 
   protected selectExercise(exercise: Exercise) {

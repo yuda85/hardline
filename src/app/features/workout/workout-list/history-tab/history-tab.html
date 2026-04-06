@@ -1,0 +1,153 @@
+@if (loading() && sessions().length === 0) {
+  <div class="history-loading">
+    @for (i of [1, 2, 3]; track i) {
+      <div class="skeleton-card">
+        <div class="skeleton-line skeleton-line--wide"></div>
+        <div class="skeleton-line skeleton-line--medium"></div>
+        <div class="skeleton-line skeleton-line--narrow"></div>
+      </div>
+    }
+  </div>
+} @else if (sessions().length === 0) {
+  <div class="empty">
+    <div class="empty__icon-wrap">
+      <span class="material-symbols-outlined empty__icon" style="font-variation-settings: 'FILL' 1">
+        history
+      </span>
+    </div>
+    <p class="empty__text">No completed workouts yet. Start training!</p>
+  </div>
+} @else {
+  <div class="history-list">
+    @for (session of sessions(); track session.id) {
+      <div class="session-card" [class.session-card--expanded]="expandedSession() === session.id">
+        <!-- Card Header -->
+        <div class="session-card__header" (click)="toggleExpand(session.id!)">
+          <div class="session-card__left">
+            <h3 class="session-card__date">
+              {{ toDate(session.startedAt) | date:'MMM d, y' }}
+            </h3>
+            <span class="session-card__time">
+              {{ toDate(session.startedAt) | date:'h:mm a' }}
+            </span>
+          </div>
+
+          <div class="session-card__stats">
+            <app-badge variant="surface" size="sm">
+              {{ getExerciseCount(session) }} exercises
+            </app-badge>
+            <app-badge variant="surface" size="sm">
+              {{ getTotalSets(session) }} sets
+            </app-badge>
+            @if (getSessionDuration(session); as dur) {
+              <app-badge variant="surface" size="sm">{{ dur }}</app-badge>
+            }
+          </div>
+
+          <div class="session-card__right">
+            <!-- Delete Button -->
+            @if (confirmingDelete() === session.id) {
+              <div class="delete-confirm" (click)="$event.stopPropagation()">
+                <span class="delete-confirm__text">Delete?</span>
+                <button class="delete-confirm__btn delete-confirm__btn--yes" (click)="confirmDelete(session.id!, $event)">
+                  <span class="material-symbols-outlined">check</span>
+                </button>
+                <button class="delete-confirm__btn delete-confirm__btn--no" (click)="cancelDelete($event)">
+                  <span class="material-symbols-outlined">close</span>
+                </button>
+              </div>
+            } @else {
+              <button class="icon-btn icon-btn--danger" (click)="requestDelete(session.id!, $event)" aria-label="Delete workout">
+                <span class="material-symbols-outlined">delete</span>
+              </button>
+            }
+
+            <span
+              class="material-symbols-outlined session-card__chevron"
+              [class.session-card__chevron--open]="expandedSession() === session.id"
+            >expand_more</span>
+          </div>
+        </div>
+
+        <!-- Volume Summary -->
+        @if (getTotalVolume(session); as vol) {
+          <div class="session-card__volume" (click)="toggleExpand(session.id!)">
+            <span class="material-symbols-outlined session-card__volume-icon">fitness_center</span>
+            {{ vol | number }} kg total volume
+          </div>
+        }
+
+        <!-- Expanded: Exercises -->
+        @if (expandedSession() === session.id) {
+          <div class="session-detail" @expandCollapse>
+            @for (group of session.exerciseGroups; track $index; let gi = $index) {
+              @for (exercise of group.exercises; track $index; let ei = $index) {
+                <div class="exercise-block">
+                  <h4 class="exercise-block__name">{{ exercise.exerciseName }}</h4>
+
+                  <div class="sets-table">
+                    <div class="sets-table__head">
+                      <span class="sets-table__col sets-table__col--num">Set</span>
+                      <span class="sets-table__col sets-table__col--weight">Weight</span>
+                      <span class="sets-table__col sets-table__col--reps">Reps</span>
+                      <span class="sets-table__col sets-table__col--action"></span>
+                    </div>
+
+                    @for (set of exercise.sets; track $index; let si = $index) {
+                      @if (set.completed) {
+                        <div class="sets-table__row" [class.sets-table__row--editing]="isEditing(session.id!, gi, ei, si)">
+                          @if (isEditing(session.id!, gi, ei, si)) {
+                            <span class="sets-table__col sets-table__col--num">{{ si + 1 }}</span>
+                            <span class="sets-table__col sets-table__col--weight">
+                              <input
+                                type="number"
+                                class="edit-input"
+                                [ngModel]="editingSet()!.weight"
+                                (ngModelChange)="editingSet.update(e => e ? {...e, weight: $event} : null)"
+                                inputmode="decimal"
+                              />
+                            </span>
+                            <span class="sets-table__col sets-table__col--reps">
+                              <input
+                                type="number"
+                                class="edit-input"
+                                [ngModel]="editingSet()!.reps"
+                                (ngModelChange)="editingSet.update(e => e ? {...e, reps: $event} : null)"
+                                inputmode="numeric"
+                              />
+                            </span>
+                            <span class="sets-table__col sets-table__col--action">
+                              <button class="inline-btn inline-btn--save" (click)="saveEdit()">
+                                <span class="material-symbols-outlined">check</span>
+                              </button>
+                              <button class="inline-btn inline-btn--cancel" (click)="cancelEdit()">
+                                <span class="material-symbols-outlined">close</span>
+                              </button>
+                            </span>
+                          } @else {
+                            <span class="sets-table__col sets-table__col--num">{{ si + 1 }}</span>
+                            <span class="sets-table__col sets-table__col--weight">{{ set.weight }} kg</span>
+                            <span class="sets-table__col sets-table__col--reps">{{ set.actualReps }}</span>
+                            <span class="sets-table__col sets-table__col--action">
+                              <button
+                                class="inline-btn"
+                                (click)="startEdit(session.id!, gi, ei, si, set.weight, set.actualReps)"
+                                aria-label="Edit set"
+                              >
+                                <span class="material-symbols-outlined">edit</span>
+                              </button>
+                            </span>
+                          }
+                        </div>
+                      }
+                    }
+                  </div>
+                </div>
+              }
+            }
+          </div>
+        }
+      </div>
+    }
+  </div>
+}

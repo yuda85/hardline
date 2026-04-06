@@ -107,6 +107,11 @@ export class WorkoutState {
     return state.savedPlanId;
   }
 
+  @Selector()
+  static sessionHistory(state: WorkoutStateModel): WorkoutSession[] {
+    return state.sessionHistory;
+  }
+
   @Action(Workout.FetchPlans)
   fetchPlans(ctx: StateContext<WorkoutStateModel>) {
     const uid = this.store.selectSnapshot(AuthState.uid);
@@ -267,7 +272,7 @@ export class WorkoutState {
   }
 
   @Action(Workout.CompleteSet)
-  async completeSet(ctx: StateContext<WorkoutStateModel>, action: Workout.CompleteSet) {
+  completeSet(ctx: StateContext<WorkoutStateModel>, action: Workout.CompleteSet) {
     const state = ctx.getState();
     if (!state.activeSession) return;
 
@@ -292,28 +297,34 @@ export class WorkoutState {
 
     const updatedSession = { ...state.activeSession, exerciseGroups: groups };
     ctx.patchState({ activeSession: updatedSession });
+    this.backupSessionToLocalStorage(updatedSession);
 
-    if (state.activeSession.id) {
-      await this.sessionRepo.update(state.activeSession.id, { exerciseGroups: groups });
-    }
-
-    // Check for PR
+    // Update in-memory PRs so the celebration works and subsequent sets see the new bar
     const exercise = groups[action.groupIndex]?.exercises[action.exerciseIndex];
     if (exercise && action.weight > 0 && action.actualReps > 0 && action.actualReps <= 10) {
-      const result = await this.oneRMService.checkAndUpdatePR(
-        exercise.exerciseId,
-        exercise.exerciseName,
-        action.weight,
-        action.actualReps,
-      );
-      if (result.isNewPR) {
-        ctx.dispatch(new Workout.LoadPRs());
+      const estimated = this.oneRMService.calculate(action.weight, action.actualReps);
+      const currentPR = state.prs[exercise.exerciseId]?.oneRepMax ?? 0;
+      if (estimated > currentPR) {
+        ctx.patchState({
+          prs: {
+            ...state.prs,
+            [exercise.exerciseId]: {
+              ...state.prs[exercise.exerciseId],
+              exerciseId: exercise.exerciseId,
+              exerciseName: exercise.exerciseName,
+              oneRepMax: estimated,
+              weight: action.weight,
+              reps: action.actualReps,
+              date: new Date(),
+            } as PersonalRecord,
+          },
+        });
       }
     }
   }
 
   @Action(Workout.AddSet)
-  async addSet(ctx: StateContext<WorkoutStateModel>, action: Workout.AddSet) {
+  addSet(ctx: StateContext<WorkoutStateModel>, action: Workout.AddSet) {
     const state = ctx.getState();
     if (!state.activeSession) return;
 
@@ -334,10 +345,27 @@ export class WorkoutState {
 
     const updatedSession = { ...state.activeSession, exerciseGroups: groups };
     ctx.patchState({ activeSession: updatedSession });
+    this.backupSessionToLocalStorage(updatedSession);
+  }
 
-    if (state.activeSession.id) {
-      await this.sessionRepo.update(state.activeSession.id, { exerciseGroups: groups });
-    }
+  @Action(Workout.RemoveSet)
+  removeSet(ctx: StateContext<WorkoutStateModel>, action: Workout.RemoveSet) {
+    const state = ctx.getState();
+    if (!state.activeSession) return;
+
+    const groups = state.activeSession.exerciseGroups.map((group, gi) => {
+      if (gi !== action.groupIndex) return group;
+      const exercises = group.exercises.map((ex, ei) => {
+        if (ei !== action.exerciseIndex) return ex;
+        if (ex.sets.length <= 1) return ex;
+        return { ...ex, sets: ex.sets.filter((_, si) => si !== action.setIndex) };
+      });
+      return { ...group, exercises };
+    });
+
+    const updatedSession = { ...state.activeSession, exerciseGroups: groups };
+    ctx.patchState({ activeSession: updatedSession });
+    this.backupSessionToLocalStorage(updatedSession);
   }
 
   @Action(Workout.FinishSession)
@@ -345,11 +373,33 @@ export class WorkoutState {
     const session = ctx.getState().activeSession;
     if (!session?.id) return;
 
-    await this.sessionRepo.update(session.id, { completedAt: new Date() });
+    // Batch-write: save full exercise data + completedAt in one update
+    await this.sessionRepo.update(session.id, {
+      exerciseGroups: session.exerciseGroups,
+      completedAt: new Date(),
+    });
+
+    // Check PRs for all completed exercises
+    for (const group of session.exerciseGroups) {
+      for (const ex of group.exercises) {
+        for (const set of ex.sets) {
+          if (set.completed && set.weight > 0 && set.actualReps > 0 && set.actualReps <= 10) {
+            await this.oneRMService.checkAndUpdatePR(
+              ex.exerciseId,
+              ex.exerciseName,
+              set.weight,
+              set.actualReps,
+            );
+          }
+        }
+      }
+    }
+
+    this.clearSessionBackup();
     ctx.patchState({ activeSession: null, lastSessionData: {} });
 
-    // Trigger energy balance recalculation to include this workout's burn
-    ctx.dispatch(new Energy.RecalculateDailySummary());
+    // Refresh PRs and trigger energy recalculation
+    ctx.dispatch([new Workout.LoadPRs(), new Energy.RecalculateDailySummary()]);
   }
 
   @Action(Workout.AbandonSession)
@@ -358,6 +408,7 @@ export class WorkoutState {
     if (session?.id) {
       await this.sessionRepo.remove(session.id);
     }
+    this.clearSessionBackup();
     ctx.patchState({ activeSession: null, lastSessionData: {} });
   }
 
@@ -487,6 +538,57 @@ export class WorkoutState {
     ctx.dispatch(new Workout.FetchPlans());
   }
 
+  @Action(Workout.CheckActiveSession)
+  checkActiveSession(ctx: StateContext<WorkoutStateModel>) {
+    const uid = this.store.selectSnapshot(AuthState.uid);
+    if (!uid) return;
+
+    // Don't overwrite if we already have an active session in memory
+    if (ctx.getState().activeSession) return;
+
+    return this.sessionRepo.getActive(uid).pipe(
+      take(1),
+      tap(sessions => {
+        if (sessions.length === 0) {
+          this.clearSessionBackup();
+          return;
+        }
+
+        const session = sessions[0];
+        const startedAt = session.startedAt instanceof Date
+          ? session.startedAt
+          : (session.startedAt as any)?.toDate?.() ?? new Date(session.startedAt);
+        const hoursSinceStart = (Date.now() - startedAt.getTime()) / (1000 * 60 * 60);
+
+        // Auto-expire sessions older than 4 hours
+        if (hoursSinceStart > 4) {
+          this.clearSessionBackup();
+          return;
+        }
+
+        // Restore exercise data from localStorage backup if the Firestore stub has no data
+        const backup = this.getSessionBackup();
+        const hasExerciseData = session.exerciseGroups?.some(g =>
+          g.exercises.some(ex => ex.sets.some(s => s.completed)),
+        );
+
+        const restoredSession = {
+          ...session,
+          startedAt,
+          ...(backup && !hasExerciseData ? { exerciseGroups: backup.exerciseGroups } : {}),
+        };
+
+        ctx.patchState({ activeSession: restoredSession });
+
+        // Preload data for resume
+        ctx.dispatch([
+          new Workout.LoadLastSession(session.planId, session.dayNumber),
+          new Workout.LoadPRs(),
+        ]);
+      }),
+    );
+  }
+
   @Action(Workout.LoadExerciseHistory)
   loadExerciseHistory(ctx: StateContext<WorkoutStateModel>, action: Workout.LoadExerciseHistory) {
     const uid = this.store.selectSnapshot(AuthState.uid);
@@ -539,7 +641,7 @@ export class WorkoutState {
   }
 
   @Action(Workout.AddExerciseToSession)
-  async addExerciseToSession(
+  addExerciseToSession(
     ctx: StateContext<WorkoutStateModel>,
     action: Workout.AddExerciseToSession,
   ) {
@@ -568,16 +670,176 @@ export class WorkoutState {
     const updatedGroups = [...state.activeSession.exerciseGroups, newGroup];
     const updatedSession = { ...state.activeSession, exerciseGroups: updatedGroups };
     ctx.patchState({ activeSession: updatedSession });
+    this.backupSessionToLocalStorage(updatedSession);
+  }
 
-    if (state.activeSession.id) {
-      await this.sessionRepo.update(state.activeSession.id, {
-        exerciseGroups: updatedGroups,
+  @Action(Workout.FetchSessionHistory)
+  fetchSessionHistory(ctx: StateContext<WorkoutStateModel>) {
+    const uid = this.store.selectSnapshot(AuthState.uid);
+    if (!uid) return;
+
+    ctx.patchState({ loading: true });
+    return this.sessionRepo.getHistory(uid, 100).pipe(
+      take(1),
+      tap(sessions => {
+        const completed = sessions.filter(s => s.completedAt != null);
+        ctx.patchState({ sessionHistory: completed, loading: false });
+      }),
+    );
+  }
+
+  @Action(Workout.DeleteSession)
+  async deleteSession(ctx: StateContext<WorkoutStateModel>, action: Workout.DeleteSession) {
+    const uid = this.store.selectSnapshot(AuthState.uid);
+    if (!uid) return;
+
+    // Find the session being deleted to know which exercises to recalc
+    const session = ctx.getState().sessionHistory.find(s => s.id === action.sessionId);
+    if (!session) return;
+
+    // Collect exercise IDs from the deleted session
+    const exerciseIds = new Set<string>();
+    for (const group of session.exerciseGroups) {
+      for (const ex of group.exercises) {
+        exerciseIds.add(ex.exerciseId);
+      }
+    }
+
+    // Delete the session
+    await this.sessionRepo.remove(action.sessionId);
+
+    // Recalculate PRs for affected exercises
+    const remainingSessions = ctx.getState().sessionHistory.filter(s => s.id !== action.sessionId);
+
+    for (const exerciseId of exerciseIds) {
+      let bestWeight = 0;
+      let bestReps = 0;
+      let best1RM = 0;
+      let bestName = '';
+
+      for (const s of remainingSessions) {
+        for (const group of s.exerciseGroups) {
+          for (const ex of group.exercises) {
+            if (ex.exerciseId !== exerciseId) continue;
+            bestName = ex.exerciseName;
+            for (const set of ex.sets) {
+              if (!set.completed || set.weight <= 0 || set.actualReps <= 0 || set.actualReps > 10)
+                continue;
+              const orm = this.oneRMService.calculate(set.weight, set.actualReps);
+              if (orm > best1RM) {
+                best1RM = orm;
+                bestWeight = set.weight;
+                bestReps = set.actualReps;
+              }
+            }
+          }
+        }
+      }
+
+      // Get current PR for this exercise
+      const currentPRs = await new Promise<PersonalRecord[]>(resolve => {
+        this.prRepo
+          .getByExercise(uid, exerciseId)
+          .pipe(take(1))
+          .subscribe(records => resolve(records));
       });
+
+      const currentPR = currentPRs[0];
+
+      if (best1RM === 0 && currentPR?.id) {
+        // No more sets for this exercise — remove the PR
+        await this.prRepo.remove(currentPR.id);
+      } else if (currentPR?.id && best1RM < currentPR.oneRepMax) {
+        // PR was held by the deleted session — update to new best
+        await this.prRepo.update(currentPR.id, {
+          oneRepMax: best1RM,
+          weight: bestWeight,
+          reps: bestReps,
+          date: new Date(),
+        });
+      }
+    }
+
+    // Refresh history and PRs
+    ctx.dispatch([new Workout.FetchSessionHistory(), new Workout.LoadPRs()]);
+  }
+
+  @Action(Workout.UpdateSessionSet)
+  async updateSessionSet(ctx: StateContext<WorkoutStateModel>, action: Workout.UpdateSessionSet) {
+    const state = ctx.getState();
+    const session = state.sessionHistory.find(s => s.id === action.sessionId);
+    if (!session) return;
+
+    // Build updated groups
+    const updatedGroups = session.exerciseGroups.map((group, gi) => {
+      if (gi !== action.groupIndex) return group;
+      const exercises = group.exercises.map((ex, ei) => {
+        if (ei !== action.exerciseIndex) return ex;
+        const sets = ex.sets.map((s, si) => {
+          if (si !== action.setIndex) return s;
+          return { ...s, weight: action.weight, actualReps: action.reps };
+        });
+        return { ...ex, sets };
+      });
+      return { ...group, exercises };
+    });
+
+    // Optimistic local update
+    const updatedHistory = state.sessionHistory.map(s =>
+      s.id === action.sessionId ? { ...s, exerciseGroups: updatedGroups } : s,
+    );
+    ctx.patchState({ sessionHistory: updatedHistory });
+
+    // Persist
+    await this.sessionRepo.update(action.sessionId, { exerciseGroups: updatedGroups });
+
+    // Re-check PR for the affected exercise
+    const exercise = updatedGroups[action.groupIndex]?.exercises[action.exerciseIndex];
+    if (exercise && action.weight > 0 && action.reps > 0 && action.reps <= 10) {
+      const result = await this.oneRMService.checkAndUpdatePR(
+        exercise.exerciseId,
+        exercise.exerciseName,
+        action.weight,
+        action.reps,
+      );
+      if (result.isNewPR) {
+        ctx.dispatch(new Workout.LoadPRs());
+      }
     }
   }
 
   @Action(Workout.Reset)
   reset(ctx: StateContext<WorkoutStateModel>) {
+    this.clearSessionBackup();
     ctx.setState(WORKOUT_STATE_DEFAULTS);
+  }
+
+  // ── localStorage backup for crash recovery ──
+
+  private static readonly SESSION_BACKUP_KEY = 'hardline_active_session';
+
+  private backupSessionToLocalStorage(session: WorkoutSession): void {
+    try {
+      localStorage.setItem(WorkoutState.SESSION_BACKUP_KEY, JSON.stringify(session));
+    } catch {
+      // localStorage full or unavailable — silently ignore
+    }
+  }
+
+  private getSessionBackup(): WorkoutSession | null {
+    try {
+      const raw = localStorage.getItem(WorkoutState.SESSION_BACKUP_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  }
+
+  private clearSessionBackup(): void {
+    try {
+      localStorage.removeItem(WorkoutState.SESSION_BACKUP_KEY);
+    } catch {
+      // silently ignore
+    }
   }
 }

@@ -19,11 +19,12 @@ export class ExerciseHistorySheetComponent {
   readonly weightSelected = output<number>();
 
   readonly maxWeight = computed(() => {
+    const pr = this.currentPR();
     const entries = this.historyEntries();
-    if (entries.length === 0) return 0;
-    return Math.max(
-      ...entries.flatMap(e => e.sets.map(s => s.weight))
-    );
+    const historyMax = entries.length > 0
+      ? Math.max(...entries.flatMap(e => e.sets.map(s => s.weight)))
+      : 0;
+    return Math.max(pr?.weight ?? 0, historyMax);
   });
 
   readonly chartPoints = computed(() => {

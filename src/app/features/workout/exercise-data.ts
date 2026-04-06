@@ -66,7 +66,7 @@ export const EXERCISES: Exercise[] = [
   { id: 'ex-64', name: 'Dumbbell Pullover', muscleGroup: MuscleGroup.Back, equipment: 'Dumbbell', tags: ['pullover', 'lats', 'chest', 'dumbbell'] },
   { id: 'ex-65', name: 'Inverted Row', muscleGroup: MuscleGroup.Back, equipment: 'Bodyweight', tags: ['row', 'back', 'bodyweight', 'compound'] },
   { id: 'ex-66', name: 'Rack Pull', muscleGroup: MuscleGroup.Back, equipment: 'Barbell', tags: ['rack pull', 'back', 'traps', 'barbell', 'compound'] },
-  { id: 'ex-67', name: 'Cable Face Pull', muscleGroup: MuscleGroup.Back, equipment: 'Cable', tags: ['face pull', 'rear delt', 'back', 'cable'] },
+  { id: 'ex-67', name: 'Cable Face Pull', muscleGroup: MuscleGroup.Shoulders, equipment: 'Cable', tags: ['face pull', 'rear delt', 'shoulders', 'cable'] },
   { id: 'ex-68', name: 'Seal Row', muscleGroup: MuscleGroup.Back, equipment: 'Barbell', tags: ['row', 'back', 'seal row', 'barbell', 'strict'] },
 
   // ── SHOULDERS (20) ──

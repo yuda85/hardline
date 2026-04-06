@@ -35,8 +35,8 @@
         @for (group of muscleGroups; track group.value) {
           <button
             class="ep-chip"
-            [class.ep-chip--active]="selectedGroup() === group.value"
-            (click)="selectedGroup.set(group.value)"
+            [class.ep-chip--active]="selectedGroups().has(group.value)"
+            (click)="toggleGroup(group.value)"
           >
             {{ group.label }}
           </button>
@@ -118,7 +118,7 @@
               [ngModel]="newMuscleGroup()"
               (ngModelChange)="newMuscleGroup.set($event)"
             >
-              @for (g of muscleGroups.slice(1); track g.value) {
+              @for (g of muscleGroups; track g.value) {
                 <option [value]="g.value">{{ g.label }}</option>
               }
             </select>
