@@ -1,95 +1,407 @@
-<div class="ehome">
+<div class="energy">
   @if (!goals()) {
-    <!-- Setup prompt -->
-    <div class="ehome__setup">
-      <span class="material-symbols-outlined ehome__setup-icon">tune</span>
+    <div class="energy__setup">
+      <span class="material-symbols-outlined energy__setup-icon">tune</span>
       <p>Set up your goals to get started</p>
-      <button class="ehome__setup-btn" (click)="goToGoals()">
+      <button class="energy__setup-btn" (click)="goToGoals()">
         Set up goals
         <span class="material-symbols-outlined">arrow_forward</span>
       </button>
     </div>
   } @else {
-    <!-- Bento Grid -->
-    <div class="ehome__bento">
+    <!-- Tab Navigation -->
+    <nav class="energy__tabs">
+      <button class="energy__tab" [class.energy__tab--active]="activeTab() === 'home'" (click)="setTab('home')">Home</button>
+      <button class="energy__tab" [class.energy__tab--active]="activeTab() === 'daily'" (click)="setTab('daily')">Daily</button>
+      <button class="energy__tab" [class.energy__tab--active]="activeTab() === 'trends'" (click)="setTab('trends')">Trends</button>
+    </nav>
 
-      <!-- Hero: Calorie Ring + Macros -->
-      <div class="ehome__cell ehome__cell--hero ehome__card--hero">
-        <div class="ehome__hero-ring">
-          <app-calorie-ring
-            [consumed]="summary()?.consumedCalories ?? 0"
-            [target]="goals()!.dailyCalories"
-            size="lg"
-          />
-        </div>
-        <div class="ehome__hero-macros">
-          <div class="ehome__hero-macros-header">
-            <h2 class="ehome__hero-title">Daily Nutrients</h2>
-            <span class="ehome__hero-target">Target: {{ goals()!.dailyCalories }}</span>
+    <!-- ═══════ HOME TAB ═══════ -->
+    @if (activeTab() === 'home') {
+      <div class="energy__bento">
+        <!-- Hero: Calorie Ring + Macros -->
+        <div class="energy__cell energy__cell--hero energy__card--hero">
+          <div class="energy__hero-ring">
+            <app-calorie-ring
+              [consumed]="summary()?.consumedCalories ?? 0"
+              [target]="goals()!.dailyCalories"
+              size="lg"
+            />
           </div>
-          <app-macro-bars
-            [protein]="summary()?.consumedProtein ?? 0"
-            [proteinGoal]="goals()!.dailyProtein"
-            [carbs]="summary()?.consumedCarbs ?? 0"
-            [carbsGoal]="goals()!.dailyCarbs"
-            [fat]="summary()?.consumedFat ?? 0"
-            [fatGoal]="goals()!.dailyFat"
-          />
-        </div>
-      </div>
-
-      <!-- Net Balance -->
-      <div class="ehome__cell ehome__cell--balance">
-        <app-balance-card
-          [consumed]="summary()?.consumedCalories ?? 0"
-          [burned]="summary()?.totalCaloriesOut ?? goals()!.bmr"
-        />
-      </div>
-
-      <!-- Stat Cards -->
-      <div class="ehome__cell ehome__cell--stats">
-        <div class="ehome__stat" (click)="goToActivity()">
-          <span class="material-symbols-outlined ehome__stat-icon ehome__stat-icon--primary">directions_walk</span>
-          <span class="ehome__stat-micro">Steps</span>
-          <span class="ehome__stat-value">{{ steps()?.steps ?? 0 }}</span>
-          <span class="material-symbols-outlined ehome__stat-watermark">directions_walk</span>
-        </div>
-
-        <div class="ehome__stat" (click)="goToDaily()">
-          <span class="material-symbols-outlined ehome__stat-icon ehome__stat-icon--tertiary">local_fire_department</span>
-          <span class="ehome__stat-micro">Active Burn</span>
-          <span class="ehome__stat-value">{{ summary()?.totalCaloriesOut ?? goals()!.bmr }} <span>kcal</span></span>
-          <span class="material-symbols-outlined ehome__stat-watermark">local_fire_department</span>
-        </div>
-
-        <div class="ehome__stat" (click)="goToFood()">
-          <span class="material-symbols-outlined ehome__stat-icon ehome__stat-icon--secondary">restaurant</span>
-          <span class="ehome__stat-micro">Meals Logged</span>
-          <span class="ehome__stat-value">{{ summary()?.mealCount ?? 0 }}</span>
-          <span class="material-symbols-outlined ehome__stat-watermark">restaurant</span>
-        </div>
-
-        <a class="ehome__stat ehome__stat--link" (click)="goToWeekly()">
-          <span class="material-symbols-outlined ehome__stat-icon">calendar_month</span>
-          <span class="ehome__stat-micro">Weekly Summary</span>
-          <div class="ehome__stat-link-row">
-            <span class="ehome__stat-link-text">Review Week</span>
-            <span class="material-symbols-outlined ehome__stat-link-arrow">arrow_forward</span>
+          <div class="energy__hero-macros">
+            <div class="energy__hero-macros-header">
+              <h2 class="energy__hero-title">Daily Nutrients</h2>
+            </div>
+            <div class="energy__hero-context">
+              <span>TDEE: {{ goals()!.tdee | number }}</span>
+              <span class="energy__hero-sep">|</span>
+              <span>Budget: {{ goals()!.dailyCalories | number }}</span>
+            </div>
+            <app-macro-bars
+              [protein]="summary()?.consumedProtein ?? 0"
+              [proteinGoal]="goals()!.dailyProtein"
+              [carbs]="summary()?.consumedCarbs ?? 0"
+              [carbsGoal]="goals()!.dailyCarbs"
+              [fat]="summary()?.consumedFat ?? 0"
+              [fatGoal]="goals()!.dailyFat"
+            />
           </div>
-        </a>
-      </div>
+        </div>
 
-      <!-- Quick Actions -->
-      <div class="ehome__cell ehome__cell--actions">
-        <button class="ehome__action ehome__action--primary" (click)="goToFood()">
-          <span class="material-symbols-outlined">add_circle</span>
-          Log Meal
-        </button>
-        <button class="ehome__action ehome__action--surface" (click)="goToActivity()">
-          <span class="material-symbols-outlined">fitness_center</span>
-          Log Activity
-        </button>
+        <!-- Burn Breakdown -->
+        <div class="energy__cell energy__cell--burn energy__card--burn">
+          <div class="energy__burn-header">
+            <span class="material-symbols-outlined energy__burn-icon" style="font-variation-settings: 'FILL' 1;">local_fire_department</span>
+            <h3 class="energy__burn-title">Burn Breakdown</h3>
+          </div>
+          <div class="energy__burn-items">
+            <div class="energy__burn-row">
+              <span>Resting</span>
+              <strong>{{ summary()?.bmrEstimate ?? goals()!.bmr }} <span class="energy__burn-unit">kcal</span></strong>
+            </div>
+            <div class="energy__burn-row">
+              <span>Activity</span>
+              <strong>{{ summary()?.stepsCalories ?? 0 }} <span class="energy__burn-unit">kcal</span></strong>
+            </div>
+            <div class="energy__burn-row">
+              <span>Exercise</span>
+              <strong>{{ (summary()?.workoutCalories ?? 0) + (summary()?.cardioCalories ?? 0) }} <span class="energy__burn-unit">kcal</span></strong>
+            </div>
+          </div>
+          <div class="energy__burn-total">
+            <span>Total Out</span>
+            <strong>{{ summary()?.totalCaloriesOut ?? goals()!.bmr }}</strong>
+          </div>
+        </div>
+
+        <!-- Energy Budget Card -->
+        @if (budget(); as b) {
+          <div class="energy__cell energy__cell--budget">
+            <app-balance-card
+              [budget]="b.budget"
+              [eaten]="b.eaten"
+              [tdee]="b.tdee"
+              [goalAdjustment]="b.goalAdjustment"
+              [goalLabel]="b.goalLabel"
+            />
+          </div>
+        }
+
+        <!-- Stat Cards -->
+        <div class="energy__cell energy__cell--stats">
+          <div class="energy__stat" (click)="goToActivity()">
+            <span class="material-symbols-outlined energy__stat-icon energy__stat-icon--primary">directions_walk</span>
+            <span class="energy__stat-micro">Steps</span>
+            <span class="energy__stat-value">{{ steps()?.steps ?? 0 }}</span>
+            <span class="material-symbols-outlined energy__stat-watermark">directions_walk</span>
+          </div>
+
+          <div class="energy__stat" (click)="goToFood()">
+            <span class="material-symbols-outlined energy__stat-icon energy__stat-icon--secondary">restaurant</span>
+            <span class="energy__stat-micro">Meals Logged</span>
+            <span class="energy__stat-value">{{ summary()?.mealCount ?? 0 }}</span>
+            <span class="material-symbols-outlined energy__stat-watermark">restaurant</span>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="energy__cell energy__cell--actions">
+          <button class="energy__action energy__action--primary" (click)="goToFood()">
+            <span class="material-symbols-outlined">add_circle</span>
+            Log Meal
+          </button>
+          <button class="energy__action energy__action--surface" (click)="goToActivity()">
+            <span class="material-symbols-outlined">fitness_center</span>
+            Log Activity
+          </button>
+        </div>
       </div>
-    </div>
+    }
+
+    <!-- ═══════ DAILY TAB ═══════ -->
+    @if (activeTab() === 'daily') {
+      <div class="daily">
+        <!-- Date Navigation -->
+        <div class="daily__date-nav">
+          <button class="daily__nav-btn" (click)="prevDay()">
+            <span class="material-symbols-outlined">chevron_left</span>
+          </button>
+          <span class="daily__date">{{ formatDate(selectedDate()) }}</span>
+          <button class="daily__nav-btn" (click)="nextDay()">
+            <span class="material-symbols-outlined">chevron_right</span>
+          </button>
+        </div>
+
+        @if (summary(); as s) {
+          <!-- Intake -->
+          <div class="daily__card">
+            <div class="daily__section-header">
+              <h2 class="daily__section-title">Intake</h2>
+              <span class="daily__section-line"></span>
+            </div>
+            <div class="daily__intake-row">
+              <app-calorie-ring [consumed]="s.consumedCalories" [target]="s.targetCalories" size="md" />
+              <div class="daily__intake-macros">
+                <app-macro-bars
+                  [protein]="s.consumedProtein" [proteinGoal]="s.targetProtein"
+                  [carbs]="s.consumedCarbs" [carbsGoal]="s.targetCarbs"
+                  [fat]="s.consumedFat" [fatGoal]="s.targetFat"
+                />
+              </div>
+            </div>
+            <div class="daily__stat-row">
+              <span>{{ s.mealCount }} meals</span>
+              <span class="daily__stat-highlight">{{ s.consumedCalories | number }} / {{ s.targetCalories | number }} kcal</span>
+            </div>
+          </div>
+
+          <!-- Burn -->
+          <div class="daily__card daily__card--burn">
+            <div class="daily__section-header">
+              <h2 class="daily__section-title">Burn</h2>
+              <span class="daily__section-line"></span>
+            </div>
+            <div class="daily__burn-items">
+              <div class="daily__burn-row">
+                <div class="daily__burn-label">
+                  <span class="material-symbols-outlined daily__burn-row-icon">monitor_heart</span>
+                  <span>BMR</span>
+                </div>
+                <strong>{{ s.bmrEstimate | number }} kcal</strong>
+              </div>
+              <div class="daily__burn-row">
+                <div class="daily__burn-label">
+                  <span class="material-symbols-outlined daily__burn-row-icon">directions_walk</span>
+                  <span>Steps ({{ s.steps | number }})</span>
+                </div>
+                <strong>{{ s.stepsCalories | number }} kcal</strong>
+              </div>
+              <div class="daily__burn-row">
+                <div class="daily__burn-label">
+                  <span class="material-symbols-outlined daily__burn-row-icon">fitness_center</span>
+                  <span>Workouts</span>
+                </div>
+                <strong>{{ s.workoutCalories | number }} kcal</strong>
+              </div>
+              <div class="daily__burn-row">
+                <div class="daily__burn-label">
+                  <span class="material-symbols-outlined daily__burn-row-icon">bolt</span>
+                  <span>Cardio</span>
+                </div>
+                <strong>{{ s.cardioCalories | number }} kcal</strong>
+              </div>
+              <div class="daily__burn-row daily__burn-row--total">
+                <span>Total Output</span>
+                <strong>{{ s.totalCaloriesOut | number }} kcal</strong>
+              </div>
+            </div>
+
+            <!-- Estimated vs Actual TDEE -->
+            @if (s.estimatedTdee && s.actualTdee) {
+              <div class="daily__tdee-compare">
+                <span>Estimated TDEE: <strong>{{ s.estimatedTdee | number }}</strong></span>
+                <span class="daily__tdee-sep">|</span>
+                <span>Actual TDEE: <strong>{{ s.actualTdee | number }}</strong></span>
+              </div>
+            }
+          </div>
+
+          <!-- Energy Flow Waterfall -->
+          @if (budget(); as b) {
+            <div class="daily__card">
+              <div class="daily__section-header">
+                <h2 class="daily__section-title">Energy Flow</h2>
+                <span class="daily__section-line"></span>
+              </div>
+              <div class="daily__flow">
+                @for (bar of flowBars(); track bar.label) {
+                  <div class="daily__flow-item" [class.daily__flow-item--accent]="bar.accent">
+                    <span class="daily__flow-value">{{ bar.value | number }}</span>
+                    <div class="daily__flow-bar" [style.width.%]="bar.pct"></div>
+                    <span class="daily__flow-label">{{ bar.label }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+          <!-- Energy Budget Card -->
+          @if (budget(); as b) {
+            <app-balance-card
+              [budget]="b.budget"
+              [eaten]="b.eaten"
+              [tdee]="b.tdee"
+              [goalAdjustment]="b.goalAdjustment"
+              [goalLabel]="b.goalLabel"
+            />
+          }
+
+          @if (s.weightKg) {
+            <div class="daily__weight-card">
+              <span class="material-symbols-outlined daily__weight-icon">monitor_weight</span>
+              <strong class="daily__weight-value">{{ s.weightKg }} kg</strong>
+            </div>
+          }
+        } @else {
+          <div class="daily__empty">
+            <span class="material-symbols-outlined">analytics</span>
+            <p>No data for this day yet. Log meals and activity to see your summary.</p>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- ═══════ TRENDS TAB ═══════ -->
+    @if (activeTab() === 'trends') {
+      <div class="trends">
+        <h2 class="trends__heading">Energy Trends</h2>
+
+        <!-- 7-Day Chart -->
+        <div class="trends__card">
+          <h3 class="trends__section-title">This Week — Intake vs Budget</h3>
+          <div class="trends__chart">
+            @for (day of weeklyChartData(); track day.day) {
+              <div class="trends__chart-col" [class.trends__chart-col--today]="day.isToday">
+                <div class="trends__chart-bars">
+                  <div
+                    class="trends__chart-bar"
+                    [class.trends__chart-bar--over]="day.isOver"
+                    [class.trends__chart-bar--eaten]="!day.isOver"
+                    [style.height.%]="day.eaten > 0 ? (day.eaten / maxChartValue()) * 100 : 2"
+                  ></div>
+                  <div
+                    class="trends__chart-bar trends__chart-bar--budget"
+                    [style.height.%]="(day.budget / maxChartValue()) * 100"
+                  ></div>
+                </div>
+                <span class="trends__chart-day" [class.trends__chart-day--today]="day.isToday">{{ day.day }}</span>
+              </div>
+            }
+          </div>
+          <div class="trends__chart-legend">
+            <div class="trends__legend-item">
+              <span class="trends__legend-dot trends__legend-dot--eaten"></span>
+              <span>Eaten</span>
+            </div>
+            <div class="trends__legend-item">
+              <span class="trends__legend-dot trends__legend-dot--budget"></span>
+              <span>Budget</span>
+            </div>
+            <div class="trends__legend-item">
+              <span class="trends__legend-dot trends__legend-dot--over"></span>
+              <span>Over</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Weekly Stats -->
+        <div class="trends__stats-row">
+          <div class="trends__stat">
+            <div class="trends__stat-header">
+              <span class="material-symbols-outlined trends__stat-icon trends__stat-icon--primary">trending_down</span>
+              <span class="trends__stat-label">Net Deficit</span>
+            </div>
+            <span class="trends__stat-value">{{ weeklyStats().cumulativeDeficit | number }}</span>
+            <span class="trends__stat-unit">kcal total</span>
+          </div>
+          <div class="trends__stat">
+            <div class="trends__stat-header">
+              <span class="material-symbols-outlined trends__stat-icon">track_changes</span>
+              <span class="trends__stat-label">Adherence</span>
+            </div>
+            <span class="trends__stat-value">{{ weeklyStats().adherence }}%</span>
+            <span class="trends__stat-unit">weekly goal</span>
+          </div>
+          <div class="trends__stat">
+            <div class="trends__stat-header">
+              <span class="material-symbols-outlined trends__stat-icon trends__stat-icon--primary">arrow_downward</span>
+              <span class="trends__stat-label">Proj. Change</span>
+            </div>
+            <span class="trends__stat-value">{{ weeklyStats().projectedChange }} <small>kg</small></span>
+            <span class="trends__stat-unit">this week</span>
+          </div>
+        </div>
+
+        <!-- Caloric Intake Calendar -->
+        <div class="trends__card">
+          <h3 class="trends__section-title">Caloric Intake Calendar</h3>
+
+          <div class="trends__cal-legend">
+            <div class="trends__legend-item">
+              <span class="trends__cal-dot trends__cal-dot--none"></span>
+              <span>No data</span>
+            </div>
+            <div class="trends__legend-item">
+              <span class="trends__cal-dot trends__cal-dot--under"></span>
+              <span>Under</span>
+            </div>
+            <div class="trends__legend-item">
+              <span class="trends__cal-dot trends__cal-dot--target"></span>
+              <span>On Target</span>
+            </div>
+            <div class="trends__legend-item">
+              <span class="trends__cal-dot trends__cal-dot--over"></span>
+              <span>Over</span>
+            </div>
+          </div>
+
+          <div class="trends__cal-scroll">
+            @for (month of calorieMonths(); track month.label) {
+              <div class="trends__cal-month">
+                <h4 class="trends__cal-month-title">{{ month.label }}</h4>
+                <div class="trends__cal-header">
+                  @for (label of ['S','M','T','W','T','F','S']; track $index) {
+                    <span class="trends__cal-day-label">{{ label }}</span>
+                  }
+                </div>
+                <div class="trends__cal-grid">
+                  @for (week of month.weeks; track $index) {
+                    @for (cell of week; track $index) {
+                      @if (cell.day) {
+                        <div
+                          class="trends__cal-cell"
+                          [class.trends__cal-cell--under]="cell.intensity === 1"
+                          [class.trends__cal-cell--target]="cell.intensity === 2"
+                          [class.trends__cal-cell--over]="cell.intensity === 3"
+                          [class.trends__cal-cell--today]="cell.isToday"
+                          [class.trends__cal-cell--future]="cell.isFuture"
+                        >
+                          <span class="trends__cal-num">{{ cell.day }}</span>
+                        </div>
+                      } @else {
+                        <div class="trends__cal-cell trends__cal-cell--empty"></div>
+                      }
+                    }
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Weekly Averages -->
+        @if (weeklyAverages().length > 0) {
+          <div class="trends__card">
+            <h3 class="trends__section-title">Weekly Averages</h3>
+            <div class="trends__weeks">
+              @for (week of weeklyAverages(); track week.weekLabel) {
+                <div class="trends__week-row">
+                  <span class="trends__week-label">Wk of {{ week.weekLabel }}</span>
+                  <div class="trends__week-values">
+                    <span class="trends__week-consumed" [class.trends__week-consumed--over]="week.avgConsumed > week.avgTarget">
+                      {{ week.avgConsumed | number }}
+                    </span>
+                    <span class="trends__week-sep">/</span>
+                    <span class="trends__week-target">{{ week.avgTarget | number }}</span>
+                    <span class="trends__week-unit">kcal</span>
+                  </div>
+                  <span class="trends__week-days">{{ week.days }}d</span>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
   }
 </div>

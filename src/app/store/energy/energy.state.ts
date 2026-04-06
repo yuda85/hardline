@@ -21,6 +21,8 @@ import {
   DailySteps,
   DailySummary,
   WeeklySummary,
+  CalorieDay,
+  EnergyBudget,
   DEFAULT_GOAL_SETTINGS,
 } from '../../core/models/energy.model';
 
@@ -90,6 +92,16 @@ export class EnergyState {
   @Selector()
   static dailyProteinTarget(state: EnergyStateModel): number {
     return state.goalSettings?.dailyProtein ?? 150;
+  }
+
+  @Selector()
+  static weeklyDailySummaries(state: EnergyStateModel): DailySummary[] {
+    return state.weeklyDailySummaries;
+  }
+
+  @Selector()
+  static calorieDays(state: EnergyStateModel): CalorieDay[] {
+    return state.calorieDays;
   }
 
   // ── Actions ──
@@ -284,6 +296,33 @@ export class EnergyState {
             ctx.patchState({ weeklySummary: summary as WeeklySummary });
           }),
         );
+      }),
+    );
+  }
+
+  @Action(Energy.FetchWeeklyDailySummaries)
+  fetchWeeklyDailySummaries(ctx: StateContext<EnergyStateModel>, action: Energy.FetchWeeklyDailySummaries) {
+    const uid = this.store.selectSnapshot(AuthState.uid);
+    if (!uid) return;
+
+    return this.dailySummaryRepo.getByDateRange(uid, action.weekStart, action.weekEnd).pipe(
+      take(1),
+      tap(summaries => {
+        ctx.patchState({ weeklyDailySummaries: summaries });
+      }),
+    );
+  }
+
+  @Action(Energy.FetchCalorieDays)
+  fetchCalorieDays(ctx: StateContext<EnergyStateModel>, action: Energy.FetchCalorieDays) {
+    const uid = this.store.selectSnapshot(AuthState.uid);
+    if (!uid) return;
+
+    return this.dailySummaryRepo.getByDateRange(uid, action.startDate, action.endDate).pipe(
+      take(1),
+      tap(summaries => {
+        const calorieDays = this.calcService.buildCalorieDays(summaries);
+        ctx.patchState({ calorieDays });
       }),
     );
   }

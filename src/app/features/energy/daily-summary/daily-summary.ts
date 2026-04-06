@@ -1,7 +1,8 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, computed, OnInit } from '@angular/core';
 import { Store } from '@ngxs/store';
 import { Energy } from '../../../store/energy/energy.actions';
 import { EnergyState } from '../../../store/energy/energy.state';
+import { EnergyCalcService } from '../../../core/services/energy-calc.service';
 import { CalorieRingComponent } from '../shared/calorie-ring/calorie-ring';
 import { MacroBarsComponent } from '../shared/macro-bars/macro-bars';
 import { BalanceCardComponent } from '../shared/balance-card/balance-card';
@@ -15,10 +16,18 @@ import { BalanceCardComponent } from '../shared/balance-card/balance-card';
 })
 export class DailySummaryComponent implements OnInit {
   private readonly store = inject(Store);
+  private readonly calcService = inject(EnergyCalcService);
 
   protected readonly summary = this.store.selectSignal(EnergyState.dailySummary);
   protected readonly goals = this.store.selectSignal(EnergyState.goalSettings);
   protected readonly selectedDate = this.store.selectSignal(EnergyState.selectedDate);
+
+  protected readonly budget = computed(() => {
+    const g = this.goals();
+    const s = this.summary();
+    if (!g) return null;
+    return this.calcService.buildEnergyBudget(g, s);
+  });
 
   ngOnInit() {
     this.store.dispatch(new Energy.LoadGoalSettings());

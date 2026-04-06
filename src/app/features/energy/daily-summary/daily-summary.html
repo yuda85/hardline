@@ -52,7 +52,15 @@
     </div>
 
     <!-- Balance -->
-    <app-balance-card [consumed]="s.consumedCalories" [burned]="s.totalCaloriesOut" />
+    @if (budget(); as b) {
+      <app-balance-card
+        [budget]="b.budget"
+        [eaten]="b.eaten"
+        [tdee]="b.tdee"
+        [goalAdjustment]="b.goalAdjustment"
+        [goalLabel]="b.goalLabel"
+      />
+    }
 
     @if (s.weightKg) {
       <div class="ds__weight-card">

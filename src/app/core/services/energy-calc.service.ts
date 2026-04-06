@@ -11,6 +11,8 @@ import {
   DailySteps,
   DailySummary,
   WeeklySummary,
+  EnergyBudget,
+  CalorieDay,
 } from '../models/energy.model';
 import { WorkoutSession } from '../models/workout.model';
 import { toDate } from './date.util';
@@ -79,6 +81,63 @@ export class EnergyCalcService {
       carbs: Math.round((calories * ratios.carbs) / CAL_PER_GRAM.carbs),
       fat: Math.round((calories * ratios.fat) / CAL_PER_GRAM.fat),
     };
+  }
+
+  // ────── Goal Adjustment ──────
+
+  calculateGoalAdjustment(goal: FitnessGoal, rate: RateOfChange): number {
+    return CALORIE_ADJUSTMENTS[goal][rate];
+  }
+
+  // ────── Goal Label ──────
+
+  goalLabel(goal: FitnessGoal): string {
+    switch (goal) {
+      case 'fat_loss': return 'Fat Loss';
+      case 'maintenance': return 'Maintenance';
+      case 'muscle_gain': return 'Muscle Gain';
+    }
+  }
+
+  // ────── Energy Budget ──────
+
+  buildEnergyBudget(goals: GoalSettings, summary: DailySummary | null): EnergyBudget {
+    const adjustment = goals.goalAdjustment ?? (goals.dailyCalories - goals.tdee);
+    const budget = goals.dailyCalories;
+    const eaten = summary?.consumedCalories ?? 0;
+    const remaining = budget - eaten;
+
+    return {
+      tdee: goals.tdee,
+      goalAdjustment: adjustment,
+      goalLabel: this.goalLabel(goals.goal),
+      budget,
+      eaten,
+      remaining,
+      isOverBudget: remaining < 0,
+      usedPct: budget > 0 ? Math.min(100, Math.round((eaten / budget) * 100)) : 0,
+    };
+  }
+
+  // ────── Caloric Intake Calendar ──────
+
+  buildCalorieDays(summaries: DailySummary[]): CalorieDay[] {
+    return summaries.map(s => {
+      const ratio = s.targetCalories > 0 ? s.consumedCalories / s.targetCalories : 0;
+      let intensity: CalorieDay['intensity'] = 0;
+      if (s.consumedCalories > 0) {
+        if (ratio > 1.1) intensity = 3;         // over
+        else if (ratio >= 0.9) intensity = 2;    // on target
+        else intensity = 1;                       // under
+      }
+      return {
+        date: s.date,
+        consumed: s.consumedCalories,
+        target: s.targetCalories,
+        intensity,
+        dayOfWeek: new Date(s.date + 'T12:00:00').getDay(),
+      };
+    });
   }
 
   // ────── Full Goal Calculation ──────
@@ -225,6 +284,8 @@ export class EnergyCalcService {
       totalCaloriesOut,
       netCalories,
       deficitOrSurplus: netCalories,
+      estimatedTdee: goals.tdee,
+      actualTdee: totalCaloriesOut,
       steps: steps?.steps ?? 0,
       ...(weightKg !== undefined ? { weightKg } : {}),
     };
@@ -254,6 +315,18 @@ export class EnergyCalcService {
 
     const weights = dailySummaries.filter(d => d.weightKg).map(d => d.weightKg!);
 
+    // Extended energy trends
+    const dailyIntakes = dailySummaries.map(d => d.consumedCalories);
+    const dailyBudgets = dailySummaries.map(d => d.targetCalories);
+    const cumulativeDeficitSurplus = dailySummaries.reduce((s, d) => s + (d.targetCalories - d.consumedCalories), 0);
+    const daysOnTarget = dailySummaries.filter(d => {
+      if (d.targetCalories === 0) return false;
+      const ratio = d.consumedCalories / d.targetCalories;
+      return ratio >= 0.9 && ratio <= 1.1;
+    }).length;
+    const adherenceScore = Math.round((daysOnTarget / count) * 100);
+    const projectedWeeklyWeightChange = Math.round((cumulativeDeficitSurplus / 7700) * 100) / 100;
+
     return {
       userId,
       weekStart,
@@ -267,6 +340,11 @@ export class EnergyCalcService {
       workoutsTarget,
       avgSteps,
       cardioSessions,
+      dailyIntakes,
+      dailyBudgets,
+      cumulativeDeficitSurplus,
+      adherenceScore,
+      projectedWeeklyWeightChange,
       ...(weights.length > 0 ? { startWeight: weights[0], endWeight: weights[weights.length - 1], weightChange: Math.round((weights[weights.length - 1] - weights[0]) * 10) / 10 } : {}),
     };
   }

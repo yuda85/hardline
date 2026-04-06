@@ -12,6 +12,7 @@ import { WeightState } from '../../store/weight/weight.state';
 import { computeGoalProgress } from '../../store/weight/weight.state';
 import { ProfileState } from '../../store/profile/profile.state';
 import { SessionRepository } from '../../data/repositories/session.repository';
+import { EnergyCalcService } from '../../core/services/energy-calc.service';
 import { CardComponent, ButtonComponent, BadgeComponent, SkeletonComponent } from '../../shared/components';
 import { CalorieRingComponent } from '../energy/shared/calorie-ring/calorie-ring';
 import { MacroBarsComponent } from '../energy/shared/macro-bars/macro-bars';
@@ -29,6 +30,7 @@ export class DashboardComponent implements OnInit {
   private readonly store = inject(Store);
   private readonly router = inject(Router);
   private readonly sessionRepo = inject(SessionRepository);
+  private readonly calcService = inject(EnergyCalcService);
 
   protected readonly user = this.store.selectSignal(AuthState.user);
   protected readonly goals = this.store.selectSignal(EnergyState.goalSettings);
@@ -46,6 +48,13 @@ export class DashboardComponent implements OnInit {
     const target = this.profileGoals()?.targetWeight ?? null;
     if (current === null || start === null) return null;
     return computeGoalProgress(current, start, target);
+  });
+
+  protected readonly budget = computed(() => {
+    const g = this.goals();
+    const s = this.summary();
+    if (!g) return null;
+    return this.calcService.buildEnergyBudget(g, s);
   });
 
   protected readonly recentSessions = signal<WorkoutSession[]>([]);

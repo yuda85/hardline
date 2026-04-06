@@ -1,18 +1,29 @@
-<div class="balance" [class.balance--deficit]="isDeficit()" [class.balance--surplus]="!isDeficit()">
-  <div class="balance__top">
-    <span class="balance__micro-label">Net Energy</span>
-    <div class="balance__main">
-      <span class="balance__value">{{ net() }}</span>
-      <span class="balance__unit">{{ label() }}</span>
+<div class="budget" [class.budget--on-track]="isDeficit()" [class.budget--over]="!isDeficit()">
+  <span class="budget__micro-label">Energy Budget</span>
+
+  <div class="budget__equation">
+    <span class="budget__eq-numbers">{{ budget() | number }} - {{ eaten() | number }}</span>
+    <div class="budget__eq-result">
+      <span class="budget__eq-value">= {{ remaining() | number }}</span>
+      <span class="budget__eq-unit">{{ isDeficit() ? 'remaining' : 'over' }}</span>
     </div>
   </div>
-  <div class="balance__insight">
-    <p>You are currently
-      <strong class="balance__highlight">{{ isDeficit() ? 'on track' : 'over target' }}</strong>
-      for your energy goals.
-    </p>
+
+  <div class="budget__context">
+    <span>TDEE {{ tdee() | number }}</span>
+    <span class="budget__context-sep">|</span>
+    <span>Goal {{ adjustmentSign() }}{{ goalAdjustment() }} ({{ goalLabel() }})</span>
   </div>
-  <div class="balance__bar">
-    <div class="balance__bar-fill" [style.width.%]="barPct()"></div>
+
+  <div class="budget__bar">
+    <div class="budget__bar-fill" [style.width.%]="usedPct()"></div>
+  </div>
+
+  <div class="budget__insight">
+    <span class="material-symbols-outlined budget__insight-icon">{{ isDeficit() ? 'check_circle' : 'warning' }}</span>
+    <span>You are currently
+      <strong class="budget__highlight">{{ isDeficit() ? 'on track' : 'over target' }}</strong>
+      for your energy goals
+    </span>
   </div>
 </div>

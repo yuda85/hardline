@@ -50,7 +50,8 @@
       "Bash(npx ruflo:*)",
       "Bash(export PATH=\"/opt/homebrew/bin:$PATH\")",
       "Bash(grep -E \"\\\\.\\(ts|html\\)$\")",
-      "Bash(export PATH=\"/opt/homebrew/bin:/usr/local/bin:$PATH\")"
+      "Bash(export PATH=\"/opt/homebrew/bin:/usr/local/bin:$PATH\")",
+      "Bash(export PATH=\"/usr/local/bin:/opt/homebrew/bin:$HOME/.nvm/versions/node/*/bin:$PATH\")"
     ]
   }
 }

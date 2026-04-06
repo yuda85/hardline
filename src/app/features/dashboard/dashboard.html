@@ -37,12 +37,15 @@
       </div>
     </app-card>
 
-    <!-- Net balance -->
-    @if (goals(); as g) {
+    <!-- Energy budget -->
+    @if (budget(); as b) {
       <app-card class="dash__card dash__card--wide" [elevation]="0" padding="none">
         <app-balance-card
-          [consumed]="summary()?.consumedCalories ?? 0"
-          [burned]="summary()?.totalCaloriesOut ?? g.bmr"
+          [budget]="b.budget"
+          [eaten]="b.eaten"
+          [tdee]="b.tdee"
+          [goalAdjustment]="b.goalAdjustment"
+          [goalLabel]="b.goalLabel"
         />
       </app-card>
     }

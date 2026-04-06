@@ -27,10 +27,35 @@ export interface GoalSettings extends FirestoreDoc {
   // Calculated values (stored for quick access)
   bmr: number;
   tdee: number;
+  goalAdjustment?: number; // e.g. -500 for fat_loss/moderate, +300 for muscle_gain/moderate
   dailyCalories: number;
   dailyProtein: number;
   dailyCarbs: number;
   dailyFat: number;
+}
+
+// ── Energy Budget (computed view model) ──
+
+export interface EnergyBudget {
+  tdee: number;
+  goalAdjustment: number;
+  goalLabel: string;
+  budget: number;          // dailyCalories (= tdee + goalAdjustment)
+  eaten: number;
+  remaining: number;       // budget - eaten
+  isOverBudget: boolean;
+  usedPct: number;         // 0-100
+}
+
+// ── Caloric Intake Calendar Day ──
+
+export interface CalorieDay {
+  date: string;
+  consumed: number;
+  target: number;
+  /** 0 = no data, 1 = under, 2 = on target (within 10%), 3 = over */
+  intensity: 0 | 1 | 2 | 3;
+  dayOfWeek: number;
 }
 
 export const DEFAULT_GOAL_SETTINGS: Omit<GoalSettings, 'userId' | keyof FirestoreDoc> = {
@@ -46,6 +71,7 @@ export const DEFAULT_GOAL_SETTINGS: Omit<GoalSettings, 'userId' | keyof Firestor
   macroPreference: 'balanced',
   bmr: 0,
   tdee: 0,
+  goalAdjustment: 0,
   dailyCalories: 2000,
   dailyProtein: 150,
   dailyCarbs: 200,
@@ -144,6 +170,9 @@ export interface DailySummary extends FirestoreDoc {
   // Balance
   netCalories: number;
   deficitOrSurplus: number;
+  // TDEE comparison
+  estimatedTdee?: number;  // BMR * activity multiplier (from goal settings)
+  actualTdee?: number;     // BMR + actual tracked activity (steps + workout + cardio)
   // Meta
   steps: number;
   weightKg?: number;
@@ -168,4 +197,10 @@ export interface WeeklySummary extends FirestoreDoc {
   startWeight?: number;
   endWeight?: number;
   weightChange?: number;
+  // Extended energy trends
+  dailyIntakes?: number[];           // per-day consumed calories (Sun-Sat)
+  dailyBudgets?: number[];           // per-day target calories (Sun-Sat)
+  cumulativeDeficitSurplus?: number; // sum of (target - consumed) across all days
+  adherenceScore?: number;           // % of days within +/- 10% of target
+  projectedWeeklyWeightChange?: number; // cumulativeDeficitSurplus / 7700 (kg)
 }

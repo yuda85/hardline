@@ -77,6 +77,16 @@ export namespace Energy {
     constructor(public weekStart: string, public weekEnd: string) {}
   }
 
+  export class FetchWeeklyDailySummaries {
+    static readonly type = '[Energy] Fetch Weekly Daily Summaries';
+    constructor(public weekStart: string, public weekEnd: string) {}
+  }
+
+  export class FetchCalorieDays {
+    static readonly type = '[Energy] Fetch Calorie Days';
+    constructor(public startDate: string, public endDate: string) {}
+  }
+
   export class Reset {
     static readonly type = '[Energy] Reset';
   }
