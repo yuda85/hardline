@@ -248,6 +248,18 @@
             <p>No data for this day yet. Log meals and activity to see your summary.</p>
           </div>
         }
+
+        <!-- Quick Actions -->
+        <div class="daily__actions">
+          <button class="energy__action energy__action--primary" (click)="goToFood()">
+            <span class="material-symbols-outlined">add_circle</span>
+            Log Meal
+          </button>
+          <button class="energy__action energy__action--surface" (click)="goToActivity()">
+            <span class="material-symbols-outlined">fitness_center</span>
+            Log Activity
+          </button>
+        </div>
       </div>
     }
 
@@ -365,6 +377,7 @@
                           [class.trends__cal-cell--over]="cell.intensity === 3"
                           [class.trends__cal-cell--today]="cell.isToday"
                           [class.trends__cal-cell--future]="cell.isFuture"
+                          (click)="!cell.isFuture && goToDate(cell.dateStr)"
                         >
                           <span class="trends__cal-num">{{ cell.day }}</span>
                         </div>

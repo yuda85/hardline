@@ -14,7 +14,8 @@ export function toDate(value: unknown): Date {
   return new Date(value as string);
 }
 
-/** Convert any date-like value to YYYY-MM-DD string */
+/** Convert any date-like value to YYYY-MM-DD string in local timezone */
 export function toDateString(value: unknown): string {
-  return toDate(value).toISOString().split('T')[0];
+  const d = toDate(value);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }

@@ -53,7 +53,7 @@ export class WeightState {
     const days = VIEW_RANGE_DAYS[state.viewRange];
     const cutoff = new Date();
     cutoff.setDate(cutoff.getDate() - days);
-    const cutoffStr = cutoff.toISOString().split('T')[0];
+    const cutoffStr = toDateString(cutoff);
     return state.entries.filter(e => e.date >= cutoffStr).sort((a, b) => a.date.localeCompare(b.date));
   }
 
@@ -81,7 +81,7 @@ export class WeightState {
     for (let i = 0; i < entries.length; i++) {
       const expected = new Date(today);
       expected.setDate(today.getDate() - i);
-      const expectedStr = expected.toISOString().split('T')[0];
+      const expectedStr = toDateString(expected);
 
       if (entries.find(e => e.date === expectedStr)) {
         streak++;

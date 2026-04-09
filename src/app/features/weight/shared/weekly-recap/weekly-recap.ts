@@ -1,5 +1,6 @@
 import { Component, input, computed } from '@angular/core';
 import { WeightEntry } from '../../../../core/models/energy.model';
+import { toDateString } from '../../../../core/services/date.util';
 @Component({
   selector: 'app-weekly-recap',
   standalone: true,
@@ -21,8 +22,8 @@ export class WeeklyRecapComponent {
     const twoWeeksAgo = new Date(today);
     twoWeeksAgo.setDate(today.getDate() - 14);
 
-    const weekAgoStr = weekAgo.toISOString().split('T')[0];
-    const twoWeeksAgoStr = twoWeeksAgo.toISOString().split('T')[0];
+    const weekAgoStr = toDateString(weekAgo);
+    const twoWeeksAgoStr = toDateString(twoWeeksAgo);
 
     const thisWeek = all.filter(e => e.date >= weekAgoStr);
     const lastWeek = all.filter(e => e.date >= twoWeeksAgoStr && e.date < weekAgoStr);

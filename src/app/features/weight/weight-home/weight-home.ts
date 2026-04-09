@@ -13,6 +13,7 @@ import { PredictionCardComponent } from '../shared/prediction-card/prediction-ca
 import { WeeklyRecapComponent } from '../shared/weekly-recap/weekly-recap';
 import { MilestoneBadgeComponent } from '../shared/milestone-badge/milestone-badge';
 import { WeightPromptComponent } from '../weight-prompt/weight-prompt';
+import { toDateString } from '../../../core/services/date.util';
 import type { ViewRange } from '../../../store/weight/weight.model';
 
 @Component({
@@ -88,7 +89,7 @@ export class WeightHomeComponent implements OnInit {
   ngOnInit() {
     this.store.dispatch(new Weight.LoadHistory());
     this.store.dispatch(new Profile.FetchGoals());
-    const today = new Date().toISOString().split('T')[0];
+    const today = toDateString(new Date());
     this.store.dispatch(new Energy.FetchDayData(today));
   }
 

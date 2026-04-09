@@ -72,12 +72,12 @@ export class EnergyHomeComponent implements OnInit {
     // Build a 7-day array (Sun-Sat) for the current week
     const weekStart = this.getWeekStart(new Date());
     const result: { day: string; eaten: number; budget: number; isOver: boolean; isToday: boolean; hasDta: boolean }[] = [];
-    const today = new Date().toISOString().split('T')[0];
+    const today = this.localDateStr(new Date());
 
     for (let i = 0; i < 7; i++) {
       const d = new Date(weekStart);
       d.setDate(d.getDate() + i);
-      const dateStr = d.toISOString().split('T')[0];
+      const dateStr = this.localDateStr(d);
       const daySummary = summaries.find(s => s.date === dateStr);
       result.push({
         day: this.weekDayLabels[i],
@@ -119,7 +119,7 @@ export class EnergyHomeComponent implements OnInit {
     const startYear = createdAt.getFullYear();
     const startMonth = createdAt.getMonth();
 
-    const months: { label: string; weeks: { day: number | null; intensity: CalorieDay['intensity']; isToday: boolean; isFuture: boolean; consumed: number; target: number }[][] }[] = [];
+    const months: { label: string; weeks: { day: number | null; dateStr: string; intensity: CalorieDay['intensity']; isToday: boolean; isFuture: boolean; consumed: number; target: number }[][] }[] = [];
 
     let y = now.getFullYear();
     let m = now.getMonth();
@@ -133,7 +133,7 @@ export class EnergyHomeComponent implements OnInit {
       let currentWeek: typeof weeks[0] = [];
 
       for (let i = 0; i < firstDayOfWeek; i++) {
-        currentWeek.push({ day: null, intensity: 0, isToday: false, isFuture: false, consumed: 0, target: 0 });
+        currentWeek.push({ day: null, dateStr: '', intensity: 0, isToday: false, isFuture: false, consumed: 0, target: 0 });
       }
 
       for (let d = 1; d <= daysInMonth; d++) {
@@ -142,6 +142,7 @@ export class EnergyHomeComponent implements OnInit {
         const entry = consumedMap.get(dateStr);
         currentWeek.push({
           day: d,
+          dateStr,
           intensity: entry?.intensity ?? 0,
           isToday: dateStr === todayStr,
           isFuture: date > now,
@@ -155,7 +156,7 @@ export class EnergyHomeComponent implements OnInit {
       }
       if (currentWeek.length > 0) {
         while (currentWeek.length < 7) {
-          currentWeek.push({ day: null, intensity: 0, isToday: false, isFuture: false, consumed: 0, target: 0 });
+          currentWeek.push({ day: null, dateStr: '', intensity: 0, isToday: false, isFuture: false, consumed: 0, target: 0 });
         }
         weeks.push(currentWeek);
       }
@@ -179,7 +180,7 @@ export class EnergyHomeComponent implements OnInit {
     for (const day of days) {
       const d = new Date(day.date + 'T12:00:00');
       const weekStart = this.getWeekStart(d);
-      const key = weekStart.toISOString().split('T')[0];
+      const key = this.localDateStr(weekStart);
       if (!weekMap.has(key)) weekMap.set(key, { consumed: [], target: [] });
       const w = weekMap.get(key)!;
       w.consumed.push(day.consumed);
@@ -205,7 +206,7 @@ export class EnergyHomeComponent implements OnInit {
 
   ngOnInit() {
     this.store.dispatch(new Energy.LoadGoalSettings()).subscribe(() => {
-      const today = new Date().toISOString().split('T')[0];
+      const today = this.localDateStr(new Date());
       this.store.dispatch(new Energy.FetchDayData(today)).subscribe(() => {
         this.store.dispatch(new Energy.RecalculateDailySummary());
       });
@@ -222,7 +223,7 @@ export class EnergyHomeComponent implements OnInit {
   protected prevDay() {
     const current = new Date(this.selectedDate());
     current.setDate(current.getDate() - 1);
-    this.store.dispatch(new Energy.SetDate(current.toISOString().split('T')[0]));
+    this.store.dispatch(new Energy.SetDate(this.localDateStr(current)));
   }
 
   protected nextDay() {
@@ -230,7 +231,7 @@ export class EnergyHomeComponent implements OnInit {
     const today = new Date(); today.setHours(0, 0, 0, 0);
     current.setDate(current.getDate() + 1);
     if (current <= today) {
-      this.store.dispatch(new Energy.SetDate(current.toISOString().split('T')[0]));
+      this.store.dispatch(new Energy.SetDate(this.localDateStr(current)));
     }
   }
 
@@ -242,6 +243,12 @@ export class EnergyHomeComponent implements OnInit {
   }
 
   // ── Navigation ──
+
+  protected goToDate(dateStr: string) {
+    if (!dateStr) return;
+    this.store.dispatch(new Energy.SetDate(dateStr));
+    this.activeTab.set('daily');
+  }
 
   protected goToGoals() { this.router.navigate(['/energy', 'goals']); }
   protected goToFood() { this.router.navigate(['/energy', 'food']); }
@@ -255,8 +262,8 @@ export class EnergyHomeComponent implements OnInit {
     const weekEnd = new Date(weekStart);
     weekEnd.setDate(weekEnd.getDate() + 6);
 
-    const wsStr = weekStart.toISOString().split('T')[0];
-    const weStr = weekEnd.toISOString().split('T')[0];
+    const wsStr = this.localDateStr(weekStart);
+    const weStr = this.localDateStr(weekEnd);
 
     this.store.dispatch(new Energy.FetchWeeklyDailySummaries(wsStr, weStr));
     this.store.dispatch(new Energy.RecalculateWeeklySummary(wsStr, weStr));
@@ -264,8 +271,8 @@ export class EnergyHomeComponent implements OnInit {
     // Fetch calorie days for calendar (all time from signup)
     const user = this.store.selectSnapshot(AuthState.user);
     const createdAt = user?.createdAt ? toDate(user.createdAt) : new Date();
-    const startStr = createdAt.toISOString().split('T')[0];
-    const todayStr = now.toISOString().split('T')[0];
+    const startStr = this.localDateStr(createdAt);
+    const todayStr = this.localDateStr(now);
     this.store.dispatch(new Energy.FetchCalorieDays(startStr, todayStr));
   }
 

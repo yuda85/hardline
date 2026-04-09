@@ -8,8 +8,8 @@ import { AuthState } from '../../../store/auth/auth.state';
 import { EnergyCalcService } from '../../../core/services/energy-calc.service';
 import { SessionRepository } from '../../../data/repositories/session.repository';
 import { CARDIO_TYPES, CardioEntry } from '../../../core/models/energy.model';
-import { WorkoutSession } from '../../../core/models/workout.model';
 import { toDateString } from '../../../core/services/date.util';
+import { WorkoutSession } from '../../../core/models/workout.model';
 
 @Component({
   selector: 'app-activity',
@@ -43,7 +43,7 @@ export class ActivityComponent implements OnInit {
 
   ngOnInit() {
     this.store.dispatch(new Energy.LoadGoalSettings());
-    const today = new Date().toISOString().split('T')[0];
+    const today = toDateString(new Date());
     this.store.dispatch(new Energy.FetchDayData(today)).subscribe(() => {
       this.loadWorkoutSessions();
       this.store.dispatch(new Energy.RecalculateDailySummary());

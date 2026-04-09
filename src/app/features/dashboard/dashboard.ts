@@ -13,6 +13,7 @@ import { computeGoalProgress } from '../../store/weight/weight.state';
 import { ProfileState } from '../../store/profile/profile.state';
 import { SessionRepository } from '../../data/repositories/session.repository';
 import { EnergyCalcService } from '../../core/services/energy-calc.service';
+import { toDateString } from '../../core/services/date.util';
 import { CardComponent, ButtonComponent, BadgeComponent, SkeletonComponent } from '../../shared/components';
 import { CalorieRingComponent } from '../energy/shared/calorie-ring/calorie-ring';
 import { MacroBarsComponent } from '../energy/shared/macro-bars/macro-bars';
@@ -66,7 +67,7 @@ export class DashboardComponent implements OnInit {
       new Profile.FetchGoals(),
       new Weight.LoadHistory(),
     ]);
-    const today = new Date().toISOString().split('T')[0];
+    const today = toDateString(new Date());
     this.store.dispatch(new Energy.FetchDayData(today));
     this.loadRecentSessions();
   }

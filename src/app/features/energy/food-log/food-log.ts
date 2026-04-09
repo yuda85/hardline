@@ -8,7 +8,7 @@ import { CalorieRingComponent } from '../shared/calorie-ring/calorie-ring';
 import { AddMealEnergyComponent } from '../add-meal/add-meal';
 import { AIMealInputEnergyComponent } from '../ai-meal-input/ai-meal-input';
 import { MealType } from '../../../core/models/energy.model';
-import { toDate } from '../../../core/services/date.util';
+import { toDate, toDateString } from '../../../core/services/date.util';
 
 interface DayItem {
   dateStr: string;
@@ -58,7 +58,7 @@ export class FoodLogComponent implements OnInit {
       const d = new Date(selected);
       d.setDate(selected.getDate() + i);
       days.push({
-        dateStr: d.toISOString().split('T')[0],
+        dateStr: toDateString(d),
         dayAbbr: d.toLocaleDateString('en', { weekday: 'short' }).toUpperCase(),
         dateLabel: d.toLocaleDateString('en', { month: 'short', day: 'numeric' }).toUpperCase(),
         offset: i,
@@ -76,7 +76,7 @@ export class FoodLogComponent implements OnInit {
 
   ngOnInit() {
     this.store.dispatch(new Energy.LoadGoalSettings());
-    const today = new Date().toISOString().split('T')[0];
+    const today = toDateString(new Date());
     this.store.dispatch(new Energy.FetchDayData(today));
   }
 

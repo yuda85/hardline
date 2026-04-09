@@ -2,6 +2,7 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { Store } from '@ngxs/store';
 import { Energy } from '../../../store/energy/energy.actions';
 import { EnergyState } from '../../../store/energy/energy.state';
+import { toDateString } from '../../../core/services/date.util';
 @Component({
   selector: 'app-weekly-summary',
   standalone: true,
@@ -54,8 +55,8 @@ export class WeeklySummaryComponent implements OnInit {
     const sunday = new Date(monday);
     sunday.setDate(monday.getDate() + 6);
 
-    this.weekStart = monday.toISOString().split('T')[0];
-    this.weekEnd = sunday.toISOString().split('T')[0];
+    this.weekStart = toDateString(monday);
+    this.weekEnd = toDateString(sunday);
 
     const startStr = monday.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     const endStr = sunday.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });

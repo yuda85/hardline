@@ -557,6 +557,17 @@
   p { font-size: 0.875rem; }
 }
 
+.daily__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 0.5rem;
+
+  @media (min-width: 640px) {
+    flex-direction: row;
+  }
+}
+
 // ═══════════════════════════════
 // TRENDS TAB
 // ═══════════════════════════════
@@ -814,8 +825,14 @@
   justify-content: center;
   background: var(--surface-container-highest);
   transition: all 200ms ease;
+  cursor: pointer;
 
-  &--empty { background: transparent; }
+  &:hover:not(&--empty):not(&--future) {
+    transform: scale(1.15);
+    box-shadow: 0 0 8px rgba(60, 215, 255, 0.2);
+  }
+
+  &--empty { background: transparent; cursor: default; }
 
   &--under {
     background: rgba(60, 215, 255, 0.15);
@@ -835,7 +852,7 @@
     box-shadow: 0 0 0 2px var(--surface-container), 0 0 0 3px var(--primary-container);
   }
 
-  &--future { opacity: 0.25; }
+  &--future { opacity: 0.25; cursor: default; }
 }
 
 .trends__cal-num {

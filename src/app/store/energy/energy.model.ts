@@ -1,4 +1,5 @@
 import { GoalSettings, Meal, CardioEntry, DailySteps, DailySummary, WeeklySummary, CalorieDay } from '../../core/models/energy.model';
+import { toDateString } from '../../core/services/date.util';
 
 export interface EnergyStateModel {
   goalSettings: GoalSettings | null;
@@ -15,7 +16,7 @@ export interface EnergyStateModel {
 
 export const ENERGY_STATE_DEFAULTS: EnergyStateModel = {
   goalSettings: null,
-  selectedDate: new Date().toISOString().split('T')[0],
+  selectedDate: toDateString(new Date()),
   todaysMeals: [],
   todaysCardio: [],
   todaysSteps: null,

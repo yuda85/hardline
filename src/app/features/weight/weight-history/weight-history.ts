@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { Store } from '@ngxs/store';
 import { Weight } from '../../../store/weight/weight.actions';
 import { WeightState } from '../../../store/weight/weight.state';
+import { toDateString } from '../../../core/services/date.util';
 import { WeightEntry } from '../../../core/models/energy.model';
 
 @Component({
@@ -30,7 +31,7 @@ export class WeightHistoryComponent implements OnInit {
 
     const cutoff = new Date();
     cutoff.setDate(cutoff.getDate() - 30);
-    const cutoffStr = cutoff.toISOString().split('T')[0];
+    const cutoffStr = toDateString(cutoff);
 
     const latest = sorted[0];
     const oldest30d = [...sorted].reverse().find(e => e.date >= cutoffStr);
@@ -45,7 +46,7 @@ export class WeightHistoryComponent implements OnInit {
     // Simple: how many of the last 30 days have entries
     const cutoff = new Date();
     cutoff.setDate(cutoff.getDate() - 30);
-    const cutoffStr = cutoff.toISOString().split('T')[0];
+    const cutoffStr = toDateString(cutoff);
     const recent = sorted.filter(e => e.date >= cutoffStr);
     return Math.min(100, Math.round((recent.length / 30) * 100));
   });

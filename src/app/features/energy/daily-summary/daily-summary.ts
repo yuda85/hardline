@@ -6,6 +6,7 @@ import { EnergyCalcService } from '../../../core/services/energy-calc.service';
 import { CalorieRingComponent } from '../shared/calorie-ring/calorie-ring';
 import { MacroBarsComponent } from '../shared/macro-bars/macro-bars';
 import { BalanceCardComponent } from '../shared/balance-card/balance-card';
+import { toDateString } from '../../../core/services/date.util';
 
 @Component({
   selector: 'app-daily-summary',
@@ -31,7 +32,7 @@ export class DailySummaryComponent implements OnInit {
 
   ngOnInit() {
     this.store.dispatch(new Energy.LoadGoalSettings());
-    const today = new Date().toISOString().split('T')[0];
+    const today = toDateString(new Date());
     this.store.dispatch(new Energy.FetchDayData(today));
     this.store.dispatch(new Energy.RecalculateDailySummary());
   }
@@ -39,7 +40,7 @@ export class DailySummaryComponent implements OnInit {
   protected prevDay() {
     const current = new Date(this.selectedDate());
     current.setDate(current.getDate() - 1);
-    this.store.dispatch(new Energy.SetDate(current.toISOString().split('T')[0]));
+    this.store.dispatch(new Energy.SetDate(toDateString(current)));
   }
 
   protected nextDay() {
@@ -47,7 +48,7 @@ export class DailySummaryComponent implements OnInit {
     const today = new Date(); today.setHours(0, 0, 0, 0);
     current.setDate(current.getDate() + 1);
     if (current <= today) {
-      this.store.dispatch(new Energy.SetDate(current.toISOString().split('T')[0]));
+      this.store.dispatch(new Energy.SetDate(toDateString(current)));
     }
   }
 
