@@ -571,9 +571,22 @@
 .day-row__body {
   flex-shrink: 0;
   margin-left: auto;
+}
 
-  @media (max-width: 380px) {
-    display: none;
+@media (max-width: 480px) {
+  .day-row {
+    flex-wrap: wrap;
+  }
+
+  .day-row__left {
+    flex: 1 1 100%;
+  }
+
+  .day-row__body {
+    margin-left: 0;
+    align-self: center;
+    width: 100%;
+    justify-content: center;
   }
 }
 
