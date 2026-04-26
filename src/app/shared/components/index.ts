@@ -7,4 +7,6 @@ export { SkeletonComponent } from './skeleton/skeleton';
 export { FabComponent } from './fab/fab';
 export { BottomNavComponent } from './bottom-nav/bottom-nav';
 export { SideNavComponent } from './side-nav/side-nav';
+export { MuscleBodyComponent } from './muscle-body/muscle-body';
+export type { MuscleBodySize, MuscleBodyView } from './muscle-body/muscle-body';
 export type { NavItem } from './nav.model';

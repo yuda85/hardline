@@ -212,6 +212,14 @@
                       </div>
                     </div>
                   </div>
+                  @if (getDayMuscles(day).length) {
+                    <app-muscle-body
+                      class="day-row__body"
+                      view="both"
+                      size="md"
+                      [highlighted]="getDayMuscles(day)"
+                    />
+                  }
                 </div>
               }
             </div>

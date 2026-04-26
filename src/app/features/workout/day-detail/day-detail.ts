@@ -5,7 +5,7 @@ import { take } from 'rxjs/operators';
 import { Workout } from '../../../store/workout/workout.actions';
 import { WorkoutState } from '../../../store/workout/workout.state';
 import { DecimalPipe } from '@angular/common';
-import { ButtonComponent, CardComponent, BadgeComponent, IconButtonComponent } from '../../../shared/components';
+import { ButtonComponent, CardComponent, BadgeComponent, IconButtonComponent, MuscleBodyComponent } from '../../../shared/components';
 import { SetEditorComponent } from '../set-editor/set-editor';
 import { ExercisePickerComponent } from '../exercise-picker/exercise-picker';
 import { WorkoutDay, ExerciseGroup, PlanExercise, PlanSet, Exercise, MuscleGroup } from '../../../core/models';
@@ -15,7 +15,7 @@ import { expandCollapse } from '../../../shared/animations/expand-collapse';
 @Component({
   selector: 'app-day-detail',
   standalone: true,
-  imports: [DecimalPipe, ButtonComponent, CardComponent, BadgeComponent, IconButtonComponent, SetEditorComponent, ExercisePickerComponent],
+  imports: [DecimalPipe, ButtonComponent, CardComponent, BadgeComponent, IconButtonComponent, MuscleBodyComponent, SetEditorComponent, ExercisePickerComponent],
   templateUrl: './day-detail.html',
   styleUrl: './day-detail.scss',
   animations: [expandCollapse],
@@ -39,6 +39,11 @@ export class DayDetailComponent implements OnInit, OnDestroy {
   private saveTimer: ReturnType<typeof setTimeout> | null = null;
   private savedTimer: ReturnType<typeof setTimeout> | null = null;
   private initialized = false;
+
+  protected muscleGroupFor(exerciseId: string): MuscleGroup | null {
+    const found = EXERCISES.find(e => e.id === exerciseId);
+    return found?.muscleGroup ?? null;
+  }
 
   protected readonly equipment = computed((): string[] => {
     const d = this.dayData();

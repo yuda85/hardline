@@ -55,7 +55,18 @@
               <!-- Exercise header -->
               <div class="detail__exercise-top">
                 <div class="detail__exercise-info">
-                  <h3 class="detail__exercise-name">{{ ex.exerciseName }}</h3>
+                  <div class="detail__exercise-title">
+                    @if (muscleGroupFor(ex.exerciseId); as mg) {
+                      <app-muscle-body
+                        class="detail__exercise-body"
+                        size="sm"
+                        view="auto"
+                        [focus]="true"
+                        [highlighted]="[mg]"
+                      />
+                    }
+                    <h3 class="detail__exercise-name">{{ ex.exerciseName }}</h3>
+                  </div>
                   <div class="detail__exercise-meta">
                     <span class="detail__rest-chip" (click)="toggleRestEditor(gIdx)">
                       <span class="material-symbols-outlined">timer</span>

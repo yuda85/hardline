@@ -99,7 +99,6 @@
 
 .plan-card {
   border-radius: 1rem;
-  overflow: hidden;
   transition: all 200ms ease;
   cursor: pointer;
   background: var(--surface-container);
@@ -360,6 +359,11 @@
   background: var(--surface-container-low);
   padding: 1rem 1.25rem;
   border-bottom: 1px solid rgba(65, 71, 85, 0.1);
+  border-radius: 0 0 1rem 1rem;
+
+  &:has(+ .days-section) {
+    border-radius: 0;
+  }
 }
 
 .volume-header {
@@ -504,6 +508,7 @@
 .days-section {
   background: var(--surface-container-low);
   padding: 0 1.25rem;
+  border-radius: 0 0 1rem 1rem;
 }
 
 .day-row {
@@ -561,6 +566,15 @@
   gap: 0.5rem;
   margin-top: 0.25rem;
   flex-wrap: wrap;
+}
+
+.day-row__body {
+  flex-shrink: 0;
+  margin-left: auto;
+
+  @media (max-width: 380px) {
+    display: none;
+  }
 }
 
 // ── Sample Plans Loader ──

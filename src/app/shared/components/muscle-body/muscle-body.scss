@@ -1,0 +1,111 @@
+:host {
+  display: inline-flex;
+  gap: 0.375rem;
+  align-items: flex-start;
+  line-height: 1;
+}
+
+.muscle-body__side {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.muscle-body__svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.muscle-body__polygon {
+  fill: var(--muscle-body-base, #5a6273);
+  stroke: var(--muscle-body-stroke, #2c3038);
+  stroke-width: 0.4;
+  transition: fill 0.4s ease;
+}
+
+.muscle-body__label {
+  margin-top: 0.25rem;
+  font-size: 0.5625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--on-surface-variant);
+}
+
+// --- Size variants (per-side dimensions) ---
+
+:host.muscle-body--xs .muscle-body__svg {
+  width: 18px;
+  height: 36px;
+}
+
+:host.muscle-body--sm .muscle-body__svg {
+  width: 26px;
+  height: 52px;
+}
+
+:host.muscle-body--md .muscle-body__svg {
+  width: 40px;
+  height: 76px;
+}
+
+// --- Focus mode: viewBox is cropped to a single muscle. We fix the height
+// so the muscle region reads larger; width adapts to the cropped aspect ratio.
+:host.muscle-body--focus .muscle-body__svg {
+  width: auto;
+}
+
+:host.muscle-body--focus.muscle-body--xs .muscle-body__svg {
+  height: 32px;
+}
+
+:host.muscle-body--focus.muscle-body--sm .muscle-body__svg {
+  height: 44px;
+}
+
+:host.muscle-body--focus.muscle-body--md .muscle-body__svg {
+  height: 64px;
+}
+
+:host.muscle-body--lg .muscle-body__svg {
+  width: 130px;
+  height: 260px;
+
+  @media (max-width: 320px) {
+    width: 100px;
+    height: 200px;
+  }
+
+  @media (min-width: 768px) {
+    width: 160px;
+    height: 320px;
+  }
+}
+
+// Pulsing glow for recovering muscles (used by recovery-map via classFn).
+.pulse-glow {
+  animation: muscleBodyPulseGlow 2.5s ease-in-out infinite;
+}
+
+@keyframes muscleBodyPulseGlow {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 2px rgba(239, 103, 25, 0.5));
+  }
+  50% {
+    filter: drop-shadow(0 0 6px rgba(239, 103, 25, 0.7))
+      drop-shadow(0 0 12px rgba(239, 103, 25, 0.25));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pulse-glow {
+    animation: none;
+  }
+
+  .muscle-body__polygon {
+    transition: none;
+  }
+}

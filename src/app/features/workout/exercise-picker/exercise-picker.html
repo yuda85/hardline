@@ -55,7 +55,11 @@
           @if (multiSelect() && isSelected(exercise)) {
             <span class="material-symbols-outlined ep-exercise__icon ep-exercise__icon--check" style="font-variation-settings: 'FILL' 1;">check_circle</span>
           } @else {
-            <span class="material-symbols-outlined ep-exercise__icon">fitness_center</span>
+            <app-muscle-body
+              size="md"
+              view="auto"
+              [highlighted]="[exercise.muscleGroup]"
+            />
           }
         </div>
         <div class="ep-exercise__info">

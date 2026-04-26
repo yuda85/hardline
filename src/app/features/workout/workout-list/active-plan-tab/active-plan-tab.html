@@ -78,6 +78,14 @@
               <h3 class="day-card__name">Day {{ day.dayNumber }}: {{ day.name }}</h3>
               <p class="day-card__meta">{{ getExerciseCount(day) }} exercises &bull; {{ getEstimatedMinutes(day) }} mins</p>
             </div>
+            @if (getDayMuscles(day).length) {
+              <app-muscle-body
+                class="day-card__body-diagram"
+                view="both"
+                size="md"
+                [highlighted]="getDayMuscles(day)"
+              />
+            }
             <span
               class="material-symbols-outlined day-card__chevron"
               [class.day-card__chevron--open]="expandedDay() === day.dayNumber"
@@ -100,7 +108,12 @@
                       @for (exercise of group.exercises; track exercise.exerciseId; let i = $index) {
                         <div class="superset-group__exercise" [class.superset-group__exercise--border]="i > 0">
                           <p class="superset-group__exercise-label">Exercise {{ exerciseLetter(i) }}</p>
-                          <p class="superset-group__exercise-name">{{ exercise.exerciseName }}</p>
+                          <div class="superset-group__exercise-title">
+                            @if (muscleGroupFor(exercise.exerciseId); as mg) {
+                              <app-muscle-body size="xs" view="auto" [focus]="true" [highlighted]="[mg]" />
+                            }
+                            <p class="superset-group__exercise-name">{{ exercise.exerciseName }}</p>
+                          </div>
                           <p class="superset-group__exercise-sets">{{ formatSets(exercise.sets) }}</p>
                         </div>
                       }
@@ -116,7 +129,12 @@
                           @if (getGroupLabel(group)) {
                             <span class="exercise-row__category">{{ getGroupLabel(group) }}</span>
                           }
-                          <h4 class="exercise-row__name">{{ exercise.exerciseName }}</h4>
+                          <div class="exercise-row__title">
+                            @if (muscleGroupFor(exercise.exerciseId); as mg) {
+                              <app-muscle-body size="sm" view="auto" [focus]="true" [highlighted]="[mg]" />
+                            }
+                            <h4 class="exercise-row__name">{{ exercise.exerciseName }}</h4>
+                          </div>
                         </div>
                         <div class="exercise-row__right">
                           <p class="exercise-row__sets">{{ formatSets(exercise.sets) }}</p>

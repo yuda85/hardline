@@ -1,12 +1,14 @@
 import { Component, input, output, signal, computed } from '@angular/core';
-import { WorkoutPlan, WorkoutDay, ExerciseGroup } from '../../../../core/models';
-import { ButtonComponent } from '../../../../shared/components';
+import { WorkoutPlan, WorkoutDay, ExerciseGroup, MuscleGroup } from '../../../../core/models';
+import { ButtonComponent, MuscleBodyComponent } from '../../../../shared/components';
 import { expandCollapse } from '../../../../shared/animations/expand-collapse';
+import { getDayMuscleGroups } from '../../shared/day-muscle-groups.util';
+import { EXERCISES } from '../../exercise-data';
 
 @Component({
   selector: 'app-active-plan-tab',
   standalone: true,
-  imports: [ButtonComponent],
+  imports: [ButtonComponent, MuscleBodyComponent],
   templateUrl: './active-plan-tab.html',
   styleUrl: './active-plan-tab.scss',
   animations: [expandCollapse],
@@ -17,6 +19,19 @@ export class ActivePlanTabComponent {
   readonly startDay = output<{ planId: string; dayNumber: number }>();
 
   protected readonly expandedDay = signal<number | null>(null);
+  private readonly dayMusclesCache = new WeakMap<WorkoutDay, MuscleGroup[]>();
+
+  protected getDayMuscles(day: WorkoutDay): MuscleGroup[] {
+    const cached = this.dayMusclesCache.get(day);
+    if (cached) return cached;
+    const muscles = getDayMuscleGroups(day);
+    this.dayMusclesCache.set(day, muscles);
+    return muscles;
+  }
+
+  protected muscleGroupFor(exerciseId: string): MuscleGroup | null {
+    return EXERCISES.find(e => e.id === exerciseId)?.muscleGroup ?? null;
+  }
 
   /** Pick the current day based on day-of-week cycling, skipping rest days */
   protected readonly currentDay = computed(() => {

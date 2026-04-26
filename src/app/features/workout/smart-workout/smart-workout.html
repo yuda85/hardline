@@ -188,6 +188,23 @@
               <span class="material-symbols-outlined">play_arrow</span>
               Start Quick Workout ({{ selectedExercises().length }})
             </app-button>
+            <div class="smart__save-wrap" [attr.title]="activePlanId() ? null : 'Set an active plan first to save workouts to it'">
+              <app-button
+                variant="ghost"
+                type="button"
+                [disabled]="!activePlanId()"
+                (click)="saveQuickWorkoutToPlan()"
+              >
+                <span class="material-symbols-outlined">bookmark_add</span>
+                Save as Day in Active Plan
+              </app-button>
+            </div>
+            @if (!activePlanId()) {
+              <p class="smart__no-plan-hint">
+                <span class="material-symbols-outlined smart__hint-icon">info</span>
+                Star a plan in your workout list to enable saving as a day.
+              </p>
+            }
             <div class="smart__or-divider">
               <span class="smart__or-line"></span>
               <span class="smart__or-text">or</span>

@@ -1,0 +1,25 @@
+@for (v of views(); track v) {
+  <div class="muscle-body__side">
+    <svg
+      class="muscle-body__svg"
+      [attr.viewBox]="viewBoxFor(v)"
+      preserveAspectRatio="xMidYMid meet"
+      aria-hidden="true"
+      focusable="false"
+    >
+      @for (region of polygonsFor(v); track $index) {
+        @for (poly of region.points; track $index) {
+          <polygon
+            class="muscle-body__polygon"
+            [class.pulse-glow]="extraClassFor(region.group) === 'pulse-glow'"
+            [attr.points]="poly"
+            [style.fill]="fillFor(region.group)"
+          />
+        }
+      }
+    </svg>
+    @if (showLabels()) {
+      <span class="muscle-body__label">{{ viewLabel(v) }}</span>
+    }
+  </div>
+}

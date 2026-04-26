@@ -1,13 +1,13 @@
 import { Component, input, output, signal, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Exercise, MuscleGroup } from '../../../core/models';
-import { ButtonComponent, IconButtonComponent } from '../../../shared/components';
+import { ButtonComponent, IconButtonComponent, MuscleBodyComponent } from '../../../shared/components';
 import { EXERCISES } from '../exercise-data';
 
 @Component({
   selector: 'app-exercise-picker',
   standalone: true,
-  imports: [FormsModule, ButtonComponent, IconButtonComponent],
+  imports: [FormsModule, ButtonComponent, IconButtonComponent, MuscleBodyComponent],
   templateUrl: './exercise-picker.html',
   styleUrl: './exercise-picker.scss',
 })

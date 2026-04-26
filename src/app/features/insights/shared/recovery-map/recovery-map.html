@@ -1,35 +1,10 @@
 <div class="recovery-map">
-  <!-- Front View -->
-  <div class="recovery-map__body">
-    <svg class="recovery-map__svg" viewBox="0 0 100 200">
-      @for (region of anteriorData; track $index) {
-        @for (poly of region.points; track $index) {
-          <polygon
-            class="recovery-map__polygon"
-            [class.pulse-glow]="classFor(region.group) === 'pulse-glow'"
-            [attr.points]="poly"
-            [style.fill]="colorFor(region.group)"
-          />
-        }
-      }
-    </svg>
-    <span class="recovery-map__label">Front</span>
-  </div>
-
-  <!-- Back View -->
-  <div class="recovery-map__body">
-    <svg class="recovery-map__svg" viewBox="0 0 100 200">
-      @for (region of posteriorData; track $index) {
-        @for (poly of region.points; track $index) {
-          <polygon
-            class="recovery-map__polygon"
-            [class.pulse-glow]="classFor(region.group) === 'pulse-glow'"
-            [attr.points]="poly"
-            [style.fill]="colorFor(region.group)"
-          />
-        }
-      }
-    </svg>
-    <span class="recovery-map__label">Back</span>
-  </div>
+  <app-muscle-body
+    view="both"
+    size="lg"
+    [highlighted]="highlighted()"
+    [colorFn]="colorFn"
+    [classFn]="classFn"
+    [showLabels]="true"
+  />
 </div>

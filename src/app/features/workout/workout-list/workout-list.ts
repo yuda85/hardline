@@ -102,6 +102,9 @@ export class WorkoutListComponent implements OnInit {
 
   protected deletePlan(planId: string, event: Event) {
     event.stopPropagation();
+    const plan = this.rawPlans().find(p => p.id === planId);
+    const name = plan?.name ?? 'this plan';
+    if (!confirm(`Delete "${name}"? This cannot be undone.`)) return;
     this.store.dispatch(new Workout.DeletePlan(planId));
   }
 

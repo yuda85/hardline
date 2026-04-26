@@ -144,6 +144,10 @@
                         </button>
                       } @else if (set.completed) {
                         <span class="material-symbols-outlined aw__set-check" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                      } @else {
+                        <button class="aw__set-complete-btn" (click)="completeSetAt(i, +weightInput.value, +repsInput.value); $event.stopPropagation()">
+                          <span class="material-symbols-outlined">check</span>
+                        </button>
                       }
                       @if (exercise.sets.length > 1) {
                         <button class="aw__set-remove-btn" (click)="removeSet(i); $event.stopPropagation()">
@@ -177,24 +181,6 @@
 
       <!-- Main action area -->
       <div class="aw__action-area">
-        @if (isAllDone()) {
-          <button class="aw__cta" (click)="showFinishConfirm.set(true)">
-            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">flag</span>
-            Finish Workout
-          </button>
-        } @else if (isExerciseDone()) {
-          <button class="aw__cta" (click)="goNextExercise()">
-            <span class="material-symbols-outlined">arrow_forward</span>
-            Next Exercise
-          </button>
-        } @else {
-          <button class="aw__cta" (click)="completeCurrentSet()">
-            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">check_circle</span>
-            Complete Set {{ completedSetsCount() + 1 }}
-          </button>
-        }
-
-        <!-- Quick action row -->
         <div class="aw__quick-actions">
           <button class="aw__quick-btn" (click)="openHistory()">
             <div class="aw__quick-icon">
@@ -214,6 +200,28 @@
             </div>
             <span class="aw__quick-label">Add</span>
           </button>
+          @if (isAllDone()) {
+            <button class="aw__quick-btn aw__quick-btn--cta" (click)="showFinishConfirm.set(true)">
+              <div class="aw__quick-icon aw__quick-icon--cta">
+                <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">flag</span>
+              </div>
+              <span class="aw__quick-label">Finish</span>
+            </button>
+          } @else if (isExerciseDone()) {
+            <button class="aw__quick-btn aw__quick-btn--cta" (click)="goNextExercise()">
+              <div class="aw__quick-icon aw__quick-icon--cta">
+                <span class="material-symbols-outlined">arrow_forward</span>
+              </div>
+              <span class="aw__quick-label">Next</span>
+            </button>
+          } @else {
+            <button class="aw__quick-btn aw__quick-btn--cta" (click)="completeCurrentSet()">
+              <div class="aw__quick-icon aw__quick-icon--cta">
+                <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+              </div>
+              <span class="aw__quick-label">Set {{ completedSetsCount() + 1 }}</span>
+            </button>
+          }
         </div>
       </div>
 

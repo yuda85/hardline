@@ -110,8 +110,26 @@ export class SmartWorkoutComponent {
   }
 
   protected startQuickWorkout() {
+    const result = this.buildQuickWorkoutResult();
+    if (!result) return;
+
+    this.store.dispatch(new Workout.StartGeneratedWorkout(result)).subscribe(() => {
+      const session = this.store.selectSnapshot(WorkoutState.activeSession);
+      if (session) {
+        this.router.navigate(['/workouts', 'active', session.planId, session.dayNumber]);
+      }
+    });
+  }
+
+  protected saveQuickWorkoutToPlan() {
+    const result = this.buildQuickWorkoutResult();
+    if (!result) return;
+    this.saveToActivePlan(result);
+  }
+
+  private buildQuickWorkoutResult(): DailyWorkoutResult | null {
     const exercises = this.selectedExercises();
-    if (exercises.length === 0) return;
+    if (exercises.length === 0) return null;
 
     const day: WorkoutDay = {
       dayNumber: 1,
@@ -127,19 +145,12 @@ export class SmartWorkoutComponent {
       })),
     };
 
-    const result: DailyWorkoutResult = {
+    return {
       workout: day,
       reasoning: 'Manual selection',
       estimatedMinutes: exercises.length * 8,
       musclesCovered: [...new Set(exercises.map(e => e.muscleGroup))],
     };
-
-    this.store.dispatch(new Workout.StartGeneratedWorkout(result)).subscribe(() => {
-      const session = this.store.selectSnapshot(WorkoutState.activeSession);
-      if (session) {
-        this.router.navigate(['/workouts', 'active', session.planId, session.dayNumber]);
-      }
-    });
   }
 
   protected goBack() {

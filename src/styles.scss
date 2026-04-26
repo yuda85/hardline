@@ -90,6 +90,17 @@ $breakpoints: (
   --font-headline: 'Manrope', system-ui, sans-serif;
   --font-body: 'Inter', system-ui, sans-serif;
   --font-label: 'Inter', system-ui, sans-serif;
+
+  // Muscle Group Colors (for body silhouette indicators)
+  --muscle-chest: #ff7eaa;
+  --muscle-back: #6ba8ff;
+  --muscle-shoulders: #ffb24a;
+  --muscle-upper-legs: #7ed27a;
+  --muscle-lower-legs: #4dd0c2;
+  --muscle-biceps: #c47ee0;
+  --muscle-triceps: #9890f0;
+  --muscle-core: #ffd95a;
+  --muscle-full-body: #3cd7ff;
 }
 
 // --- CSS Reset & Base ---

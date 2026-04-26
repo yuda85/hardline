@@ -136,12 +136,23 @@
   min-width: 0;
 }
 
+.detail__exercise-title {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  margin-bottom: 0.25rem;
+}
+
+.detail__exercise-body {
+  flex-shrink: 0;
+}
+
 .detail__exercise-name {
   font-family: var(--font-body);
   font-weight: 600;
   font-size: 1.125rem;
   color: var(--on-surface);
-  margin-bottom: 0.25rem;
+  margin: 0;
 }
 
 .detail__exercise-meta {

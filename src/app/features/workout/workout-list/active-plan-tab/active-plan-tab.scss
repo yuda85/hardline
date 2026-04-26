@@ -254,6 +254,15 @@
   margin-top: 0.125rem;
 }
 
+.day-card__body-diagram {
+  flex-shrink: 0;
+  margin-left: auto;
+
+  @media (max-width: 380px) {
+    display: none;
+  }
+}
+
 .day-card__chevron {
   color: var(--on-surface-variant);
   transition: transform 200ms ease, color 200ms ease;
@@ -313,6 +322,12 @@
   letter-spacing: -0.025em;
   color: var(--primary-container);
   margin-bottom: 0.25rem;
+}
+
+.exercise-row__title {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
 }
 
 .exercise-row__name {
@@ -386,10 +401,17 @@
   margin-bottom: 0.25rem;
 }
 
+.superset-group__exercise-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .superset-group__exercise-name {
   font-weight: 600;
   font-size: 0.875rem;
   color: var(--on-surface);
+  margin: 0;
 }
 
 .superset-group__exercise-sets {

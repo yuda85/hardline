@@ -1,14 +1,15 @@
 import { Component, input, output, signal } from '@angular/core';
-import { ButtonComponent, CardComponent, BadgeComponent, SkeletonComponent } from '../../../../shared/components';
+import { ButtonComponent, CardComponent, BadgeComponent, SkeletonComponent, MuscleBodyComponent } from '../../../../shared/components';
 import { RelativeTimePipe } from '../../../../shared/pipes/relative-time.pipe';
-import { WorkoutPlan, WorkoutDay } from '../../../../core/models';
+import { WorkoutPlan, WorkoutDay, MuscleGroup } from '../../../../core/models';
 import { analyzeVolume, VolumeAnalysis, MuscleGroupVolume } from '../../../../core/services/volume-analysis.service';
 import { expandCollapse } from '../../../../shared/animations/expand-collapse';
+import { getDayMuscleGroups } from '../../shared/day-muscle-groups.util';
 
 @Component({
   selector: 'app-my-plans-tab',
   standalone: true,
-  imports: [ButtonComponent, CardComponent, BadgeComponent, SkeletonComponent, RelativeTimePipe],
+  imports: [ButtonComponent, CardComponent, BadgeComponent, SkeletonComponent, MuscleBodyComponent, RelativeTimePipe],
   templateUrl: './my-plans-tab.html',
   styleUrl: './my-plans-tab.scss',
   animations: [expandCollapse],
@@ -35,6 +36,7 @@ export class MyPlansTabComponent {
   protected readonly openMenu = signal<string | null>(null);
 
   private readonly volumeCache = new Map<string, VolumeAnalysis>();
+  private readonly dayMusclesCache = new WeakMap<WorkoutDay, MuscleGroup[]>();
 
   protected togglePlanExpand(planId: string) {
     this.expandedPlan.update(current => (current === planId ? null : planId));
@@ -93,6 +95,14 @@ export class MyPlansTabComponent {
 
   protected getExerciseCount(day: WorkoutDay): number {
     return day.exerciseGroups.reduce((sum, g) => sum + g.exercises.length, 0);
+  }
+
+  protected getDayMuscles(day: WorkoutDay): MuscleGroup[] {
+    const cached = this.dayMusclesCache.get(day);
+    if (cached) return cached;
+    const muscles = getDayMuscleGroups(day);
+    this.dayMusclesCache.set(day, muscles);
+    return muscles;
   }
 
   protected getGroupTypes(day: WorkoutDay): string[] {
