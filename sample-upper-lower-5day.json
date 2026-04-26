@@ -1,0 +1,524 @@
+{
+  "version": 2,
+  "name": "Upper / Lower — 5 Days",
+  "description": "Hypertrophy + strength split with squat and deadlift focus days, plus an efficient pump day.",
+  "exportedAt": "2026-04-26T00:00:00.000Z",
+  "days": [
+    {
+      "dayNumber": 1,
+      "name": "Upper A — Chest Base",
+      "exerciseGroups": [
+        {
+          "type": "single",
+          "restSeconds": 120,
+          "exercises": [
+            {
+              "exerciseId": "ex-2",
+              "exerciseName": "Barbell Bench Press",
+              "sets": [
+                { "targetReps": 8 },
+                { "targetReps": 8 },
+                { "targetReps": 7 },
+                { "targetReps": 6 }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "single",
+          "restSeconds": 90,
+          "exercises": [
+            {
+              "exerciseId": "ex-5",
+              "exerciseName": "Barbell Row",
+              "sets": [
+                { "targetReps": 10 },
+                { "targetReps": 10 },
+                { "targetReps": 9 },
+                { "targetReps": 8 }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "single",
+          "restSeconds": 90,
+          "exercises": [
+            {
+              "exerciseId": "ex-14",
+              "exerciseName": "Lat Pulldown",
+              "sets": [
+                { "targetReps": 10 },
+                { "targetReps": 9 },
+                { "targetReps": 8 }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "single",
+          "restSeconds": 90,
+          "exercises": [
+            {
+              "exerciseId": "ex-4",
+              "exerciseName": "Overhead Press",
+              "sets": [
+                { "targetReps": 10 },
+                { "targetReps": 9 },
+                { "targetReps": 8 }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "single",
+          "restSeconds": 60,
+          "exercises": [
+            {
+              "exerciseId": "ex-13",
+              "exerciseName": "Cable Fly",
+              "sets": [
+                { "targetReps": 15 },
+                { "targetReps": 13 },
+                { "targetReps": 12 }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "single",
+          "restSeconds": 45,
+          "exercises": [
+            {
+              "exerciseId": "ex-11",
+              "exerciseName": "Lateral Raise",
+              "sets": [
+                { "targetReps": 15 },
+                { "targetReps": 13 },
+                { "targetReps": 12 }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "single",
+          "restSeconds": 60,
+          "exercises": [
+            {
+              "exerciseId": "ex-86",
+              "exerciseName": "Barbell Curl",
+              "sets": [
+                { "targetReps": 12 },
+                { "targetReps": 11 },
+                { "targetReps": 10 }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "single",
+          "restSeconds": 60,
+          "exercises": [
+            {
+              "exerciseId": "ex-8",
+              "exerciseName": "Tricep Pushdown",
+              "sets": [
+                { "targetReps": 15 },
+                { "targetReps": 13 },
+                { "targetReps": 12 }
+              ],
+              "notes": "Rope attachment"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "dayNumber": 2,
+      "name": "Lower A — Squat Focus",
+      "exerciseGroups": [
+        {
+          "type": "single",
+          "restSeconds": 150,
+          "exercises": [
+            {
+              "exerciseId": "ex-1",
+              "exerciseName": "Barbell Back Squat",
+              "sets": [
+                { "targetReps": 5 },
+                { "targetReps": 5 },
+                { "targetReps": 5 },
+                { "targetReps": 5 }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "single",
+          "restSeconds": 90,
+          "exercises": [
+            {
+              "exerciseId": "ex-9",
+              "exerciseName": "Leg Press",
+              "sets": [
+                { "targetReps": 12 },
+                { "targetReps": 11 },
+                { "targetReps": 10 }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "single",
+          "restSeconds": 90,
+          "exercises": [
+            {
+              "exerciseId": "ex-10",
+              "exerciseName": "Romanian Deadlift",
+              "sets": [
+                { "targetReps": 10 },
+                { "targetReps": 9 },
+                { "targetReps": 8 }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "single",
+          "restSeconds": 60,
+          "exercises": [
+            {
+              "exerciseId": "ex-15",
+              "exerciseName": "Leg Curl",
+              "sets": [
+                { "targetReps": 12 },
+                { "targetReps": 12 },
+                { "targetReps": 12 }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "single",
+          "restSeconds": 60,
+          "exercises": [
+            {
+              "exerciseId": "ex-29",
+              "exerciseName": "Standing Calf Raise",
+              "sets": [
+                { "targetReps": 15 },
+                { "targetReps": 13 },
+                { "targetReps": 12 }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "dayNumber": 3,
+      "name": "Upper B — Machine Combo",
+      "exerciseGroups": [
+        {
+          "type": "single",
+          "restSeconds": 120,
+          "exercises": [
+            {
+              "exerciseId": "ex-4",
+              "exerciseName": "Overhead Press",
+              "sets": [
+                { "targetReps": 8 },
+                { "targetReps": 8 },
+                { "targetReps": 7 },
+                { "targetReps": 6 }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "superset",
+          "restSeconds": 75,
+          "exercises": [
+            {
+              "exerciseId": "ex-42",
+              "exerciseName": "Machine Chest Press",
+              "sets": [
+                { "targetReps": 12 },
+                { "targetReps": 11 },
+                { "targetReps": 10 }
+              ]
+            },
+            {
+              "exerciseId": "ex-62",
+              "exerciseName": "Machine Row",
+              "sets": [
+                { "targetReps": 12 },
+                { "targetReps": 11 },
+                { "targetReps": 10 }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "single",
+          "restSeconds": 90,
+          "exercises": [
+            {
+              "exerciseId": "ex-12",
+              "exerciseName": "Incline Dumbbell Press",
+              "sets": [
+                { "targetReps": 10 },
+                { "targetReps": 10 },
+                { "targetReps": 9 },
+                { "targetReps": 8 }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "single",
+          "restSeconds": 45,
+          "exercises": [
+            {
+              "exerciseId": "ex-11",
+              "exerciseName": "Lateral Raise",
+              "sets": [
+                { "targetReps": 15 },
+                { "targetReps": 14 },
+                { "targetReps": 13 },
+                { "targetReps": 12 }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "single",
+          "restSeconds": 45,
+          "exercises": [
+            {
+              "exerciseId": "ex-72",
+              "exerciseName": "Rear Delt Fly",
+              "sets": [
+                { "targetReps": 15 },
+                { "targetReps": 13 },
+                { "targetReps": 12 }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "single",
+          "restSeconds": 60,
+          "exercises": [
+            {
+              "exerciseId": "ex-20",
+              "exerciseName": "Hammer Curl",
+              "sets": [
+                { "targetReps": 12 },
+                { "targetReps": 11 },
+                { "targetReps": 10 }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "single",
+          "restSeconds": 60,
+          "exercises": [
+            {
+              "exerciseId": "ex-8",
+              "exerciseName": "Tricep Pushdown",
+              "sets": [
+                { "targetReps": 15 },
+                { "targetReps": 13 },
+                { "targetReps": 12 }
+              ],
+              "notes": "V-bar attachment"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "dayNumber": 4,
+      "name": "Lower B — Deadlift Focus",
+      "exerciseGroups": [
+        {
+          "type": "single",
+          "restSeconds": 180,
+          "exercises": [
+            {
+              "exerciseId": "ex-3",
+              "exerciseName": "Deadlift",
+              "sets": [
+                { "targetReps": 5 },
+                { "targetReps": 5 },
+                { "targetReps": 5 }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "single",
+          "restSeconds": 75,
+          "exercises": [
+            {
+              "exerciseId": "ex-15",
+              "exerciseName": "Leg Curl",
+              "sets": [
+                { "targetReps": 12 },
+                { "targetReps": 11 },
+                { "targetReps": 10 }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "single",
+          "restSeconds": 60,
+          "exercises": [
+            {
+              "exerciseId": "ex-16",
+              "exerciseName": "Leg Extension",
+              "sets": [
+                { "targetReps": 15 },
+                { "targetReps": 12 }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "single",
+          "restSeconds": 60,
+          "exercises": [
+            {
+              "exerciseId": "ex-29",
+              "exerciseName": "Standing Calf Raise",
+              "sets": [
+                { "targetReps": 15 },
+                { "targetReps": 13 },
+                { "targetReps": 12 }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "dayNumber": 5,
+      "name": "Day 5 — Pump (Efficient)",
+      "exerciseGroups": [
+        {
+          "type": "superset",
+          "restSeconds": 75,
+          "exercises": [
+            {
+              "exerciseId": "ex-42",
+              "exerciseName": "Machine Chest Press",
+              "sets": [
+                { "targetReps": 15 },
+                { "targetReps": 13 },
+                { "targetReps": 12 }
+              ]
+            },
+            {
+              "exerciseId": "ex-62",
+              "exerciseName": "Machine Row",
+              "sets": [
+                { "targetReps": 15 },
+                { "targetReps": 13 },
+                { "targetReps": 12 }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "single",
+          "restSeconds": 60,
+          "exercises": [
+            {
+              "exerciseId": "ex-53",
+              "exerciseName": "Cable Crossover",
+              "sets": [
+                { "targetReps": 15 },
+                { "targetReps": 13 },
+                { "targetReps": 12 }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "single",
+          "restSeconds": 75,
+          "exercises": [
+            {
+              "exerciseId": "ex-14",
+              "exerciseName": "Lat Pulldown",
+              "sets": [
+                { "targetReps": 10 },
+                { "targetReps": 9 },
+                { "targetReps": 8 }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "single",
+          "restSeconds": 30,
+          "exercises": [
+            {
+              "exerciseId": "ex-11",
+              "exerciseName": "Lateral Raise",
+              "sets": [
+                { "targetReps": 20 },
+                { "targetReps": 18 },
+                { "targetReps": 17 },
+                { "targetReps": 15 }
+              ],
+              "notes": "High rep, light weight, short rest"
+            }
+          ]
+        },
+        {
+          "type": "single",
+          "restSeconds": 45,
+          "exercises": [
+            {
+              "exerciseId": "ex-18",
+              "exerciseName": "Face Pull",
+              "sets": [
+                { "targetReps": 15 },
+                { "targetReps": 13 },
+                { "targetReps": 12 }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "superset",
+          "restSeconds": 75,
+          "exercises": [
+            {
+              "exerciseId": "ex-87",
+              "exerciseName": "Preacher Curl",
+              "sets": [
+                { "targetReps": 12 },
+                { "targetReps": 11 },
+                { "targetReps": 10 }
+              ]
+            },
+            {
+              "exerciseId": "ex-93",
+              "exerciseName": "Cable Overhead Extension",
+              "sets": [
+                { "targetReps": 12 },
+                { "targetReps": 11 },
+                { "targetReps": 10 }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

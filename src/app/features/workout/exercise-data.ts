@@ -289,4 +289,88 @@ export const SAMPLE_PLANS_DAYS: { name: string; description: string; days: Worko
       },
     ],
   },
+  {
+    name: 'Upper / Lower — 5 Days',
+    description: 'Hypertrophy + strength split with squat and deadlift focus days, plus an efficient pump day.',
+    days: [
+      {
+        dayNumber: 1,
+        name: 'Upper A — Chest Base',
+        exerciseGroups: [
+          single('ex-2', [8, 8, 7, 6], 120),
+          single('ex-5', [10, 10, 9, 8], 90),
+          single('ex-14', [10, 9, 8], 90),
+          single('ex-4', [10, 9, 8], 90),
+          single('ex-13', [15, 13, 12], 60),
+          single('ex-11', [15, 13, 12], 45),
+          single('ex-86', [12, 11, 10], 60),
+          single('ex-8', [15, 13, 12], 60, 'Rope attachment'),
+        ],
+      },
+      {
+        dayNumber: 2,
+        name: 'Lower A — Squat Focus',
+        exerciseGroups: [
+          single('ex-1', [5, 5, 5, 5], 150),
+          single('ex-9', [12, 11, 10], 90),
+          single('ex-10', [10, 9, 8], 90),
+          single('ex-15', [12, 12, 12], 60),
+          single('ex-29', [15, 13, 12], 60),
+        ],
+      },
+      {
+        dayNumber: 3,
+        name: 'Upper B — Machine Combo',
+        exerciseGroups: [
+          single('ex-4', [8, 8, 7, 6], 120),
+          superset(
+            [
+              { id: 'ex-42', sets: [12, 11, 10] },
+              { id: 'ex-62', sets: [12, 11, 10] },
+            ],
+            75,
+          ),
+          single('ex-12', [10, 10, 9, 8], 90),
+          single('ex-11', [15, 14, 13, 12], 45),
+          single('ex-72', [15, 13, 12], 45),
+          single('ex-20', [12, 11, 10], 60),
+          single('ex-8', [15, 13, 12], 60, 'V-bar attachment'),
+        ],
+      },
+      {
+        dayNumber: 4,
+        name: 'Lower B — Deadlift Focus',
+        exerciseGroups: [
+          single('ex-3', [5, 5, 5], 180),
+          single('ex-15', [12, 11, 10], 75),
+          single('ex-16', [15, 12], 60),
+          single('ex-29', [15, 13, 12], 60),
+        ],
+      },
+      {
+        dayNumber: 5,
+        name: 'Day 5 — Pump (Efficient)',
+        exerciseGroups: [
+          superset(
+            [
+              { id: 'ex-42', sets: [15, 13, 12] },
+              { id: 'ex-62', sets: [15, 13, 12] },
+            ],
+            75,
+          ),
+          single('ex-53', [15, 13, 12], 60),
+          single('ex-14', [10, 9, 8], 75),
+          single('ex-11', [20, 18, 17, 15], 30, 'High rep, light weight, short rest'),
+          single('ex-18', [15, 13, 12], 45),
+          superset(
+            [
+              { id: 'ex-87', sets: [12, 11, 10] },
+              { id: 'ex-93', sets: [12, 11, 10] },
+            ],
+            75,
+          ),
+        ],
+      },
+    ],
+  },
 ];

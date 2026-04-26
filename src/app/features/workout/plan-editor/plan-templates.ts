@@ -81,6 +81,13 @@ export const PLAN_TEMPLATES: PlanTemplate[] = [
     days: SAMPLE_PLANS_DAYS[1].days,
   },
   {
+    id: 'upper-lower-5day',
+    name: 'Upper / Lower — 5 Days',
+    description: 'Squat + deadlift focus with pump day',
+    icon: 'fitness_center',
+    days: SAMPLE_PLANS_DAYS[2].days,
+  },
+  {
     id: 'full-body',
     name: 'Full Body',
     description: '3-day compound-focused program',

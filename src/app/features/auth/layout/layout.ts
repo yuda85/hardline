@@ -51,9 +51,9 @@ export class LayoutComponent implements OnInit {
 
   protected readonly navItems: NavItem[] = [
     { icon: 'grid_view', label: 'Dashboard', route: '/dashboard' },
+    { icon: 'monitor_weight', label: 'Weight', route: '/weight' },
     { icon: 'bolt', label: 'Energy', route: '/energy' },
     { icon: 'exercise', label: 'Workouts', route: '/workouts' },
-    { icon: 'monitor_weight', label: 'Weight', route: '/weight' },
     { icon: 'leaderboard', label: 'Insights', route: '/insights' },
     { icon: 'person', label: 'Profile', route: '/profile' },
   ];

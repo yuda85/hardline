@@ -13,7 +13,7 @@ import { computeGoalProgress } from '../../store/weight/weight.state';
 import { ProfileState } from '../../store/profile/profile.state';
 import { SessionRepository } from '../../data/repositories/session.repository';
 import { EnergyCalcService } from '../../core/services/energy-calc.service';
-import { toDateString } from '../../core/services/date.util';
+import { toDate, toDateString } from '../../core/services/date.util';
 import { CardComponent, ButtonComponent, BadgeComponent, SkeletonComponent } from '../../shared/components';
 import { CalorieRingComponent } from '../energy/shared/calorie-ring/calorie-ring';
 import { MacroBarsComponent } from '../energy/shared/macro-bars/macro-bars';
@@ -87,7 +87,7 @@ export class DashboardComponent implements OnInit {
 
   protected formatSessionDate(date: Date | unknown): string {
     if (!date) return '';
-    const d = date instanceof Date ? date : new Date(date as string);
+    const d = toDate(date);
     const now = new Date();
     const diffDays = Math.floor((now.getTime() - d.getTime()) / 86400000);
     if (diffDays === 0) return 'Today';

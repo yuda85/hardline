@@ -126,13 +126,13 @@
                     }
                     <span class="aw__set-num">{{ i + 1 }}</span>
                     <input type="number" inputmode="decimal" class="aw__set-input aw__set-input--weight"
-                      [value]="set.completed ? set.weight : null"
+                      [value]="set.completed ? set.weight : (lastData()?.[i]?.weight ?? null)"
                       [placeholder]="lastData()?.[i]?.weight?.toString() ?? '0'"
                       [disabled]="set.completed && editingSetIndex() !== i"
                       (focus)="$event.target.select()"
                       #weightInput />
                     <input type="number" inputmode="numeric" class="aw__set-input aw__set-input--reps"
-                      [value]="set.completed ? set.actualReps : null"
+                      [value]="set.completed ? set.actualReps : (lastData()?.[i]?.reps ?? null)"
                       [placeholder]="set.targetReps.toString()"
                       [disabled]="set.completed && editingSetIndex() !== i"
                       (focus)="$event.target.select()"
