@@ -92,12 +92,24 @@
         <div class="aw__carousel-track">
           <!-- Current exercise card -->
           <div class="aw__exercise-card">
-            <!-- Muscle group badge -->
-            <div class="aw__muscle-badge">
-              <span>{{ currentExerciseMuscleGroup() }}</span>
-            </div>
-
             <div class="aw__card-body">
+              <!-- Meta row: badge + swap action (in normal flow so title never overlaps) -->
+              <div class="aw__card-meta">
+                <div class="aw__muscle-badge">
+                  <span>{{ currentExerciseMuscleGroup() }}</span>
+                </div>
+                @if (canSwapCurrent()) {
+                  <button
+                    class="aw__swap-btn"
+                    (click)="showSwapExercise.set(true)"
+                    aria-label="Swap exercise"
+                    title="Swap exercise"
+                  >
+                    <span class="material-symbols-outlined">swap_horiz</span>
+                  </button>
+                }
+              </div>
+
               <h2 class="aw__exercise-name">{{ exercise.exerciseName }}</h2>
               <p class="aw__exercise-equipment">
                 <span class="material-symbols-outlined aw__equipment-icon">fitness_center</span>
@@ -145,7 +157,9 @@
                       } @else if (set.completed) {
                         <span class="material-symbols-outlined aw__set-check" style="font-variation-settings: 'FILL' 1;">check_circle</span>
                       } @else {
-                        <button class="aw__set-complete-btn" (click)="completeSetAt(i, +weightInput.value, +repsInput.value); $event.stopPropagation()">
+                        <button class="aw__set-complete-btn"
+                          [disabled]="i > 0 && !exercise.sets[i - 1].completed"
+                          (click)="completeSetAt(i, +weightInput.value, +repsInput.value); $event.stopPropagation()">
                           <span class="material-symbols-outlined">check</span>
                         </button>
                       }
@@ -249,6 +263,10 @@
 
             <!-- Quick actions -->
             <div class="aw__rest-actions">
+              <button class="aw__rest-btn aw__rest-btn--secondary" (click)="subRestTime()">
+                <span class="material-symbols-outlined">remove</span>
+                <span>15s</span>
+              </button>
               <button class="aw__rest-btn aw__rest-btn--secondary" (click)="addRestTime()">
                 <span class="material-symbols-outlined">add</span>
                 <span>15s</span>
@@ -355,6 +373,18 @@
       (closed)="showAddExercise.set(false)"
       (exerciseAdded)="onAddExercise($event)"
     />
+  }
+
+  <!-- Swap exercise sheet -->
+  @if (showSwapExercise() && currentExercise(); as ex) {
+    @if (currentExerciseMuscleGroupRaw(); as mg) {
+      <app-swap-exercise-sheet
+        [currentExerciseId]="ex.exerciseId"
+        [currentMuscleGroup]="mg"
+        (closed)="showSwapExercise.set(false)"
+        (picked)="onSwapPicked($event)"
+      />
+    }
   }
 
   <!-- Finish confirm dialog -->

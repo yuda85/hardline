@@ -102,6 +102,16 @@ export namespace Workout {
     ) {}
   }
 
+  export class SwapExercise {
+    static readonly type = '[Workout] Swap Exercise';
+    constructor(
+      public groupIndex: number,
+      public exerciseIndex: number,
+      public newExerciseId: string,
+      public newExerciseName: string,
+    ) {}
+  }
+
   export class CheckActiveSession {
     static readonly type = '[Workout] Check Active Session';
   }

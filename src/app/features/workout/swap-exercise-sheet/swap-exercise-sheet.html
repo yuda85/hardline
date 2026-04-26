@@ -1,0 +1,106 @@
+<div class="ses-backdrop" (click)="closed.emit()"></div>
+
+<div class="ses-sheet">
+  <div class="ses-handle"></div>
+
+  <div class="ses-header">
+    <h2 class="ses-title">Swap Exercise</h2>
+    <button class="ses-close" (click)="closed.emit()" aria-label="Close">
+      <span class="material-symbols-outlined">close</span>
+    </button>
+  </div>
+
+  <div class="ses-mode-toggle" role="tablist">
+    <button
+      class="ses-mode-toggle__btn"
+      [class.ses-mode-toggle__btn--active]="mode() === 'smart'"
+      role="tab"
+      [attr.aria-selected]="mode() === 'smart'"
+      (click)="setMode('smart')"
+    >
+      <span class="material-symbols-outlined ses-mode-toggle__icon">auto_awesome</span>
+      <span>Smart · {{ label(currentMuscleGroup) }}</span>
+    </button>
+    <button
+      class="ses-mode-toggle__btn"
+      [class.ses-mode-toggle__btn--active]="mode() === 'all'"
+      role="tab"
+      [attr.aria-selected]="mode() === 'all'"
+      (click)="setMode('all')"
+    >
+      <span class="material-symbols-outlined ses-mode-toggle__icon">apps</span>
+      <span>Show all</span>
+    </button>
+  </div>
+
+  @if (mode() === 'smart') {
+    <div class="ses-list">
+      @for (ex of smartList(); track ex.id) {
+        <div class="ses-exercise" (click)="pick(ex)">
+          <span class="ses-exercise__name">{{ ex.name }}</span>
+          <span class="ses-exercise__badge">{{ ex.equipment }}</span>
+        </div>
+      }
+
+      @if (smartList().length === 0) {
+        <div class="ses-empty">
+          <span class="material-symbols-outlined ses-empty__icon">search_off</span>
+          <p class="ses-empty__text">No alternatives in this muscle group.</p>
+          <button class="ses-empty__cta" (click)="setMode('all')">Show all exercises</button>
+        </div>
+      }
+    </div>
+  } @else {
+    <div class="ses-search-wrapper">
+      <div class="ses-search">
+        <span class="material-symbols-outlined ses-search__icon">search</span>
+        <input
+          type="text"
+          class="ses-search__input"
+          placeholder="Search exercises..."
+          [ngModel]="searchQuery()"
+          (ngModelChange)="searchQuery.set($event)"
+        />
+      </div>
+    </div>
+
+    <div class="ses-chips">
+      <button
+        class="ses-chip"
+        [class.ses-chip--active]="selectedMuscleFilter() === 'all'"
+        (click)="setMuscleFilter('all')"
+      >
+        All
+      </button>
+      @for (g of muscleGroups; track g) {
+        <button
+          class="ses-chip"
+          [class.ses-chip--active]="selectedMuscleFilter() === g"
+          (click)="setMuscleFilter(g)"
+        >
+          {{ label(g) }}
+        </button>
+      }
+    </div>
+
+    <div class="ses-list">
+      @for (group of groupedAll(); track group.group) {
+        <div class="ses-group-header">{{ label(group.group) }}</div>
+
+        @for (ex of group.exercises; track ex.id) {
+          <div class="ses-exercise" (click)="pick(ex)">
+            <span class="ses-exercise__name">{{ ex.name }}</span>
+            <span class="ses-exercise__badge">{{ ex.equipment }}</span>
+          </div>
+        }
+      }
+
+      @if (groupedAll().length === 0) {
+        <div class="ses-empty">
+          <span class="material-symbols-outlined ses-empty__icon">search_off</span>
+          <p class="ses-empty__text">No exercises found</p>
+        </div>
+      }
+    </div>
+  }
+</div>

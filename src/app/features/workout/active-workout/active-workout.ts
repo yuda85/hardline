@@ -10,6 +10,7 @@ import { ExerciseListSheetComponent } from '../exercise-list-sheet/exercise-list
 import { ExerciseHistorySheetComponent } from '../exercise-history-sheet/exercise-history-sheet';
 import { SessionStatsSheetComponent } from '../session-stats-sheet/session-stats-sheet';
 import { AddExerciseSheetComponent } from '../add-exercise-sheet/add-exercise-sheet';
+import { SwapExerciseSheetComponent } from '../swap-exercise-sheet/swap-exercise-sheet';
 import { SessionExercise, MuscleGroup } from '../../../core/models';
 import { EXERCISES } from '../exercise-data';
 
@@ -22,6 +23,7 @@ import { EXERCISES } from '../exercise-data';
     ExerciseHistorySheetComponent,
     SessionStatsSheetComponent,
     AddExerciseSheetComponent,
+    SwapExerciseSheetComponent,
   ],
   templateUrl: './active-workout.html',
   styleUrl: './active-workout.scss',
@@ -47,6 +49,7 @@ export class ActiveWorkoutComponent implements OnInit, OnDestroy {
   protected readonly showHistorySheet = signal(false);
   protected readonly showStatsSheet = signal(false);
   protected readonly showAddExercise = signal(false);
+  protected readonly showSwapExercise = signal(false);
   protected readonly showFinishConfirm = signal(false);
   protected readonly showAbandonConfirm = signal(false);
   protected readonly showConflictDialog = signal(false);
@@ -62,6 +65,8 @@ export class ActiveWorkoutComponent implements OnInit, OnDestroy {
   // Rest timer state
   protected readonly resting = signal(false);
   protected readonly restTimeLeft = signal(0);
+  /** Effective total used for the progress ring (grows when user taps +15s). */
+  protected readonly restTotal = signal(0);
 
   // Input state
   protected readonly weight = signal(0);
@@ -170,12 +175,11 @@ export class ActiveWorkoutComponent implements OnInit, OnDestroy {
   });
 
   protected readonly restProgress = computed(() => {
-    const group = this.currentGroup();
-    if (!group) return 0;
-    const total = group.restSeconds;
+    const total = this.restTotal();
     const left = this.restTimeLeft();
     if (total <= 0) return 0;
-    return ((total - left) / total) * 816; // 2*pi*130
+    const value = ((total - left) / total) * 816; // 2*pi*130
+    return Math.max(0, Math.min(816, value));
   });
 
   // ── New computed for redesign ──
@@ -263,6 +267,19 @@ export class ActiveWorkoutComponent implements OnInit, OnDestroy {
     if (!ex) return '';
     const match = EXERCISES.find(e => e.id === ex.exerciseId);
     return match?.muscleGroup ?? '';
+  });
+
+  protected readonly currentExerciseMuscleGroupRaw = computed<MuscleGroup | null>(() => {
+    const ex = this.currentExercise();
+    if (!ex) return null;
+    return EXERCISES.find(e => e.id === ex.exerciseId)?.muscleGroup ?? null;
+  });
+
+  protected readonly canSwapCurrent = computed(() => {
+    const ex = this.currentExercise();
+    if (!ex) return false;
+    if (!this.currentExerciseMuscleGroupRaw()) return false;
+    return ex.sets.every(s => !s.completed);
   });
 
   protected readonly currentExerciseEquipment = computed(() => {
@@ -499,6 +516,12 @@ export class ActiveWorkoutComponent implements OnInit, OnDestroy {
 
   protected addRestTime() {
     this.restTimeLeft.update(t => t + 15);
+    // Grow the ring's denominator so the bar doesn't overshoot/wrap.
+    this.restTotal.update(t => Math.max(t, this.restTimeLeft()));
+  }
+
+  protected subRestTime() {
+    this.restTimeLeft.update(t => Math.max(0, t - 15));
   }
 
   protected skipRest() {
@@ -530,6 +553,18 @@ export class ActiveWorkoutComponent implements OnInit, OnDestroy {
         this.reps.set(0);
       }
     });
+  }
+
+  protected onSwapPicked(picked: { exerciseId: string; exerciseName: string }) {
+    this.store.dispatch(
+      new Workout.SwapExercise(
+        this.currentGroupIndex(),
+        this.currentExerciseIndex(),
+        picked.exerciseId,
+        picked.exerciseName,
+      ),
+    );
+    this.showSwapExercise.set(false);
   }
 
   protected finishWorkout() {
@@ -566,6 +601,7 @@ export class ActiveWorkoutComponent implements OnInit, OnDestroy {
   private startRestTimer(seconds: number) {
     this.resting.set(true);
     this.restTimeLeft.set(seconds);
+    this.restTotal.set(seconds);
     this.restInterval = setInterval(() => {
       this.restTimeLeft.update(t => {
         if (t <= 1) { this.clearRestTimer(); this.alertRestDone(); return 0; }
@@ -577,6 +613,7 @@ export class ActiveWorkoutComponent implements OnInit, OnDestroy {
   private clearRestTimer() {
     this.resting.set(false);
     this.restTimeLeft.set(0);
+    this.restTotal.set(0);
     if (this.restInterval) { clearInterval(this.restInterval); this.restInterval = null; }
   }
 

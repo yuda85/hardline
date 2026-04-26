@@ -673,6 +673,37 @@ export class WorkoutState {
     this.backupSessionToLocalStorage(updatedSession);
   }
 
+  @Action(Workout.SwapExercise)
+  swapExercise(ctx: StateContext<WorkoutStateModel>, action: Workout.SwapExercise) {
+    const state = ctx.getState();
+    if (!state.activeSession) return;
+
+    const targetGroup = state.activeSession.exerciseGroups[action.groupIndex];
+    if (!targetGroup) return;
+    const targetExercise = targetGroup.exercises[action.exerciseIndex];
+    if (!targetExercise) return;
+    if (targetExercise.sets.some(s => s.completed)) return;
+
+    const updatedGroups = state.activeSession.exerciseGroups.map((group, gi) => {
+      if (gi !== action.groupIndex) return group;
+      return {
+        ...group,
+        exercises: group.exercises.map((ex, ei) => {
+          if (ei !== action.exerciseIndex) return ex;
+          return {
+            ...ex,
+            exerciseId: action.newExerciseId,
+            exerciseName: action.newExerciseName,
+          };
+        }),
+      };
+    });
+
+    const updatedSession = { ...state.activeSession, exerciseGroups: updatedGroups };
+    ctx.patchState({ activeSession: updatedSession });
+    this.backupSessionToLocalStorage(updatedSession);
+  }
+
   @Action(Workout.FetchSessionHistory)
   fetchSessionHistory(ctx: StateContext<WorkoutStateModel>) {
     const uid = this.store.selectSnapshot(AuthState.uid);

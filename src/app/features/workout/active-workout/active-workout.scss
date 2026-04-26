@@ -412,10 +412,15 @@
   position: relative;
 }
 
+.aw__card-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.875rem;
+}
+
 .aw__muscle-badge {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
   background: rgba(53, 53, 52, 0.6);
   backdrop-filter: blur(8px);
   padding: 0.25rem 0.75rem;
@@ -431,6 +436,36 @@
   }
 }
 
+.aw__swap-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  aspect-ratio: 1 / 1;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid rgba(60, 215, 255, 0.25);
+  background: rgba(53, 53, 52, 0.6);
+  backdrop-filter: blur(8px);
+  color: var(--primary);
+  cursor: pointer;
+  transition: background 200ms ease, border-color 200ms ease;
+
+  .material-symbols-outlined { font-size: 1.125rem; }
+
+  &:hover {
+    background: rgba(60, 215, 255, 0.18);
+    border-color: var(--primary-container);
+  }
+
+  &:active { transform: scale(0.95); }
+}
+
 .aw__card-body {
   padding: 1.5rem;
 }
@@ -444,7 +479,6 @@
   text-transform: uppercase;
   line-height: 1.1;
   margin: 0 0 0.25rem;
-  padding-right: 4rem;
   word-spacing: 0.1em;
 }
 
@@ -572,6 +606,12 @@
 .aw__set-complete-btn {
   width: 2.25rem;
   height: 2.25rem;
+  min-width: 2.25rem;
+  min-height: 2.25rem;
+  max-height: 2.25rem;
+  flex-shrink: 0;
+  aspect-ratio: 1 / 1;
+  padding: 0;
   border-radius: 50%;
   background: var(--primary-container);
   border: none;
@@ -585,11 +625,27 @@
   .material-symbols-outlined { font-size: 1rem; }
 
   &:active { transform: scale(0.9); }
+
+  &:disabled {
+    background: var(--surface-container-highest);
+    color: var(--on-surface-variant);
+    opacity: 0.4;
+    cursor: not-allowed;
+    box-shadow: none;
+
+    &:active { transform: none; }
+  }
 }
 
 .aw__set-save-btn {
   width: 2.25rem;
   height: 2.25rem;
+  min-width: 2.25rem;
+  min-height: 2.25rem;
+  max-height: 2.25rem;
+  flex-shrink: 0;
+  aspect-ratio: 1 / 1;
+  padding: 0;
   border-radius: 50%;
   background: var(--primary-container);
   border: none;
@@ -608,6 +664,12 @@
 .aw__set-remove-btn {
   width: 2rem;
   height: 2rem;
+  min-width: 2rem;
+  min-height: 2rem;
+  max-height: 2rem;
+  flex-shrink: 0;
+  aspect-ratio: 1 / 1;
+  padding: 0;
   border-radius: 50%;
   background: transparent;
   border: none;
@@ -799,6 +861,7 @@
   stroke-width: 6;
   fill: transparent;
   stroke-dasharray: 816; // 2 * pi * 130
+  stroke-dashoffset: 816; // initial: empty ring (matches restProgress = 0 at start)
   stroke-linecap: round;
   transition: stroke-dashoffset 1s linear;
 }

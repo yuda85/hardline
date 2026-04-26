@@ -138,6 +138,21 @@ export const EXERCISES: Exercise[] = [
   { id: 'ex-120', name: 'Farmer Walk', muscleGroup: MuscleGroup.Core, equipment: 'Dumbbell', tags: ['farmer walk', 'carry', 'core', 'grip', 'dumbbell', 'functional'] },
 ];
 
+export function muscleGroupLabel(group: MuscleGroup | string): string {
+  const labels: Record<string, string> = {
+    [MuscleGroup.Chest]: 'Chest',
+    [MuscleGroup.Back]: 'Back',
+    [MuscleGroup.Shoulders]: 'Shoulders',
+    [MuscleGroup.UpperLegs]: 'Upper Legs',
+    [MuscleGroup.LowerLegs]: 'Lower Legs',
+    [MuscleGroup.Biceps]: 'Biceps',
+    [MuscleGroup.Triceps]: 'Triceps',
+    [MuscleGroup.Core]: 'Core',
+    [MuscleGroup.FullBody]: 'Full Body',
+  };
+  return labels[group] ?? group.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+}
+
 // Helper to build exercise groups
 function single(exId: string, sets: number[], rest: number, notes?: string): ExerciseGroup {
   const exercise = EXERCISES.find(e => e.id === exId)!;
@@ -328,7 +343,7 @@ export const SAMPLE_PLANS_DAYS: { name: string; description: string; days: Worko
               { id: 'ex-42', sets: [12, 11, 10] },
               { id: 'ex-62', sets: [12, 11, 10] },
             ],
-            75,
+            60,
           ),
           single('ex-12', [10, 10, 9, 8], 90),
           single('ex-11', [15, 14, 13, 12], 45),
@@ -342,7 +357,7 @@ export const SAMPLE_PLANS_DAYS: { name: string; description: string; days: Worko
         name: 'Lower B — Deadlift Focus',
         exerciseGroups: [
           single('ex-3', [5, 5, 5], 180),
-          single('ex-15', [12, 11, 10], 75),
+          single('ex-15', [12, 11, 10], 60),
           single('ex-16', [15, 12], 60),
           single('ex-29', [15, 13, 12], 60),
         ],
@@ -356,10 +371,10 @@ export const SAMPLE_PLANS_DAYS: { name: string; description: string; days: Worko
               { id: 'ex-42', sets: [15, 13, 12] },
               { id: 'ex-62', sets: [15, 13, 12] },
             ],
-            75,
+            60,
           ),
           single('ex-53', [15, 13, 12], 60),
-          single('ex-14', [10, 9, 8], 75),
+          single('ex-14', [10, 9, 8], 60),
           single('ex-11', [20, 18, 17, 15], 30, 'High rep, light weight, short rest'),
           single('ex-18', [15, 13, 12], 45),
           superset(
@@ -367,7 +382,7 @@ export const SAMPLE_PLANS_DAYS: { name: string; description: string; days: Worko
               { id: 'ex-87', sets: [12, 11, 10] },
               { id: 'ex-93', sets: [12, 11, 10] },
             ],
-            75,
+            60,
           ),
         ],
       },

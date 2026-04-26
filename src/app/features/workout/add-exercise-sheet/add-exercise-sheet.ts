@@ -1,7 +1,7 @@
 import { Component, computed, EventEmitter, Output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MuscleGroup } from '../../../core/models';
-import { EXERCISES } from '../exercise-data';
+import { EXERCISES, muscleGroupLabel } from '../exercise-data';
 
 @Component({
   selector: 'app-add-exercise-sheet',
@@ -55,18 +55,7 @@ export class AddExerciseSheetComponent {
   });
 
   protected muscleGroupLabel(group: MuscleGroup | string): string {
-    const labels: Record<string, string> = {
-      [MuscleGroup.Chest]: 'Chest',
-      [MuscleGroup.Back]: 'Back',
-      [MuscleGroup.Shoulders]: 'Shoulders',
-      [MuscleGroup.UpperLegs]: 'Upper Legs',
-      [MuscleGroup.LowerLegs]: 'Lower Legs',
-      [MuscleGroup.Biceps]: 'Biceps',
-      [MuscleGroup.Triceps]: 'Triceps',
-      [MuscleGroup.Core]: 'Core',
-      [MuscleGroup.FullBody]: 'Full Body',
-    };
-    return labels[group] ?? group.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+    return muscleGroupLabel(group);
   }
 
   protected selectExercise(ex: (typeof EXERCISES)[0]) {
