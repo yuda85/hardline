@@ -26,6 +26,9 @@ export class WeightPromptComponent {
     this.saving.set(true);
     const { weight, notes } = this.form.getRawValue();
     this.saved.emit({ weightKg: weight, notes: notes || undefined });
+    // Reset so re-opening the prompt in the same session shows a clean form.
+    this.saving.set(false);
+    this.form.reset({ weight: 0, notes: '' });
   }
 
   protected skip() {

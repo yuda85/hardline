@@ -1,5 +1,6 @@
 export const environment = {
   production: true,
+  appVersion: '0.0.1',
   openaiApiKey: '__OPENAI_API_KEY__',
   firebase: {
     apiKey: 'AIzaSyDeCRKcnda3Vhc_SAQda4ZbigBYkb0rd1A',

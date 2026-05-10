@@ -9,17 +9,22 @@ const MUSCLE_GROUP_ORDER: readonly MuscleGroup[] = [
   MuscleGroup.Triceps,
   MuscleGroup.Core,
   MuscleGroup.UpperLegs,
+  MuscleGroup.Hamstrings,
+  MuscleGroup.Glutes,
   MuscleGroup.LowerLegs,
   MuscleGroup.FullBody,
 ];
 
+// Order matters: more specific groups before generic squat/deadlift.
 const KEYWORD_FALLBACK: Array<[RegExp, MuscleGroup]> = [
   [/\b(bench|chest|push.?up|fly|pec)\b/i, MuscleGroup.Chest],
+  [/\b(shoulder|raise|delt|lateral|ohp|military)\b/i, MuscleGroup.Shoulders],
+  [/\b(curl|bicep|hammer|preacher)\b/i, MuscleGroup.Biceps],
+  [/\b(tricep|skullcrusher|pushdown|dip)\b/i, MuscleGroup.Triceps],
+  [/\b(leg.?curl|romanian.?deadlift|rdl|nordic|hamstring)\b/i, MuscleGroup.Hamstrings],
+  [/\b(hip.?thrust|glute|kickback|sumo.?deadlift|split.?squat|lunge|step.?up)\b/i, MuscleGroup.Glutes],
+  [/\b(squat|leg.?press|leg.?extension|quad)\b/i, MuscleGroup.UpperLegs],
   [/\b(row|pull.?up|chin.?up|lat|pulldown|deadlift|back)\b/i, MuscleGroup.Back],
-  [/\b(shoulder|press|raise|delt|lateral)\b/i, MuscleGroup.Shoulders],
-  [/\b(curl|bicep)\b/i, MuscleGroup.Biceps],
-  [/\b(tricep|extension|skullcrusher|dip)\b/i, MuscleGroup.Triceps],
-  [/\b(squat|lunge|leg.?press|leg.?extension|leg.?curl|hip.?thrust|hamstring|quad|glute)\b/i, MuscleGroup.UpperLegs],
   [/\b(calf|calves)\b/i, MuscleGroup.LowerLegs],
   [/\b(ab|crunch|plank|core|oblique)\b/i, MuscleGroup.Core],
 ];

@@ -173,6 +173,85 @@
     </div>
   </app-card>
 
+  <!-- Weekly Calories vs Budget -->
+  @if (currentWeekCalories(); as cw) {
+    <app-card [elevation]="1" padding="lg">
+      <div class="insights__card-header">
+        <h2 class="insights__section-title">Weekly Calories</h2>
+        <span class="insights__delta">{{ cw.adherencePct }}% on target</span>
+      </div>
+
+      <div class="cal__current">
+        <div class="cal__current-stat">
+          <span class="cal__current-value">{{ cw.avgIntake }}</span>
+          <span class="cal__current-label">avg intake</span>
+        </div>
+        <div class="cal__current-stat">
+          <span class="cal__current-value">{{ cw.avgBudget || '—' }}</span>
+          <span class="cal__current-label">avg budget</span>
+        </div>
+      </div>
+
+      <div class="cal__bars">
+        @for (cals of cw.days; track $index) {
+          <div class="cal__bar-col">
+            <div class="cal__bar-track">
+              @if (cw.avgBudget > 0) {
+                <span class="cal__bar-budget" [style.bottom.%]="(cw.avgBudget / caloriesChartMax(cw)) * 100"></span>
+              }
+              <span
+                class="cal__bar-fill"
+                [class.cal__bar-fill--over]="cw.avgBudget > 0 && cals > cw.avgBudget * 1.10"
+                [class.cal__bar-fill--under]="cw.avgBudget > 0 && cals > 0 && cals < cw.avgBudget * 0.90"
+                [style.height.%]="(cals / caloriesChartMax(cw)) * 100"
+              ></span>
+            </div>
+            <span class="cal__bar-label">{{ ['S','M','T','W','T','F','S'][$index] }}</span>
+          </div>
+        }
+      </div>
+
+      <h3 class="insights__subtle-title">Previous weeks</h3>
+      <div class="cal__history">
+        @for (week of weeklyCalories(); track week.weekStart) {
+          @if (!week.isCurrent) {
+            <div class="cal__history-row">
+              <span class="cal__history-label">{{ week.weekLabel }}</span>
+              <span class="cal__history-stat">{{ week.avgIntake }}<span class="cal__history-unit"> kcal</span></span>
+              <span class="cal__history-adherence">{{ week.adherencePct }}%</span>
+            </div>
+          }
+        }
+      </div>
+    </app-card>
+  }
+
+  <!-- Volume by Muscle Group (planned vs actual) -->
+  @if (currentWeekMuscleSets(); as mw) {
+    <app-card [elevation]="1" padding="lg">
+      <div class="insights__card-header">
+        <h2 class="insights__section-title">Volume by Muscle</h2>
+      </div>
+
+      <div class="mvol__list">
+        @for (row of mw.byGroup; track row.group) {
+          @if (row.actual > 0 || row.planned > 0) {
+            <div class="mvol__row">
+              <span class="mvol__label">{{ row.label }}</span>
+              <div class="mvol__bar-track">
+                <span class="mvol__bar-fill" [style.width.%]="musclePct(row.actual, row.planned)"></span>
+                @if (row.planned > 0) {
+                  <span class="mvol__bar-target"></span>
+                }
+              </div>
+              <span class="mvol__count">{{ row.actual }}<span class="mvol__count-target">/{{ row.planned || '—' }}</span></span>
+            </div>
+          }
+        }
+      </div>
+    </app-card>
+  }
+
   <!-- Card 5: Body Weight Momentum -->
   @if (momentum(); as m) {
     <app-card [elevation]="1" padding="lg">

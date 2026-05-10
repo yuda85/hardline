@@ -1,8 +1,11 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, computed, signal } from '@angular/core';
 import { Store } from '@ngxs/store';
 import { Energy } from '../../../store/energy/energy.actions';
 import { EnergyState } from '../../../store/energy/energy.state';
-import { toDateString } from '../../../core/services/date.util';
+import { getWeekRange } from '../../../core/services/date.util';
+
+const DAY_LABELS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+
 @Component({
   selector: 'app-weekly-summary',
   standalone: true,
@@ -15,14 +18,25 @@ export class WeeklySummaryComponent implements OnInit {
 
   protected readonly weeklySummary = this.store.selectSignal(EnergyState.weeklySummary);
   protected readonly goals = this.store.selectSignal(EnergyState.goalSettings);
+  protected readonly liveWeeklyIntake = this.store.selectSignal(EnergyState.liveWeeklyIntake);
   protected readonly weekLabel = signal('');
+  protected readonly dayLabels = DAY_LABELS;
+
+  /** Max bar value for the daily intake chart — at least the budget so bars scale correctly. */
+  protected readonly chartMax = computed(() => {
+    const live = this.liveWeeklyIntake();
+    if (!live) return 1;
+    const max = Math.max(live.avgBudget, ...live.days.map(d => d.calories));
+    return max > 0 ? max : 1;
+  });
 
   private weekStart = '';
   private weekEnd = '';
 
   ngOnInit() {
-    this.store.dispatch(new Energy.LoadGoalSettings());
-    this.loadCurrentWeek();
+    this.store.dispatch(new Energy.LoadGoalSettings()).subscribe(() => {
+      this.loadCurrentWeek();
+    });
   }
 
   protected prevWeek() {
@@ -43,25 +57,21 @@ export class WeeklySummaryComponent implements OnInit {
   }
 
   private loadCurrentWeek() {
-    const today = new Date();
-    const dayOfWeek = today.getDay();
-    const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-    const monday = new Date(today);
-    monday.setDate(today.getDate() + mondayOffset);
-    this.setWeek(monday);
+    this.setWeek(new Date());
   }
 
-  private setWeek(monday: Date) {
-    const sunday = new Date(monday);
-    sunday.setDate(monday.getDate() + 6);
+  private setWeek(date: Date) {
+    const range = getWeekRange(date, 0); // Sun–Sat
+    this.weekStart = range.start;
+    this.weekEnd = range.end;
 
-    this.weekStart = toDateString(monday);
-    this.weekEnd = toDateString(sunday);
-
-    const startStr = monday.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    const endStr = sunday.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    const start = new Date(`${range.start}T00:00:00`);
+    const end = new Date(`${range.end}T00:00:00`);
+    const startStr = start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    const endStr = end.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     this.weekLabel.set(`${startStr} – ${endStr}`);
 
     this.store.dispatch(new Energy.FetchWeeklySummary(this.weekStart));
+    this.store.dispatch(new Energy.FetchLiveWeeklyIntake(this.weekStart, this.weekEnd));
   }
 }

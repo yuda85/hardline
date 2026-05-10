@@ -3,6 +3,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Store } from '@ngxs/store';
 import { Subject } from 'rxjs';
 import { takeUntil, distinctUntilChanged, map } from 'rxjs/operators';
+import { environment } from '../../../../environments/environment';
 import { AuthState } from '../../../store/auth/auth.state';
 import { ProfileState } from '../../../store/profile/profile.state';
 import { Profile } from '../../../store/profile/profile.actions';
@@ -30,6 +31,7 @@ export class ProfilePageComponent implements OnInit, OnDestroy {
   private suppressCalorieWatch = false;
   private suppressMacroWatch = false;
 
+  protected readonly appVersion = environment.appVersion;
   protected readonly user = this.store.selectSignal(AuthState.user);
   protected readonly goals = this.store.selectSignal(ProfileState.goals);
   protected readonly preferences = this.store.selectSignal(ProfileState.preferences);

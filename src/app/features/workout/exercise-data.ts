@@ -1,25 +1,29 @@
 import { Exercise, MuscleGroup, WorkoutDay, ExerciseGroup, PlanExercise } from '../../core/models';
 
 export const EXERCISES: Exercise[] = [
-  // ── UPPER LEGS (18) — quads, hamstrings, glutes ──
+  // ── QUADS (8) ──
   { id: 'ex-1', name: 'Barbell Back Squat', muscleGroup: MuscleGroup.UpperLegs, equipment: 'Barbell', tags: ['squat', 'quads', 'legs', 'compound', 'barbell', 'back squat'] },
   { id: 'ex-9', name: 'Leg Press', muscleGroup: MuscleGroup.UpperLegs, equipment: 'Machine', tags: ['leg press', 'quads', 'legs', 'machine', 'compound'] },
-  { id: 'ex-10', name: 'Romanian Deadlift', muscleGroup: MuscleGroup.UpperLegs, equipment: 'Barbell', tags: ['rdl', 'hamstrings', 'glutes', 'posterior chain', 'barbell', 'deadlift'] },
-  { id: 'ex-15', name: 'Leg Curl', muscleGroup: MuscleGroup.UpperLegs, equipment: 'Machine', tags: ['leg curl', 'hamstrings', 'machine', 'isolation'] },
   { id: 'ex-16', name: 'Leg Extension', muscleGroup: MuscleGroup.UpperLegs, equipment: 'Machine', tags: ['leg extension', 'quads', 'machine', 'isolation'] },
-  { id: 'ex-21', name: 'Bulgarian Split Squat', muscleGroup: MuscleGroup.UpperLegs, equipment: 'Dumbbell', tags: ['split squat', 'quads', 'glutes', 'unilateral', 'single leg', 'dumbbell'] },
-  { id: 'ex-24', name: 'Hip Thrust', muscleGroup: MuscleGroup.UpperLegs, equipment: 'Barbell', tags: ['hip thrust', 'glutes', 'barbell', 'posterior chain'] },
   { id: 'ex-25', name: 'Front Squat', muscleGroup: MuscleGroup.UpperLegs, equipment: 'Barbell', tags: ['squat', 'quads', 'front squat', 'barbell', 'compound'] },
   { id: 'ex-26', name: 'Goblet Squat', muscleGroup: MuscleGroup.UpperLegs, equipment: 'Dumbbell', tags: ['squat', 'quads', 'goblet', 'dumbbell', 'compound'] },
-  { id: 'ex-27', name: 'Walking Lunge', muscleGroup: MuscleGroup.UpperLegs, equipment: 'Dumbbell', tags: ['lunge', 'quads', 'glutes', 'dumbbell', 'unilateral'] },
   { id: 'ex-28', name: 'Hack Squat', muscleGroup: MuscleGroup.UpperLegs, equipment: 'Machine', tags: ['squat', 'quads', 'hack squat', 'machine', 'compound'] },
-  { id: 'ex-31', name: 'Sumo Deadlift', muscleGroup: MuscleGroup.UpperLegs, equipment: 'Barbell', tags: ['deadlift', 'sumo', 'glutes', 'inner thigh', 'barbell', 'compound'] },
-  { id: 'ex-32', name: 'Dumbbell Romanian Deadlift', muscleGroup: MuscleGroup.UpperLegs, equipment: 'Dumbbell', tags: ['rdl', 'hamstrings', 'glutes', 'dumbbell'] },
-  { id: 'ex-33', name: 'Step Up', muscleGroup: MuscleGroup.UpperLegs, equipment: 'Dumbbell', tags: ['step up', 'quads', 'glutes', 'unilateral', 'dumbbell'] },
-  { id: 'ex-34', name: 'Glute Kickback', muscleGroup: MuscleGroup.UpperLegs, equipment: 'Cable', tags: ['kickback', 'glutes', 'cable', 'isolation'] },
   { id: 'ex-35', name: 'Sissy Squat', muscleGroup: MuscleGroup.UpperLegs, equipment: 'Bodyweight', tags: ['squat', 'quads', 'bodyweight', 'isolation'] },
   { id: 'ex-36', name: 'Pendulum Squat', muscleGroup: MuscleGroup.UpperLegs, equipment: 'Machine', tags: ['squat', 'quads', 'machine', 'compound'] },
-  { id: 'ex-37', name: 'Nordic Hamstring Curl', muscleGroup: MuscleGroup.UpperLegs, equipment: 'Bodyweight', tags: ['hamstrings', 'nordic', 'bodyweight', 'eccentric'] },
+
+  // ── HAMSTRINGS (4) ──
+  { id: 'ex-10', name: 'Romanian Deadlift', muscleGroup: MuscleGroup.Hamstrings, equipment: 'Barbell', tags: ['rdl', 'hamstrings', 'glutes', 'posterior chain', 'barbell', 'deadlift'] },
+  { id: 'ex-15', name: 'Leg Curl', muscleGroup: MuscleGroup.Hamstrings, equipment: 'Machine', tags: ['leg curl', 'hamstrings', 'machine', 'isolation'] },
+  { id: 'ex-32', name: 'Dumbbell Romanian Deadlift', muscleGroup: MuscleGroup.Hamstrings, equipment: 'Dumbbell', tags: ['rdl', 'hamstrings', 'glutes', 'dumbbell'] },
+  { id: 'ex-37', name: 'Nordic Hamstring Curl', muscleGroup: MuscleGroup.Hamstrings, equipment: 'Bodyweight', tags: ['hamstrings', 'nordic', 'bodyweight', 'eccentric'] },
+
+  // ── GLUTES (6) ──
+  { id: 'ex-21', name: 'Bulgarian Split Squat', muscleGroup: MuscleGroup.Glutes, equipment: 'Dumbbell', tags: ['split squat', 'quads', 'glutes', 'unilateral', 'single leg', 'dumbbell'] },
+  { id: 'ex-24', name: 'Hip Thrust', muscleGroup: MuscleGroup.Glutes, equipment: 'Barbell', tags: ['hip thrust', 'glutes', 'barbell', 'posterior chain'] },
+  { id: 'ex-27', name: 'Walking Lunge', muscleGroup: MuscleGroup.Glutes, equipment: 'Dumbbell', tags: ['lunge', 'quads', 'glutes', 'dumbbell', 'unilateral'] },
+  { id: 'ex-31', name: 'Sumo Deadlift', muscleGroup: MuscleGroup.Glutes, equipment: 'Barbell', tags: ['deadlift', 'sumo', 'glutes', 'inner thigh', 'barbell', 'compound'] },
+  { id: 'ex-33', name: 'Step Up', muscleGroup: MuscleGroup.Glutes, equipment: 'Dumbbell', tags: ['step up', 'quads', 'glutes', 'unilateral', 'dumbbell'] },
+  { id: 'ex-34', name: 'Glute Kickback', muscleGroup: MuscleGroup.Glutes, equipment: 'Cable', tags: ['kickback', 'glutes', 'cable', 'isolation'] },
 
   // ── LOWER LEGS (2) — calves ──
   { id: 'ex-29', name: 'Standing Calf Raise', muscleGroup: MuscleGroup.LowerLegs, equipment: 'Machine', tags: ['calf raise', 'calves', 'machine', 'isolation'] },
@@ -143,8 +147,10 @@ export function muscleGroupLabel(group: MuscleGroup | string): string {
     [MuscleGroup.Chest]: 'Chest',
     [MuscleGroup.Back]: 'Back',
     [MuscleGroup.Shoulders]: 'Shoulders',
-    [MuscleGroup.UpperLegs]: 'Upper Legs',
-    [MuscleGroup.LowerLegs]: 'Lower Legs',
+    [MuscleGroup.UpperLegs]: 'Quads',
+    [MuscleGroup.Hamstrings]: 'Hamstrings',
+    [MuscleGroup.Glutes]: 'Glutes',
+    [MuscleGroup.LowerLegs]: 'Calves',
     [MuscleGroup.Biceps]: 'Biceps',
     [MuscleGroup.Triceps]: 'Triceps',
     [MuscleGroup.Core]: 'Core',

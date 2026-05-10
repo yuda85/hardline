@@ -5,10 +5,13 @@ import { Store } from '@ngxs/store';
 import { SessionRepository } from '../../data/repositories/session.repository';
 import { PRRepository } from '../../data/repositories/pr.repository';
 import { WeightRepository } from '../../data/repositories/weight.repository';
+import { MealRepository } from '../../data/repositories/meal.repository';
+import { WorkoutRepository } from '../../data/repositories/workout.repository';
 import { AuthState } from '../../store/auth/auth.state';
 import { ProfileState } from '../../store/profile/profile.state';
+import { EnergyState } from '../../store/energy/energy.state';
 import { OneRepMaxService } from './one-rep-max.service';
-import { toDate, toDateString } from './date.util';
+import { toDate, toDateString, getWeekRange, dayOfWeek } from './date.util';
 import { MuscleGroup, WorkoutSession } from '../models/workout.model';
 import { FitnessGoal } from '../models/energy.model';
 import { EXERCISES } from '../../features/workout/exercise-data';
@@ -54,6 +57,27 @@ export interface WeightMomentum {
   weeklyAverages: number[];
 }
 
+export interface WeeklyCalories {
+  weekStart: string;
+  weekEnd: string;
+  weekLabel: string;
+  isCurrent: boolean;
+  /** Daily calories Sunday → Saturday. */
+  days: number[];
+  avgIntake: number;
+  avgBudget: number;
+  /** Of days with logged meals, % within ±10% of budget. */
+  adherencePct: number;
+}
+
+export interface WeeklyMuscleSets {
+  weekStart: string;
+  weekEnd: string;
+  weekLabel: string;
+  isCurrent: boolean;
+  byGroup: { group: MuscleGroup; label: string; actual: number; planned: number }[];
+}
+
 // ── Exercise ID → muscle group lookup (authoritative source) ──
 
 const EXERCISE_MUSCLE_MAP = new Map<string, MuscleGroup>(
@@ -65,7 +89,10 @@ const EXERCISE_MUSCLE_MAP = new Map<string, MuscleGroup>(
 // Within each group, longer keywords are listed first.
 
 const MUSCLE_KEYWORD_FALLBACK: [MuscleGroup, string[]][] = [
-  [MuscleGroup.UpperLegs, ['leg extension', 'leg press', 'leg curl', 'hip thrust', 'split squat', 'back squat', 'front squat', 'hack squat', 'goblet squat', 'hamstring', 'glute', 'squat', 'lunge']],
+  // Order matters — more specific groups before generic "squat"/"lunge"
+  [MuscleGroup.Hamstrings, ['leg curl', 'romanian deadlift', 'rdl', 'nordic', 'hamstring']],
+  [MuscleGroup.Glutes, ['hip thrust', 'glute', 'kickback', 'sumo deadlift', 'split squat', 'lunge', 'step up']],
+  [MuscleGroup.UpperLegs, ['leg extension', 'leg press', 'back squat', 'front squat', 'hack squat', 'goblet squat', 'sissy squat', 'pendulum squat', 'squat']],
   [MuscleGroup.LowerLegs, ['calf raise', 'tibialis', 'calf']],
   [MuscleGroup.Chest, ['chest press', 'push-up', 'pushup', 'bench', 'fly', 'pec']],
   [MuscleGroup.Shoulders, ['overhead press', 'military press', 'lateral raise', 'shoulder', 'delt', 'ohp']],
@@ -80,8 +107,10 @@ const MUSCLE_LABELS: Record<MuscleGroup, string> = {
   [MuscleGroup.Chest]: 'Chest',
   [MuscleGroup.Back]: 'Back',
   [MuscleGroup.Shoulders]: 'Shoulders',
-  [MuscleGroup.UpperLegs]: 'Upper Legs',
-  [MuscleGroup.LowerLegs]: 'Lower Legs',
+  [MuscleGroup.UpperLegs]: 'Quads',
+  [MuscleGroup.Hamstrings]: 'Hamstrings',
+  [MuscleGroup.Glutes]: 'Glutes',
+  [MuscleGroup.LowerLegs]: 'Calves',
   [MuscleGroup.Biceps]: 'Biceps',
   [MuscleGroup.Triceps]: 'Triceps',
   [MuscleGroup.Core]: 'Core',
@@ -99,6 +128,8 @@ export class InsightsService {
   private readonly sessionRepo = inject(SessionRepository);
   private readonly prRepo = inject(PRRepository);
   private readonly weightRepo = inject(WeightRepository);
+  private readonly mealRepo = inject(MealRepository);
+  private readonly workoutRepo = inject(WorkoutRepository);
   private readonly oneRM = inject(OneRepMaxService);
   private readonly store = inject(Store);
 
@@ -135,9 +166,9 @@ export class InsightsService {
                 lastTrained.set(muscleGroup, setDate);
               }
 
-              // Deadlift hits both back and legs
+              // Deadlift hits back, hamstrings, and glutes
               if (muscleGroup === MuscleGroup.FullBody) {
-                for (const mg of [MuscleGroup.Back, MuscleGroup.UpperLegs]) {
+                for (const mg of [MuscleGroup.Back, MuscleGroup.Hamstrings, MuscleGroup.Glutes]) {
                   const c = lastTrained.get(mg);
                   if (!c || setDate > c) lastTrained.set(mg, setDate);
                 }
@@ -146,7 +177,18 @@ export class InsightsService {
           }
         }
 
-        const groups = [MuscleGroup.Chest, MuscleGroup.Back, MuscleGroup.Shoulders, MuscleGroup.UpperLegs, MuscleGroup.LowerLegs, MuscleGroup.Biceps, MuscleGroup.Triceps, MuscleGroup.Core];
+        const groups = [
+          MuscleGroup.Chest,
+          MuscleGroup.Back,
+          MuscleGroup.Shoulders,
+          MuscleGroup.UpperLegs,
+          MuscleGroup.Hamstrings,
+          MuscleGroup.Glutes,
+          MuscleGroup.LowerLegs,
+          MuscleGroup.Biceps,
+          MuscleGroup.Triceps,
+          MuscleGroup.Core,
+        ];
         return groups.map(group => {
           const date = lastTrained.get(group) ?? null;
           const hoursAgo = date ? (now.getTime() - date.getTime()) / (1000 * 60 * 60) : null;
@@ -375,6 +417,174 @@ export class InsightsService {
         return { ratePerWeek, label, status, weeklyAverages };
       }),
     );
+  }
+
+  // ── Weekly Calories vs Budget ──
+
+  /** Returns one entry per Sun–Sat week, newest last (matches weekly volume layout). */
+  getWeeklyCaloriesVsBudget(weeks: number = 8): Observable<WeeklyCalories[]> {
+    const uid = this.uid;
+    if (!uid) return of([]);
+
+    const now = new Date();
+    const oldestStart = new Date(now);
+    oldestStart.setDate(now.getDate() - weeks * 7);
+    oldestStart.setHours(0, 0, 0, 0);
+
+    const budget = this.store.selectSnapshot(EnergyState.dailyCalorieTarget);
+
+    return this.mealRepo.getByDateRange(uid, oldestStart, now).pipe(
+      map(meals => {
+        const byDate = new Map<string, number>();
+        for (const m of meals) {
+          const key = m.date ?? toDateString(m.timestamp as unknown);
+          byDate.set(key, (byDate.get(key) ?? 0) + (m.totalCalories ?? 0));
+        }
+
+        const currentRange = getWeekRange(now, 0);
+        const result: WeeklyCalories[] = [];
+
+        for (let i = weeks - 1; i >= 0; i--) {
+          const ref = new Date(now);
+          ref.setDate(now.getDate() - i * 7);
+          const range = getWeekRange(ref, 0);
+
+          const days: number[] = [];
+          let onTarget = 0;
+          let daysWithIntake = 0;
+          for (let d = 0; d < 7; d++) {
+            const day = new Date(`${range.start}T00:00:00`);
+            day.setDate(day.getDate() + d);
+            const cals = Math.round(byDate.get(toDateString(day)) ?? 0);
+            days.push(cals);
+            if (cals > 0) {
+              daysWithIntake++;
+              if (budget > 0 && Math.abs(cals - budget) / budget <= 0.10) onTarget++;
+            }
+          }
+
+          const totalIntake = days.reduce((s, d) => s + d, 0);
+          const avgIntake = Math.round(totalIntake / 7);
+          const adherencePct = daysWithIntake > 0 ? Math.round((onTarget / daysWithIntake) * 100) : 0;
+
+          result.push({
+            weekStart: range.start,
+            weekEnd: range.end,
+            weekLabel: this.formatWeekLabel(range.start),
+            isCurrent: range.start === currentRange.start,
+            days,
+            avgIntake,
+            avgBudget: Math.round(budget),
+            adherencePct,
+          });
+        }
+
+        return result;
+      }),
+    );
+  }
+
+  // ── Weekly Sets per Muscle Group (planned vs actual) ──
+
+  getWeeklyMuscleSets(weeks: number = 4): Observable<WeeklyMuscleSets[]> {
+    const uid = this.uid;
+    if (!uid) return of([]);
+
+    const now = new Date();
+    const oldestStart = new Date(now);
+    oldestStart.setDate(now.getDate() - weeks * 7);
+    oldestStart.setHours(0, 0, 0, 0);
+
+    const activePlanId = this.store.selectSnapshot(ProfileState.activePlanId);
+    const plan$ = activePlanId
+      ? this.workoutRepo.getById(activePlanId)
+      : of(undefined);
+
+    const groupOrder: MuscleGroup[] = [
+      MuscleGroup.Chest,
+      MuscleGroup.Back,
+      MuscleGroup.Shoulders,
+      MuscleGroup.UpperLegs,
+      MuscleGroup.Hamstrings,
+      MuscleGroup.Glutes,
+      MuscleGroup.LowerLegs,
+      MuscleGroup.Biceps,
+      MuscleGroup.Triceps,
+      MuscleGroup.Core,
+    ];
+
+    return combineLatest([
+      this.sessionRepo.getByDateRange(uid, oldestStart, now),
+      plan$.pipe(take(1)),
+    ]).pipe(
+      map(([sessions, plan]) => {
+        // Planned sets per week from the active plan: sum sets across all days.
+        const plannedByGroup = new Map<MuscleGroup, number>();
+        if (plan) {
+          for (const day of plan.days ?? []) {
+            for (const grp of day.exerciseGroups ?? []) {
+              for (const ex of grp.exercises) {
+                const mg = EXERCISE_MUSCLE_MAP.get(ex.exerciseId) ?? this.guessMusceGroup(ex.exerciseName);
+                if (mg === MuscleGroup.FullBody) continue;
+                plannedByGroup.set(mg, (plannedByGroup.get(mg) ?? 0) + ex.sets.length);
+              }
+            }
+          }
+        }
+
+        // Group sessions by Sun–Sat week.
+        const completed = sessions.filter(s => s.completedAt != null);
+        const actualByWeek = new Map<string, Map<MuscleGroup, number>>();
+        for (const session of completed) {
+          const range = getWeekRange(toDate(session.startedAt), 0);
+          let bucket = actualByWeek.get(range.start);
+          if (!bucket) {
+            bucket = new Map<MuscleGroup, number>();
+            actualByWeek.set(range.start, bucket);
+          }
+          for (const grp of session.exerciseGroups ?? []) {
+            for (const ex of grp.exercises) {
+              const mg = EXERCISE_MUSCLE_MAP.get(ex.exerciseId) ?? this.guessMusceGroup(ex.exerciseName);
+              if (mg === MuscleGroup.FullBody) continue;
+              const count = ex.sets.filter(s => s.completed).length;
+              bucket.set(mg, (bucket.get(mg) ?? 0) + count);
+            }
+          }
+        }
+
+        const currentRange = getWeekRange(now, 0);
+        const result: WeeklyMuscleSets[] = [];
+        for (let i = weeks - 1; i >= 0; i--) {
+          const ref = new Date(now);
+          ref.setDate(now.getDate() - i * 7);
+          const range = getWeekRange(ref, 0);
+          const actuals = actualByWeek.get(range.start) ?? new Map();
+          result.push({
+            weekStart: range.start,
+            weekEnd: range.end,
+            weekLabel: this.formatWeekLabel(range.start),
+            isCurrent: range.start === currentRange.start,
+            byGroup: groupOrder.map(group => ({
+              group,
+              label: MUSCLE_LABELS[group],
+              actual: actuals.get(group) ?? 0,
+              planned: plannedByGroup.get(group) ?? 0,
+            })),
+          });
+        }
+
+        return result;
+      }),
+    );
+  }
+
+  private formatWeekLabel(weekStart: string): string {
+    const start = new Date(`${weekStart}T00:00:00`);
+    const end = new Date(start);
+    end.setDate(start.getDate() + 6);
+    const startStr = start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    const endStr = end.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    return `${startStr} – ${endStr}`;
   }
 
   // ── Helpers ──

@@ -214,6 +214,18 @@
             </div>
             <span class="aw__quick-label">Add</span>
           </button>
+          <button
+            class="aw__quick-btn"
+            [class.aw__quick-btn--off]="!restEnabled()"
+            (click)="toggleRestEnabled()"
+            [attr.aria-pressed]="restEnabled()"
+            [attr.aria-label]="restEnabled() ? 'Disable rest timer for session' : 'Enable rest timer for session'"
+          >
+            <div class="aw__quick-icon">
+              <span class="material-symbols-outlined">{{ restEnabled() ? 'timer' : 'timer_off' }}</span>
+            </div>
+            <span class="aw__quick-label">{{ restEnabled() ? 'Rest On' : 'Rest Off' }}</span>
+          </button>
           @if (isAllDone()) {
             <button class="aw__quick-btn aw__quick-btn--cta" (click)="showFinishConfirm.set(true)">
               <div class="aw__quick-icon aw__quick-icon--cta">
@@ -241,8 +253,38 @@
 
       <!-- Rest overlay -->
       @if (resting()) {
+        @if (restMinimized()) {
+          <!-- Collapsed bottom bar — keeps the exercise UI usable while resting -->
+          <div class="aw__rest-bar" role="region" aria-label="Rest timer">
+            <div
+              class="aw__rest-bar-progress"
+              [style.width.%]="restTotal() > 0 ? (restTimeLeft() / restTotal()) * 100 : 0"
+            ></div>
+            <div class="aw__rest-bar-content">
+              <span class="aw__rest-bar-label">REST</span>
+              <span class="aw__rest-bar-time">{{ restTimeLeft() }}s</span>
+              <div class="aw__rest-bar-actions">
+                <button class="aw__rest-bar-btn" (click)="addRestTime()" aria-label="Add 15 seconds">
+                  <span class="material-symbols-outlined">add</span>
+                </button>
+                <button class="aw__rest-bar-btn aw__rest-bar-btn--skip" (click)="skipRest()" aria-label="Skip rest">
+                  <span class="material-symbols-outlined">skip_next</span>
+                  <span class="aw__rest-bar-btn-label">Skip</span>
+                </button>
+                <button class="aw__rest-bar-btn aw__rest-bar-btn--expand" (click)="toggleRestExpanded()" aria-label="Maximize rest timer">
+                  <span class="material-symbols-outlined">expand_less</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        } @else {
         <div class="aw__rest-overlay">
-          <div class="aw__rest-scrim"></div>
+          <div class="aw__rest-scrim" (click)="toggleRestExpanded()"></div>
+
+          <button class="aw__rest-collapse" (click)="toggleRestExpanded()" aria-label="Minimize rest timer">
+            <span class="material-symbols-outlined">expand_more</span>
+            <span>Minimize</span>
+          </button>
 
           <div class="aw__rest-content">
             <!-- Timer ring -->
@@ -327,6 +369,7 @@
             </div>
           }
         </div>
+        }
       }
     }
   }

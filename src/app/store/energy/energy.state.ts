@@ -3,7 +3,7 @@ import { State, Action, StateContext, Selector, Store } from '@ngxs/store';
 import { tap, take, switchMap } from 'rxjs/operators';
 import { forkJoin, from, of } from 'rxjs';
 import { Energy } from './energy.actions';
-import { EnergyStateModel, ENERGY_STATE_DEFAULTS } from './energy.model';
+import { EnergyStateModel, ENERGY_STATE_DEFAULTS, LiveWeeklyIntake, LiveWeeklyIntakeDay } from './energy.model';
 import { GoalSettingsRepository } from '../../data/repositories/goal-settings.repository';
 import { MealRepository } from '../../data/repositories/meal.repository';
 import { CardioRepository } from '../../data/repositories/cardio.repository';
@@ -13,7 +13,7 @@ import { WeeklySummaryRepository } from '../../data/repositories/weekly-summary.
 import { SessionRepository } from '../../data/repositories/session.repository';
 import { EnergyCalcService } from '../../core/services/energy-calc.service';
 import { AuthState } from '../auth/auth.state';
-import { toDateString } from '../../core/services/date.util';
+import { toDateString, dayOfWeek } from '../../core/services/date.util';
 import {
   GoalSettings,
   Meal,
@@ -102,6 +102,11 @@ export class EnergyState {
   @Selector()
   static calorieDays(state: EnergyStateModel): CalorieDay[] {
     return state.calorieDays;
+  }
+
+  @Selector()
+  static liveWeeklyIntake(state: EnergyStateModel): LiveWeeklyIntake | null {
+    return state.liveWeeklyIntake;
   }
 
   // ── Actions ──
@@ -323,6 +328,64 @@ export class EnergyState {
       tap(summaries => {
         const calorieDays = this.calcService.buildCalorieDays(summaries);
         ctx.patchState({ calorieDays });
+      }),
+    );
+  }
+
+  @Action(Energy.FetchLiveWeeklyIntake)
+  fetchLiveWeeklyIntake(ctx: StateContext<EnergyStateModel>, action: Energy.FetchLiveWeeklyIntake) {
+    const uid = this.store.selectSnapshot(AuthState.uid);
+    if (!uid) return;
+
+    const budget = ctx.getState().goalSettings?.dailyCalories ?? 0;
+
+    // Build a wide timestamp range covering the entire week start..end (inclusive).
+    const [sy, sm, sd] = action.weekStart.split('-').map(Number);
+    const [ey, em, ed] = action.weekEnd.split('-').map(Number);
+    const startDate = new Date(sy, (sm ?? 1) - 1, sd ?? 1, 0, 0, 0, 0);
+    const endDate = new Date(ey, (em ?? 1) - 1, ed ?? 1, 23, 59, 59, 999);
+
+    return this.mealRepo.getByDateRange(uid, startDate, endDate).pipe(
+      take(1),
+      tap(meals => {
+        // Sum calories per local date string. Trust meal.date when present,
+        // otherwise fall back to the timestamp's local date.
+        const byDate = new Map<string, number>();
+        for (const m of meals) {
+          const key = m.date ?? toDateString(m.timestamp as unknown);
+          if (key < action.weekStart || key > action.weekEnd) continue;
+          byDate.set(key, (byDate.get(key) ?? 0) + (m.totalCalories ?? 0));
+        }
+
+        // Fill all 7 days of the week (Sun..Sat order matches startDay=0).
+        const days: LiveWeeklyIntakeDay[] = [];
+        for (let i = 0; i < 7; i++) {
+          const d = new Date(startDate);
+          d.setDate(startDate.getDate() + i);
+          const key = toDateString(d);
+          const calories = Math.round(byDate.get(key) ?? 0);
+          days.push({ date: key, dayOfWeek: dayOfWeek(key), calories, budget });
+        }
+
+        const totalIntake = days.reduce((s, d) => s + d.calories, 0);
+        const avgIntake = Math.round(totalIntake / 7);
+        const avgBudget = Math.round(budget); // constant per week for now
+        const tolerance = 0.10;
+        const onTarget = budget > 0
+          ? days.filter(d => d.calories > 0 && Math.abs(d.calories - budget) / budget <= tolerance).length
+          : 0;
+        const daysWithIntake = days.filter(d => d.calories > 0).length;
+        const adherencePct = daysWithIntake > 0 ? Math.round((onTarget / daysWithIntake) * 100) : 0;
+
+        const liveWeeklyIntake: LiveWeeklyIntake = {
+          weekStart: action.weekStart,
+          weekEnd: action.weekEnd,
+          days,
+          avgIntake,
+          avgBudget,
+          adherencePct,
+        };
+        ctx.patchState({ liveWeeklyIntake });
       }),
     );
   }

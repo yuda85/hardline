@@ -7,6 +7,8 @@ export enum MuscleGroup {
   Back = 'back',
   Shoulders = 'shoulders',
   UpperLegs = 'upper_legs',
+  Hamstrings = 'hamstrings',
+  Glutes = 'glutes',
   LowerLegs = 'lower_legs',
   Biceps = 'biceps',
   Triceps = 'triceps',

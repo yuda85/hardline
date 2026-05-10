@@ -526,3 +526,195 @@
   font-size: 2rem;
   opacity: 0.4;
 }
+
+.insights__subtle-title {
+  font-family: var(--font-headline);
+  font-weight: 700;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--on-surface-variant);
+  margin: 1.5rem 0 0.75rem;
+}
+
+// Weekly Calories card
+.cal__current {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 1rem;
+}
+
+.cal__current-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.cal__current-value {
+  font-family: var(--font-headline);
+  font-weight: 800;
+  font-size: 1.75rem;
+  color: var(--on-surface);
+  line-height: 1;
+}
+
+.cal__current-label {
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--on-surface-variant);
+}
+
+.cal__bars {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.5rem;
+  align-items: end;
+  height: 7rem;
+}
+
+.cal__bar-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.375rem;
+  height: 100%;
+}
+
+.cal__bar-track {
+  position: relative;
+  width: 100%;
+  flex: 1;
+  background: rgba(65, 71, 85, 0.08);
+  border-radius: 0.375rem;
+  overflow: hidden;
+}
+
+.cal__bar-fill {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #3cd7ff;
+  border-radius: 0.375rem 0.375rem 0 0;
+  transition: height 250ms ease;
+
+  &--over { background: #ffb596; }
+  &--under { background: #ffd95a; }
+}
+
+.cal__bar-budget {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.4);
+  z-index: 1;
+}
+
+.cal__bar-label {
+  font-size: 0.625rem;
+  font-weight: 700;
+  color: var(--on-surface-variant);
+}
+
+.cal__history {
+  display: flex;
+  flex-direction: column;
+}
+
+.cal__history-row {
+  display: grid;
+  grid-template-columns: 1fr auto 4rem;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0;
+  border-bottom: 1px solid rgba(65, 71, 85, 0.08);
+
+  &:last-child { border-bottom: none; }
+}
+
+.cal__history-label {
+  font-size: 0.8125rem;
+  color: var(--on-surface);
+}
+
+.cal__history-stat {
+  font-family: var(--font-headline);
+  font-weight: 700;
+  font-size: 0.9375rem;
+  color: var(--on-surface);
+}
+
+.cal__history-unit {
+  font-size: 0.625rem;
+  font-weight: 600;
+  color: var(--on-surface-variant);
+}
+
+.cal__history-adherence {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #3cd7ff;
+  text-align: right;
+}
+
+// Volume by Muscle card
+.mvol__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.mvol__row {
+  display: grid;
+  grid-template-columns: 5rem 1fr 4rem;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.mvol__label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--on-surface);
+}
+
+.mvol__bar-track {
+  position: relative;
+  height: 0.5rem;
+  background: rgba(65, 71, 85, 0.1);
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.mvol__bar-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: linear-gradient(90deg, #3cd7ff, #66d9a0);
+  border-radius: 9999px;
+  transition: width 250ms ease;
+}
+
+.mvol__bar-target {
+  position: absolute;
+  right: 0;
+  top: -2px;
+  bottom: -2px;
+  width: 2px;
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.mvol__count {
+  font-family: var(--font-headline);
+  font-weight: 700;
+  font-size: 0.9375rem;
+  color: var(--on-surface);
+  text-align: right;
+}
+
+.mvol__count-target {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--on-surface-variant);
+}

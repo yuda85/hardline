@@ -183,15 +183,15 @@ export const POSTERIOR: PolygonData[] = [
       '18.72 79.57 22.13 77.87 20.85 84.26 9.36 102.98 6.81 108.51 5.11 104.68',
     ],
   },
-  // Gluteal -> Upper Legs
+  // Gluteal -> Glutes
   {
-    group: MuscleGroup.UpperLegs,
+    group: MuscleGroup.Glutes,
     points: [
       '44.68 99.57 30.21 108.51 29.79 118.72 31.49 125.96 47.23 121.28 49.36 114.89',
       '55.32 99.15 51.06 114.47 52.34 120.85 68.09 125.96 69.79 119.15 69.36 108.51',
     ],
   },
-  // Adductor -> Upper Legs
+  // Adductor -> Upper Legs (inner thigh — keep with quads bucket)
   {
     group: MuscleGroup.UpperLegs,
     points: [
@@ -199,9 +199,9 @@ export const POSTERIOR: PolygonData[] = [
       '51.91 122.55 55.74 123.4 59.15 125.96 54.89 144.26 51.91 136.17 51.06 129.36',
     ],
   },
-  // Hamstring -> Upper Legs
+  // Hamstring -> Hamstrings
   {
-    group: MuscleGroup.UpperLegs,
+    group: MuscleGroup.Hamstrings,
     points: [
       '28.94 122.13 31.06 129.36 36.6 125.96 35.32 135.32 34.47 150.21 29.36 158.3 28.94 146.81 27.66 141.28 27.23 131.49',
       '71.49 121.7 69.36 128.94 63.83 125.96 65.53 136.6 66.38 150.21 71.06 158.3 71.49 147.66 72.77 142.13 73.62 131.91',
@@ -246,6 +246,8 @@ export const MUSCLE_VIEW: Record<MuscleGroup, BodyView> = {
   [MuscleGroup.Back]: 'posterior',
   [MuscleGroup.Shoulders]: 'anterior',
   [MuscleGroup.UpperLegs]: 'anterior',
+  [MuscleGroup.Hamstrings]: 'posterior',
+  [MuscleGroup.Glutes]: 'posterior',
   [MuscleGroup.LowerLegs]: 'posterior',
   [MuscleGroup.Biceps]: 'anterior',
   [MuscleGroup.Triceps]: 'posterior',
@@ -258,8 +260,10 @@ export const MUSCLE_LABELS: Record<MuscleGroup, string> = {
   [MuscleGroup.Chest]: 'Chest',
   [MuscleGroup.Back]: 'Back',
   [MuscleGroup.Shoulders]: 'Shoulders',
-  [MuscleGroup.UpperLegs]: 'Upper Legs',
-  [MuscleGroup.LowerLegs]: 'Lower Legs',
+  [MuscleGroup.UpperLegs]: 'Quads',
+  [MuscleGroup.Hamstrings]: 'Hamstrings',
+  [MuscleGroup.Glutes]: 'Glutes',
+  [MuscleGroup.LowerLegs]: 'Calves',
   [MuscleGroup.Biceps]: 'Biceps',
   [MuscleGroup.Triceps]: 'Triceps',
   [MuscleGroup.Core]: 'Core',
@@ -275,6 +279,8 @@ export const MUSCLE_COLOR_VAR: Record<MuscleGroup, string> = {
   [MuscleGroup.Back]: 'var(--muscle-back)',
   [MuscleGroup.Shoulders]: 'var(--muscle-shoulders)',
   [MuscleGroup.UpperLegs]: 'var(--muscle-upper-legs)',
+  [MuscleGroup.Hamstrings]: 'var(--muscle-hamstrings)',
+  [MuscleGroup.Glutes]: 'var(--muscle-glutes)',
   [MuscleGroup.LowerLegs]: 'var(--muscle-lower-legs)',
   [MuscleGroup.Biceps]: 'var(--muscle-biceps)',
   [MuscleGroup.Triceps]: 'var(--muscle-triceps)',
@@ -301,6 +307,8 @@ export const MUSCLE_FOCUS_VIEWBOX: Record<MuscleGroup, string> = {
   [MuscleGroup.Triceps]: '10 40 80 50',
   [MuscleGroup.Core]: '26 52 48 60',
   [MuscleGroup.UpperLegs]: '20 88 60 65',
+  [MuscleGroup.Hamstrings]: '20 115 60 50',
+  [MuscleGroup.Glutes]: '25 95 50 35',
   [MuscleGroup.LowerLegs]: '15 148 70 72',
   [MuscleGroup.FullBody]: '0 0 100 200',
 };

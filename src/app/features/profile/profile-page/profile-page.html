@@ -108,6 +108,14 @@
         </div>
       }
     </app-card>
+
+    <app-card [elevation]="1" padding="lg">
+      <h3 class="profile__section-title">About</h3>
+      <div class="profile__pref-row">
+        <span class="profile__pref-label">App version</span>
+        <app-badge variant="surface">v{{ appVersion }}</app-badge>
+      </div>
+    </app-card>
   } @else {
     <!-- Edit mode -->
     <app-card [elevation]="1" padding="lg">

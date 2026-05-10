@@ -767,6 +767,12 @@
     color: var(--on-surface);
     flex: 1.4;
   }
+
+  &--off .aw__quick-icon {
+    background: rgba(255, 180, 150, 0.12);
+    color: #ffb596;
+  }
+  &--off { color: #ffb596; }
 }
 
 .aw__quick-icon {
@@ -801,6 +807,135 @@
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 100%;
+}
+
+// --- Rest minimized bottom bar ---
+// Sits ABOVE the action area (Log/Exercises/Add/Set buttons) which itself sits
+// above the bottom nav. Action area pads ~7.75rem from the bottom (4.75rem
+// from nav + ~3rem icon height); we add a small gap above that.
+.aw__rest-bar {
+  position: fixed;
+  left: 0.5rem;
+  right: 0.5rem;
+  bottom: calc(8.5rem + env(safe-area-inset-bottom, 0px));
+  z-index: 65;
+  background: linear-gradient(135deg, rgba(20, 22, 28, 0.97), rgba(28, 30, 38, 0.97));
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(60, 215, 255, 0.35);
+  border-radius: 1rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(60, 215, 255, 0.08);
+  overflow: hidden;
+  animation: aw-rest-bar-in 220ms cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+@keyframes aw-rest-bar-in {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.aw__rest-bar-progress {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: linear-gradient(90deg, rgba(60, 215, 255, 0.18), rgba(60, 215, 255, 0.32));
+  transition: width 1s linear;
+  z-index: 0;
+}
+
+.aw__rest-bar-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+}
+
+.aw__rest-bar-label {
+  font-family: var(--font-headline);
+  font-size: 0.625rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  color: rgba(60, 215, 255, 0.9);
+}
+
+.aw__rest-bar-time {
+  font-family: var(--font-headline);
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.aw__rest-bar-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 0.25rem;
+}
+
+.aw__rest-bar-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  min-width: 2.25rem;
+  height: 2.25rem;
+  padding: 0 0.5rem;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  transition: background 150ms;
+  font-family: var(--font-headline);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+
+  &:hover { background: rgba(255, 255, 255, 0.16); }
+  .material-symbols-outlined { font-size: 1.25rem; }
+
+  &--skip {
+    background: rgba(255, 180, 150, 0.16);
+    color: #ffb696;
+  }
+  &--skip:hover { background: rgba(255, 180, 150, 0.26); }
+
+  &--expand { background: rgba(60, 215, 255, 0.18); }
+  &--expand:hover { background: rgba(60, 215, 255, 0.28); }
+}
+
+.aw__rest-bar-btn-label {
+  margin-right: 0.125rem;
+}
+
+.aw__rest-collapse {
+  position: fixed;
+  top: calc(1rem + env(safe-area-inset-top));
+  right: 1rem;
+  z-index: 70;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  height: 2.75rem;
+  padding: 0 1rem 0 0.875rem;
+  border-radius: 9999px;
+  background: rgba(60, 215, 255, 0.18);
+  border: 1px solid rgba(60, 215, 255, 0.4);
+  color: #fff;
+  font-family: var(--font-headline);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  transition: background 150ms;
+
+  &:hover { background: rgba(60, 215, 255, 0.28); }
+  .material-symbols-outlined { font-size: 1.375rem; }
 }
 
 // --- Rest overlay ---

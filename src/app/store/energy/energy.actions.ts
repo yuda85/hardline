@@ -87,6 +87,11 @@ export namespace Energy {
     constructor(public startDate: string, public endDate: string) {}
   }
 
+  export class FetchLiveWeeklyIntake {
+    static readonly type = '[Energy] Fetch Live Weekly Intake';
+    constructor(public weekStart: string, public weekEnd: string) {}
+  }
+
   export class Reset {
     static readonly type = '[Energy] Reset';
   }

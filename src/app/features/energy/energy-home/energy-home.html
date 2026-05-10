@@ -269,42 +269,62 @@
         <h2 class="trends__heading">Energy Trends</h2>
 
         <!-- 7-Day Chart -->
-        <div class="trends__card">
-          <h3 class="trends__section-title">This Week — Intake vs Budget</h3>
-          <div class="trends__chart">
-            @for (day of weeklyChartData(); track day.day) {
-              <div class="trends__chart-col" [class.trends__chart-col--today]="day.isToday">
-                <div class="trends__chart-bars">
-                  <div
-                    class="trends__chart-bar"
-                    [class.trends__chart-bar--over]="day.isOver"
-                    [class.trends__chart-bar--eaten]="!day.isOver"
-                    [style.height.%]="day.eaten > 0 ? (day.eaten / maxChartValue()) * 100 : 2"
-                  ></div>
-                  <div
-                    class="trends__chart-bar trends__chart-bar--budget"
-                    [style.height.%]="(day.budget / maxChartValue()) * 100"
-                  ></div>
-                </div>
-                <span class="trends__chart-day" [class.trends__chart-day--today]="day.isToday">{{ day.day }}</span>
+        @if (liveWeeklyIntake(); as live) {
+          <div class="trends__card trends__intake">
+            <div class="trends__intake-head">
+              <span class="trends__section-eyebrow">This Week — Avg Intake</span>
+              <div class="trends__intake-hero">
+                <span class="trends__intake-value">{{ live.avgIntake | number }}</span>
+                <span class="trends__intake-unit">kcal / day</span>
               </div>
-            }
+              <div class="trends__intake-meta">
+                @if (live.avgBudget > 0) {
+                  <span class="trends__intake-meta-item">
+                    Budget <strong>{{ live.avgBudget | number }}</strong>
+                  </span>
+                  <span class="trends__intake-delta"
+                    [class.trends__intake-delta--over]="live.avgIntake > live.avgBudget"
+                    [class.trends__intake-delta--under]="live.avgIntake < live.avgBudget && live.avgIntake > 0"
+                  >
+                    {{ live.avgIntake > live.avgBudget ? '+' : '' }}{{ live.avgIntake - live.avgBudget }} kcal
+                  </span>
+                }
+                <span class="trends__intake-meta-item trends__intake-meta-item--right">
+                  {{ live.adherencePct }}% on target
+                </span>
+              </div>
+            </div>
+
+            <div class="trends__intake-chart">
+              @for (day of live.days; track day.date; let i = $index) {
+                <div class="trends__intake-col"
+                  [class.trends__intake-col--today]="day.date === todayStr">
+                  <div class="trends__intake-track">
+                    @if (live.avgBudget > 0) {
+                      <span class="trends__intake-budget"
+                        [style.bottom.%]="(live.avgBudget / Math.max(live.avgBudget, 1, day.calories)) * 100"></span>
+                    }
+                    <span class="trends__intake-fill"
+                      [class.trends__intake-fill--over]="live.avgBudget > 0 && day.calories > live.avgBudget"
+                      [class.trends__intake-fill--zero]="day.calories === 0"
+                      [style.height.%]="day.calories > 0
+                        ? (day.calories / Math.max(live.avgBudget, day.calories, 1)) * 100
+                        : 4"
+                    >
+                      @if (day.calories > 0) {
+                        <span class="trends__intake-value-on-bar">{{ day.calories }}</span>
+                      }
+                    </span>
+                  </div>
+                  <span class="trends__intake-day"
+                    [class.trends__intake-day--today]="day.date === todayStr">
+                    {{ ['S','M','T','W','T','F','S'][i] }}
+                  </span>
+                </div>
+              }
+            </div>
           </div>
-          <div class="trends__chart-legend">
-            <div class="trends__legend-item">
-              <span class="trends__legend-dot trends__legend-dot--eaten"></span>
-              <span>Eaten</span>
-            </div>
-            <div class="trends__legend-item">
-              <span class="trends__legend-dot trends__legend-dot--budget"></span>
-              <span>Budget</span>
-            </div>
-            <div class="trends__legend-item">
-              <span class="trends__legend-dot trends__legend-dot--over"></span>
-              <span>Over</span>
-            </div>
-          </div>
-        </div>
+        }
 
         <!-- Weekly Stats -->
         <div class="trends__stats-row">

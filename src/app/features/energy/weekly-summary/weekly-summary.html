@@ -15,6 +15,53 @@
     </button>
   </div>
 
+  <!-- Live intake vs budget for the visible Sun–Sat week -->
+  @if (liveWeeklyIntake(); as live) {
+    <div class="ws__card">
+      <div class="ws__section-header">
+        <h2 class="ws__section-title">Intake vs Budget</h2>
+        <span class="ws__section-line"></span>
+      </div>
+      <div class="ws__intake-summary">
+        <div>
+          <span class="ws__stat-micro">Avg intake</span>
+          <span class="ws__stat-value">{{ live.avgIntake }}</span>
+          <span class="ws__stat-unit">kcal</span>
+        </div>
+        <div>
+          <span class="ws__stat-micro">Avg budget</span>
+          <span class="ws__stat-value">{{ live.avgBudget || '—' }}</span>
+          <span class="ws__stat-unit">kcal</span>
+        </div>
+        <div>
+          <span class="ws__stat-micro">On target</span>
+          <span class="ws__stat-value">{{ live.adherencePct }}%</span>
+        </div>
+      </div>
+      <div class="ws__bars">
+        @for (d of live.days; track d.date; let i = $index) {
+          <div class="ws__bar-col" [attr.title]="d.calories + ' kcal on ' + d.date">
+            <div class="ws__bar-track">
+              @if (live.avgBudget > 0) {
+                <span
+                  class="ws__bar-budget"
+                  [style.bottom.%]="(live.avgBudget / chartMax()) * 100"
+                ></span>
+              }
+              <span
+                class="ws__bar-fill"
+                [class.ws__bar-fill--over]="live.avgBudget > 0 && d.calories > live.avgBudget * 1.10"
+                [class.ws__bar-fill--under]="live.avgBudget > 0 && d.calories > 0 && d.calories < live.avgBudget * 0.90"
+                [style.height.%]="(d.calories / chartMax()) * 100"
+              ></span>
+            </div>
+            <span class="ws__bar-label">{{ dayLabels[i] }}</span>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
   @if (weeklySummary(); as w) {
     <!-- Stats Grid -->
     <div class="ws__grid">

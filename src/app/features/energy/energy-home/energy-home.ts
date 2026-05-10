@@ -37,6 +37,12 @@ export class EnergyHomeComponent implements OnInit {
   protected readonly weeklyDailySummaries = this.store.selectSignal(EnergyState.weeklyDailySummaries);
   protected readonly weeklySummary = this.store.selectSignal(EnergyState.weeklySummary);
   protected readonly calorieDays = this.store.selectSignal(EnergyState.calorieDays);
+  protected readonly liveWeeklyIntake = this.store.selectSignal(EnergyState.liveWeeklyIntake);
+  protected readonly todayStr = (() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  })();
+  protected readonly Math = Math;
 
   // Energy budget (computed from goals + summary)
   protected readonly budget = computed(() => {
@@ -266,6 +272,7 @@ export class EnergyHomeComponent implements OnInit {
     const weStr = this.localDateStr(weekEnd);
 
     this.store.dispatch(new Energy.FetchWeeklyDailySummaries(wsStr, weStr));
+    this.store.dispatch(new Energy.FetchLiveWeeklyIntake(wsStr, weStr));
     this.store.dispatch(new Energy.RecalculateWeeklySummary(wsStr, weStr));
 
     // Fetch calorie days for calendar (all time from signup)

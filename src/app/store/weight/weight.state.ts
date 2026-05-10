@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { State, Action, StateContext, Selector, Store } from '@ngxs/store';
-import { tap, take, switchMap } from 'rxjs/operators';
-import { from, Observable } from 'rxjs';
+import { tap, take } from 'rxjs/operators';
+import { from } from 'rxjs';
 import { Weight } from './weight.actions';
 import { WeightStateModel, WEIGHT_STATE_DEFAULTS, ViewRange } from './weight.model';
 import { WeightRepository } from '../../data/repositories/weight.repository';
@@ -180,18 +180,34 @@ export class WeightState {
     const today = toDateString(new Date());
     const existing = ctx.getState().todayEntry;
 
-    const save$: Observable<unknown> = existing?.id
-      ? from(this.weightRepo.update(existing.id, { weightKg: action.weightKg, notes: action.notes }))
-      : from(this.weightRepo.create({ userId: uid, date: today, weightKg: action.weightKg, notes: action.notes }));
+    // Build the new entry from the action payload — no need to re-read from Firestore.
+    // Re-reading via getByDate(...).pipe(take(1)) was racy: collectionData() can emit
+    // the pre-write snapshot, returning [] and clobbering todayEntry until reload.
+    const save$ = existing?.id
+      ? from(
+          this.weightRepo
+            .update(existing.id, { weightKg: action.weightKg, notes: action.notes })
+            .then(() => existing.id!),
+        )
+      : from(
+          this.weightRepo.create({ userId: uid, date: today, weightKg: action.weightKg, notes: action.notes }),
+        );
 
     return save$.pipe(
-      switchMap(() => this.weightRepo.getByDate(uid, today).pipe(take(1))),
-      tap(entries => {
-        const todayEntry = entries[0] ?? null;
-        const allEntries = [todayEntry!, ...ctx.getState().entries.filter(e => e.date !== today)];
+      tap(id => {
+        const newEntry: WeightEntry = {
+          id,
+          userId: uid,
+          date: today,
+          weightKg: action.weightKg,
+          notes: action.notes,
+        };
+        // Replace today's entry if present; keep history sorted desc by date.
+        const others = ctx.getState().entries.filter(e => e.date !== today);
+        const merged = [newEntry, ...others].sort((a, b) => b.date.localeCompare(a.date));
         ctx.patchState({
-          todayEntry,
-          entries: allEntries,
+          todayEntry: newEntry,
+          entries: merged,
           promptDismissed: true,
         });
       }),

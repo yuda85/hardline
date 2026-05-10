@@ -64,9 +64,15 @@ export class ActiveWorkoutComponent implements OnInit, OnDestroy {
 
   // Rest timer state
   protected readonly resting = signal(false);
+  /** When true, rest is shown as a thin bottom bar over the exercise UI. When
+   * false, the full-screen rest overlay is visible. Defaults to false so the
+   * timer is clearly visible; user can tap the minimize button to collapse. */
+  protected readonly restMinimized = signal(false);
   protected readonly restTimeLeft = signal(0);
   /** Effective total used for the progress ring (grows when user taps +15s). */
   protected readonly restTotal = signal(0);
+  /** Session-wide toggle: when false, completing a set does NOT start a rest timer. */
+  protected readonly restEnabled = signal(true);
 
   // Input state
   protected readonly weight = signal(0);
@@ -407,11 +413,16 @@ export class ActiveWorkoutComponent implements OnInit, OnDestroy {
 
     const exerciseId = ex.exerciseId;
 
-    // Check PR locally before dispatching — we have current PR data and can calculate 1RM
+    // Check PR locally before dispatching — calculate 1RM and compare against
+    // both the stored historical PR AND any earlier completed set in this
+    // session for the same exerciseId. Without the in-session check, logging a
+    // weak set after a heavier one would falsely celebrate.
     if (actualW > 0 && actualR > 0 && actualR <= 10) {
       const estimated = this.oneRM.calculate(actualW, actualR);
-      const currentPR = this.prs()[exerciseId]?.oneRepMax ?? 0;
-      if (estimated > currentPR) {
+      const historicalPR = this.prs()[exerciseId]?.oneRepMax ?? 0;
+      const inSessionBest = this.bestInSession1RMFor(exerciseId, gi, ei, setIndex);
+      const threshold = Math.max(historicalPR, inSessionBest);
+      if (estimated > threshold) {
         this.newPR.set(`${actualW}kg × ${actualR} reps — Est. 1RM: ${Math.round(estimated)}kg`);
         this.prsHitExercises.update(s => new Set([...s, exerciseId]));
       }
@@ -423,7 +434,47 @@ export class ActiveWorkoutComponent implements OnInit, OnDestroy {
     const nextUncompleted = ex.sets.findIndex((s, i) => i > setIndex && !s.completed);
     if (nextUncompleted !== -1 && group) {
       this.startRestTimer(group.restSeconds);
+      return;
     }
+
+    // Last set of this exercise just got logged. Start the rest timer (in the
+    // collapsed bottom bar) and auto-advance to the next exercise so the user
+    // can read the next exercise while resting. Skip if there's no next exercise.
+    if (group && this.canAdvanceExercise()) {
+      this.startRestTimer(group.restSeconds);
+      this.goNextExercise({ keepRest: true });
+    }
+  }
+
+  private canAdvanceExercise(): boolean {
+    const s = this.session();
+    if (!s) return false;
+    const group = s.exerciseGroups[this.currentGroupIndex()];
+    if (!group) return false;
+    return (
+      this.currentExerciseIndex() < group.exercises.length - 1 ||
+      this.currentGroupIndex() < s.exerciseGroups.length - 1
+    );
+  }
+
+  /** Highest estimated 1RM among completed sets in this session for the given
+   * exerciseId, excluding the set currently being logged. */
+  private bestInSession1RMFor(exerciseId: string, gi: number, ei: number, setIndex: number): number {
+    const s = this.session();
+    if (!s) return 0;
+    let best = 0;
+    s.exerciseGroups.forEach((group, gIdx) => {
+      group.exercises.forEach((ex, eIdx) => {
+        if (ex.exerciseId !== exerciseId) return;
+        ex.sets.forEach((set, sIdx) => {
+          if (gIdx === gi && eIdx === ei && sIdx === setIndex) return;
+          if (!set.completed || set.weight <= 0 || set.actualReps <= 0) return;
+          const est = this.oneRM.calculate(set.weight, set.actualReps);
+          if (est > best) best = est;
+        });
+      });
+    });
+    return best;
   }
 
   protected addSet() {
@@ -465,8 +516,8 @@ export class ActiveWorkoutComponent implements OnInit, OnDestroy {
     this.reps.set(0);
   }
 
-  protected goNextExercise() {
-    this.clearRestTimer();
+  protected goNextExercise(opts?: { keepRest?: boolean }) {
+    if (!opts?.keepRest) this.clearRestTimer();
     const s = this.session();
     if (!s) return;
     const group = s.exerciseGroups[this.currentGroupIndex()];
@@ -487,8 +538,8 @@ export class ActiveWorkoutComponent implements OnInit, OnDestroy {
     });
   }
 
-  protected goPrevExercise() {
-    this.clearRestTimer();
+  protected goPrevExercise(opts?: { keepRest?: boolean }) {
+    if (!opts?.keepRest) this.clearRestTimer();
     const canGoBack = this.currentExerciseIndex() > 0 || this.currentGroupIndex() > 0;
     if (!canGoBack) return;
 
@@ -503,6 +554,16 @@ export class ActiveWorkoutComponent implements OnInit, OnDestroy {
       this.weight.set(0);
       this.reps.set(0);
     });
+  }
+
+  protected toggleRestExpanded() {
+    this.restMinimized.update(m => !m);
+  }
+
+  protected toggleRestEnabled() {
+    const next = !this.restEnabled();
+    this.restEnabled.set(next);
+    if (!next) this.clearRestTimer();
   }
 
   private animateSlide(direction: 'left' | 'right', onMid: () => void) {
@@ -599,12 +660,22 @@ export class ActiveWorkoutComponent implements OnInit, OnDestroy {
   // ── Internal ──
 
   private startRestTimer(seconds: number) {
+    if (!this.restEnabled() || seconds <= 0) return;
+    // Always clear any prior interval — without this, completing sets in quick
+    // succession (e.g. after the auto-advance) leaves multiple intervals
+    // running, and each fires the end-of-rest alarm independently.
+    if (this.restInterval) { clearInterval(this.restInterval); this.restInterval = null; }
     this.resting.set(true);
+    this.restMinimized.set(false);
     this.restTimeLeft.set(seconds);
     this.restTotal.set(seconds);
     this.restInterval = setInterval(() => {
       this.restTimeLeft.update(t => {
-        if (t <= 1) { this.clearRestTimer(); this.alertRestDone(); return 0; }
+        if (t <= 1) {
+          this.clearRestTimer();
+          this.alertRestDone();
+          return 0;
+        }
         return t - 1;
       });
     }, 1000);
@@ -612,20 +683,34 @@ export class ActiveWorkoutComponent implements OnInit, OnDestroy {
 
   private clearRestTimer() {
     this.resting.set(false);
+    this.restMinimized.set(false);
     this.restTimeLeft.set(0);
     this.restTotal.set(0);
     if (this.restInterval) { clearInterval(this.restInterval); this.restInterval = null; }
   }
 
   private alertRestDone() {
-    if ('vibrate' in navigator) navigator.vibrate([200, 100, 200]);
+    if ('vibrate' in navigator) {
+      try { navigator.vibrate(0); } catch { /* noop */ }
+      try { navigator.vibrate([180, 80, 180]); } catch { /* noop */ }
+    }
+    // Play a single short two-tone chirp. Use one short-lived AudioContext per
+    // call and explicitly schedule stop+close so the oscillator can't sustain.
     try {
       const ctx = new AudioContext();
+      const now = ctx.currentTime;
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.connect(gain); gain.connect(ctx.destination);
-      osc.frequency.value = 880; gain.gain.value = 0.3;
-      osc.start(); osc.stop(ctx.currentTime + 0.2);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(880, now);
+      osc.frequency.setValueAtTime(660, now + 0.15);
+      gain.gain.setValueAtTime(0.001, now);
+      gain.gain.exponentialRampToValueAtTime(0.25, now + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.32);
+      osc.start(now);
+      osc.stop(now + 0.34);
+      osc.onended = () => { try { ctx.close(); } catch { /* noop */ } };
     } catch { /* noop */ }
   }
 

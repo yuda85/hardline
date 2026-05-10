@@ -28,6 +28,8 @@ export class SwapExerciseSheetComponent {
     MuscleGroup.Back,
     MuscleGroup.Shoulders,
     MuscleGroup.UpperLegs,
+    MuscleGroup.Hamstrings,
+    MuscleGroup.Glutes,
     MuscleGroup.LowerLegs,
     MuscleGroup.Biceps,
     MuscleGroup.Triceps,

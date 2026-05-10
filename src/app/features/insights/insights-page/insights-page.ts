@@ -13,6 +13,8 @@ import {
   WeeklyVolume,
   HeatmapDay,
   WeightMomentum,
+  WeeklyCalories,
+  WeeklyMuscleSets,
 } from '../../../core/services/insights.service';
 
 type TimeRange = 'week' | 'month' | '3months';
@@ -37,6 +39,8 @@ export class InsightsPageComponent implements OnInit, AfterViewInit {
   protected readonly heatmap = signal<HeatmapDay[]>([]);
   protected readonly allTimeHeatmap = signal<HeatmapDay[]>([]);
   protected readonly momentum = signal<WeightMomentum | null>(null);
+  protected readonly weeklyCalories = signal<WeeklyCalories[]>([]);
+  protected readonly weeklyMuscleSets = signal<WeeklyMuscleSets[]>([]);
 
   protected readonly maxVolume = computed(() => {
     const vols = this.weeklyVolume().map(w => w.volume);
@@ -225,6 +229,25 @@ export class InsightsPageComponent implements OnInit, AfterViewInit {
 
     this.insights.getWeeklyVolume(weeks).subscribe(data => this.weeklyVolume.set(data));
     this.insights.getTrainingHeatmap(days).subscribe(data => this.heatmap.set(data));
+    this.insights.getWeeklyCaloriesVsBudget(weeks).subscribe(data => this.weeklyCalories.set(data));
+    this.insights.getWeeklyMuscleSets(weeks).subscribe(data => this.weeklyMuscleSets.set(data));
+  }
+
+  protected readonly currentWeekCalories = computed(() => {
+    return this.weeklyCalories().find(w => w.isCurrent) ?? null;
+  });
+
+  protected readonly currentWeekMuscleSets = computed(() => {
+    return this.weeklyMuscleSets().find(w => w.isCurrent) ?? null;
+  });
+
+  protected caloriesChartMax(weekData: WeeklyCalories): number {
+    return Math.max(weekData.avgBudget, ...weekData.days, 1);
+  }
+
+  protected musclePct(actual: number, planned: number): number {
+    if (planned <= 0) return actual > 0 ? 100 : 0;
+    return Math.min(100, Math.round((actual / planned) * 100));
   }
 
   protected formatVolume(vol: number): string {
