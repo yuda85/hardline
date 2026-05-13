@@ -57,6 +57,7 @@ export class LayoutComponent implements OnInit {
     { icon: 'bolt', label: 'Energy', route: '/energy' },
     { icon: 'exercise', label: 'Workouts', route: '/workouts' },
     { icon: 'directions_bike', label: 'Cardio', route: '/cardio' },
+    { icon: 'leaderboard', label: 'Insights', route: '/insights' },
     { icon: 'person', label: 'Profile', route: '/profile' },
   ];
 
