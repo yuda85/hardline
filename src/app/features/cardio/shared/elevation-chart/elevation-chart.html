@@ -1,0 +1,28 @@
+@if (geom(); as g) {
+  <div class="chart">
+    <div class="chart__head">
+      <span class="chart__label">Elevation</span>
+      <span class="chart__range">
+        <span>{{ g.minY.toFixed(0) }}m</span>
+        <span>→</span>
+        <span>{{ g.maxY.toFixed(0) }}m</span>
+      </span>
+    </div>
+    <svg
+      class="chart__svg"
+      [attr.viewBox]="'0 0 ' + g.width + ' ' + g.height"
+      preserveAspectRatio="none"
+    >
+      <defs>
+        <linearGradient id="elev-fill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#ffb595" stop-opacity="0.45" />
+          <stop offset="100%" stop-color="#ffb595" stop-opacity="0" />
+        </linearGradient>
+      </defs>
+      <path [attr.d]="g.area" fill="url(#elev-fill)" />
+      <path [attr.d]="g.line" fill="none" stroke="#ffb595" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+    </svg>
+  </div>
+} @else {
+  <div class="chart chart--empty">No elevation data</div>
+}

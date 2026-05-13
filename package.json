@@ -26,6 +26,7 @@
     "@firebase/ai": "^2.10.0",
     "@ngxs/storage-plugin": "^21.0.0",
     "@ngxs/store": "^21.0.0",
+    "cesium": "^1.141.0",
     "firebase": "^12.11.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"

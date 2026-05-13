@@ -1,0 +1,82 @@
+<div class="detail">
+  <div class="detail__map">
+    <div class="detail__map-canvas" #mapContainer></div>
+    @if (session()) {
+      <div class="detail__playback">
+        <button class="detail__pb-btn" (click)="togglePlay()" aria-label="Toggle playback">
+          <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">
+            {{ playing() ? 'pause' : 'play_arrow' }}
+          </span>
+        </button>
+        <button class="detail__pb-btn detail__pb-btn--ghost" (click)="resetPlayback()" aria-label="Reset">
+          <span class="material-symbols-outlined">restart_alt</span>
+        </button>
+        <span class="detail__pb-label">10× speed</span>
+      </div>
+    }
+    <header class="detail__header">
+      <button type="button" class="detail__back" (click)="back()" aria-label="Back">
+        <span class="material-symbols-outlined">chevron_left</span>
+      </button>
+      <button type="button" class="detail__menu" (click)="delete()" aria-label="Delete">
+        <span class="material-symbols-outlined">more_vert</span>
+      </button>
+    </header>
+  </div>
+
+  @if (session(); as s) {
+    <main class="detail__main">
+      <div class="detail__heading">
+        <span class="detail__date">{{ s.endedAt | date: 'EEE, MMM d · h:mm a' }}</span>
+        <h1 class="detail__title">{{ meta()?.label }}</h1>
+      </div>
+
+      <div class="detail__primary">
+        <div class="detail__primary-tile">
+          <span class="detail__primary-value">{{ distance() }}</span>
+          <span class="detail__primary-unit">km</span>
+        </div>
+        <div class="detail__primary-tile">
+          <span class="detail__primary-value">{{ duration() }}</span>
+          <span class="detail__primary-unit">moving</span>
+        </div>
+      </div>
+
+      <div class="detail__grid">
+        <div class="detail__cell">
+          <span class="detail__label">Elev gain</span>
+          <span class="detail__value detail__value--tertiary">{{ elev() }}<small>m</small></span>
+        </div>
+        <div class="detail__cell">
+          <span class="detail__label">Elev loss</span>
+          <span class="detail__value">{{ elevLoss() }}<small>m</small></span>
+        </div>
+        <div class="detail__cell">
+          <span class="detail__label">Avg {{ speedSummary().label }}</span>
+          <span class="detail__value">
+            {{ speedSummary().avg }}<small>{{ speedSummary().unit }}</small>
+          </span>
+        </div>
+        <div class="detail__cell">
+          <span class="detail__label">Max {{ speedSummary().label }}</span>
+          <span class="detail__value">
+            {{ speedSummary().max }}<small>{{ speedSummary().unit }}</small>
+          </span>
+        </div>
+        <div class="detail__cell">
+          <span class="detail__label">Calories</span>
+          <span class="detail__value">{{ s.caloriesBurned }}<small>kcal</small></span>
+        </div>
+        <div class="detail__cell">
+          <span class="detail__label">Total time</span>
+          <span class="detail__value">{{ totalDuration() }}</span>
+        </div>
+      </div>
+
+      <app-elevation-chart [samples]="s.telemetry" />
+      <app-speed-chart [samples]="s.telemetry" [asPace]="isPace()" />
+    </main>
+  } @else {
+    <div class="detail__loading">Loading…</div>
+  }
+</div>

@@ -10,6 +10,7 @@ import { Workout } from '../../../store/workout/workout.actions';
 import { WorkoutState } from '../../../store/workout/workout.state';
 import { Weight } from '../../../store/weight/weight.actions';
 import { WeightState } from '../../../store/weight/weight.state';
+import { CardioState } from '../../../store/cardio/cardio.state';
 import { WeightPromptComponent } from '../../weight/weight-prompt/weight-prompt';
 import type { NavItem } from '../../../shared/components';
 
@@ -54,9 +55,15 @@ export class LayoutComponent implements OnInit {
     { icon: 'monitor_weight', label: 'Weight', route: '/weight' },
     { icon: 'bolt', label: 'Energy', route: '/energy' },
     { icon: 'exercise', label: 'Workouts', route: '/workouts' },
-    { icon: 'leaderboard', label: 'Insights', route: '/insights' },
+    { icon: 'directions_bike', label: 'Cardio', route: '/cardio' },
     { icon: 'person', label: 'Profile', route: '/profile' },
   ];
+
+  protected readonly cardioRecording = this.store.selectSignal(CardioState.isRecording);
+  protected readonly showCardioBanner = computed(() => {
+    this.navEvents();
+    return this.cardioRecording() && !this.router.url.includes('/cardio/active');
+  });
 
   ngOnInit() {
     this.store.dispatch(new Weight.CheckToday());
@@ -68,6 +75,10 @@ export class LayoutComponent implements OnInit {
     if (session) {
       this.router.navigate(['/workouts', 'active', session.planId, session.dayNumber]);
     }
+  }
+
+  protected resumeCardio() {
+    this.router.navigate(['/cardio/active']);
   }
 
   protected onWeightSaved(data: { weightKg: number; notes?: string }) {

@@ -1,0 +1,23 @@
+@if (geom(); as g) {
+  <div class="chart">
+    <div class="chart__head">
+      <span class="chart__label">{{ asPace() ? 'Pace' : 'Speed' }}</span>
+      @if (rangeLabel(); as r) {
+        <span class="chart__range">
+          <span>{{ r.min }}</span>
+          <span>→</span>
+          <span>{{ r.max }}</span>
+        </span>
+      }
+    </div>
+    <svg
+      class="chart__svg"
+      [attr.viewBox]="'0 0 ' + g.width + ' ' + g.height"
+      preserveAspectRatio="none"
+    >
+      <path [attr.d]="g.line" fill="none" stroke="#3cd7ff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+    </svg>
+  </div>
+} @else {
+  <div class="chart chart--empty">No speed data</div>
+}

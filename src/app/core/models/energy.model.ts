@@ -116,6 +116,10 @@ export interface CardioEntry extends FirestoreDoc {
   avgHeartRate?: number;
   caloriesBurned: number;
   timestamp: Date;
+  /** Pointer to a GPS-tracked `cardio-sessions/{id}` doc, when applicable. */
+  routeSessionId?: string;
+  /** Elevation gain in meters, when the entry came from a GPS-tracked session. */
+  elevationGainM?: number;
 }
 
 export const CARDIO_TYPES = [

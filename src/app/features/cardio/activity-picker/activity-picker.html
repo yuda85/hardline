@@ -1,0 +1,52 @@
+<div class="picker">
+  <header class="picker__header">
+    <button type="button" class="picker__back" (click)="back()" aria-label="Back">
+      <span class="material-symbols-outlined">chevron_left</span>
+    </button>
+    <span class="picker__brand">Cardio</span>
+    <div class="picker__spacer"></div>
+  </header>
+
+  <main class="picker__main">
+    <div class="picker__heading">
+      <h1 class="picker__title">
+        What are you <br /><span class="picker__title-accent">doing?</span>
+      </h1>
+      <p class="picker__subtitle">SELECT YOUR ACTIVITY TO BEGIN TRACKING</p>
+    </div>
+
+    <div class="picker__grid">
+      @for (t of types; track t) {
+        <button
+          type="button"
+          class="picker__card"
+          [class.picker__card--active]="selected() === t"
+          (click)="pick(t)"
+        >
+          <div class="picker__card-top">
+            <span class="material-symbols-outlined picker__card-icon">{{ activities[t].icon }}</span>
+            @if (selected() === t) {
+              <div class="picker__card-dot"></div>
+            }
+          </div>
+          <div class="picker__card-meta">
+            <span class="picker__card-label">{{ activities[t].label }}</span>
+            <span class="picker__card-tagline">{{ activities[t].tagline }}</span>
+          </div>
+        </button>
+      }
+    </div>
+  </main>
+
+  <footer class="picker__footer">
+    <button
+      type="button"
+      class="picker__cta"
+      [disabled]="!selected()"
+      (click)="continue()"
+    >
+      <span>Start</span>
+      <span class="material-symbols-outlined">arrow_forward</span>
+    </button>
+  </footer>
+</div>

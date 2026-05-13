@@ -7,6 +7,8 @@ import { PRRepository } from '../../data/repositories/pr.repository';
 import { WeightRepository } from '../../data/repositories/weight.repository';
 import { MealRepository } from '../../data/repositories/meal.repository';
 import { WorkoutRepository } from '../../data/repositories/workout.repository';
+import { CardioRepository } from '../../data/repositories/cardio.repository';
+import { CardioEntry } from '../models/energy.model';
 import { AuthState } from '../../store/auth/auth.state';
 import { ProfileState } from '../../store/profile/profile.state';
 import { EnergyState } from '../../store/energy/energy.state';
@@ -78,6 +80,36 @@ export interface WeeklyMuscleSets {
   byGroup: { group: MuscleGroup; label: string; actual: number; planned: number }[];
 }
 
+export interface CardioTotal {
+  sessions: number;
+  distanceKm: number;
+  movingMinutes: number;
+  elevationGainM: number;
+  caloriesBurned: number;
+}
+
+export interface CardioTotalsBundle {
+  week: CardioTotal;
+  month: CardioTotal;
+  threeMonths: CardioTotal;
+  lifetime: CardioTotal;
+}
+
+export const EMPTY_CARDIO_TOTAL: CardioTotal = {
+  sessions: 0,
+  distanceKm: 0,
+  movingMinutes: 0,
+  elevationGainM: 0,
+  caloriesBurned: 0,
+};
+
+export const EMPTY_CARDIO_TOTALS: CardioTotalsBundle = {
+  week: EMPTY_CARDIO_TOTAL,
+  month: EMPTY_CARDIO_TOTAL,
+  threeMonths: EMPTY_CARDIO_TOTAL,
+  lifetime: EMPTY_CARDIO_TOTAL,
+};
+
 // ── Exercise ID → muscle group lookup (authoritative source) ──
 
 const EXERCISE_MUSCLE_MAP = new Map<string, MuscleGroup>(
@@ -130,6 +162,7 @@ export class InsightsService {
   private readonly weightRepo = inject(WeightRepository);
   private readonly mealRepo = inject(MealRepository);
   private readonly workoutRepo = inject(WorkoutRepository);
+  private readonly cardioRepo = inject(CardioRepository);
   private readonly oneRM = inject(OneRepMaxService);
   private readonly store = inject(Store);
 
@@ -576,6 +609,65 @@ export class InsightsService {
         return result;
       }),
     );
+  }
+
+  // ── Cardio Totals ──
+
+  /**
+   * Aggregates cardio entries (manual logs + GPS-tracked sessions) into
+   * rolling totals for week / month / 3 months / lifetime. The week / month /
+   * 3-month buckets are computed from the local-day boundary so the
+   * "this week" total resets at midnight Monday.
+   */
+  getCardioTotals(): Observable<CardioTotalsBundle> {
+    const uid = this.uid;
+    if (!uid) return of(EMPTY_CARDIO_TOTALS);
+
+    return this.cardioRepo.getByUser(uid).pipe(
+      map(entries => {
+        const now = new Date();
+        const weekStart = this.getWeekStart(now);
+        const monthStart = new Date(now);
+        monthStart.setDate(monthStart.getDate() - 30);
+        monthStart.setHours(0, 0, 0, 0);
+        const threeMonthsStart = new Date(now);
+        threeMonthsStart.setDate(threeMonthsStart.getDate() - 90);
+        threeMonthsStart.setHours(0, 0, 0, 0);
+
+        const weekStr = toDateString(weekStart);
+        const monthStr = toDateString(monthStart);
+        const threeMonthsStr = toDateString(threeMonthsStart);
+
+        const lifetime = this.aggregateCardio(entries);
+        const week = this.aggregateCardio(entries.filter(e => e.date >= weekStr));
+        const month = this.aggregateCardio(entries.filter(e => e.date >= monthStr));
+        const threeMonths = this.aggregateCardio(
+          entries.filter(e => e.date >= threeMonthsStr),
+        );
+
+        return { week, month, threeMonths, lifetime };
+      }),
+    );
+  }
+
+  private aggregateCardio(entries: CardioEntry[]): CardioTotal {
+    let distanceKm = 0;
+    let movingMinutes = 0;
+    let elevationGainM = 0;
+    let caloriesBurned = 0;
+    for (const e of entries) {
+      distanceKm += e.distanceKm ?? 0;
+      movingMinutes += e.durationMinutes ?? 0;
+      elevationGainM += e.elevationGainM ?? 0;
+      caloriesBurned += e.caloriesBurned ?? 0;
+    }
+    return {
+      sessions: entries.length,
+      distanceKm: Math.round(distanceKm * 10) / 10,
+      movingMinutes: Math.round(movingMinutes),
+      elevationGainM: Math.round(elevationGainM),
+      caloriesBurned: Math.round(caloriesBurned),
+    };
   }
 
   private formatWeekLabel(weekStart: string): string {

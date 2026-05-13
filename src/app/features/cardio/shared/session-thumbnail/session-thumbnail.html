@@ -1,0 +1,12 @@
+@if (path()) {
+  <svg
+    [attr.viewBox]="viewBox"
+    class="thumb"
+    [style.opacity]="strokeOpacity()"
+    preserveAspectRatio="xMidYMid meet"
+  >
+    <path [attr.d]="path()" class="thumb__route" />
+  </svg>
+} @else {
+  <div class="thumb thumb--empty"></div>
+}

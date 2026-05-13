@@ -24,4 +24,8 @@ export class CardioRepository extends BaseRepository<CardioEntry> {
       orderBy('date', 'desc'),
     ]);
   }
+
+  getByUser(userId: string): Observable<CardioEntry[]> {
+    return this.queryDocs([where('userId', '==', userId), orderBy('date', 'desc')]);
+  }
 }

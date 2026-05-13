@@ -1,0 +1,80 @@
+<div class="hub">
+  <header class="hub__header">
+    <span class="hub__overline">Hardline Series</span>
+    <div class="hub__title-row">
+      <h1 class="hub__title">Cardio</h1>
+      @if (sessions().length > 0) {
+        <div class="hub__total">
+          <span class="hub__total-value">{{ totalKm() }}</span>
+          <span class="hub__total-label">km total</span>
+        </div>
+      }
+    </div>
+  </header>
+
+  @if (isRecording()) {
+    <a routerLink="/cardio/active" class="hub__resume">
+      <div class="hub__resume-pulse"></div>
+      <div>
+        <div class="hub__resume-label">Recording in progress</div>
+        <div class="hub__resume-hint">Tap to return to live session</div>
+      </div>
+      <span class="material-symbols-outlined hub__resume-chev">chevron_right</span>
+    </a>
+  }
+
+  @if (loading() && sessions().length === 0) {
+    <div class="hub__list">
+      <app-skeleton height="120px" />
+      <app-skeleton height="120px" />
+      <app-skeleton height="120px" />
+    </div>
+  } @else if (sessions().length === 0) {
+    <div class="hub__empty">
+      <span class="material-symbols-outlined hub__empty-icon">explore</span>
+      <h2 class="hub__empty-title">Ready to track your first ride?</h2>
+      <p class="hub__empty-hint">
+        Hit the bolt below to start a GPS-tracked session — MTB, eMTB, running, or hiking.
+      </p>
+    </div>
+  } @else {
+    <div class="hub__list">
+      @for (s of sessions(); track s.id) {
+        <a class="card" [routerLink]="['/cardio/sessions', s.id]">
+          <div class="card__rail"></div>
+          <div class="card__top">
+            <div class="card__meta">
+              <span class="card__date">{{ s.endedAt | date: 'MMM d, y' }}</span>
+              <div class="card__type">
+                <span class="material-symbols-outlined card__icon">{{ activityIcon(s) }}</span>
+                <span class="card__type-label">{{ activityLabel(s) }}</span>
+              </div>
+            </div>
+            <div class="card__chip">
+              <span class="material-symbols-outlined card__chip-icon">trending_up</span>
+              <span>{{ s.elevationGainM }}m</span>
+            </div>
+          </div>
+          <div class="card__bottom">
+            <div class="card__distance">
+              <span class="card__distance-value">{{ (s.distanceM / 1000).toFixed(1) }}</span>
+              <span class="card__distance-unit">Kilometers</span>
+            </div>
+            <div class="card__thumb">
+              <app-session-thumbnail
+                [polyline]="s.polyline"
+                [bounds]="s.bounds"
+              />
+            </div>
+          </div>
+        </a>
+      }
+    </div>
+  }
+
+  <app-fab
+    icon="bolt"
+    ariaLabel="Start a cardio session"
+    (fabClick)="startFlow()"
+  />
+</div>

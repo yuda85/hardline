@@ -180,6 +180,16 @@
                   </button>
                 </div>
               </div>
+
+              @if (exercisePR(); as pr) {
+                <div class="aw__pr-stat" aria-label="Personal record for this exercise">
+                  <span class="material-symbols-outlined aw__pr-stat-icon">trophy</span>
+                  <div class="aw__pr-stat-text">
+                    <span class="aw__pr-stat-1rm">{{ pr.oneRepMax | number:'1.0-0' }} kg</span>
+                    <span class="aw__pr-stat-best">{{ pr.weight }} kg × {{ pr.reps }}</span>
+                  </div>
+                </div>
+              }
             </div>
           </div>
 

@@ -18,6 +18,20 @@
   </div>
 }
 
+@if (showCardioBanner()) {
+  <div class="layout__resume-banner" (click)="resumeCardio()">
+    <div class="layout__resume-pulse"></div>
+    <div class="layout__resume-info">
+      <span class="layout__resume-title">Cardio recording</span>
+      <span class="layout__resume-time">Tap to return</span>
+    </div>
+    <button class="layout__resume-btn">
+      <span class="material-symbols-outlined">directions_bike</span>
+      Resume
+    </button>
+  </div>
+}
+
 <app-bottom-nav [items]="navItems" (logoutClicked)="logout()" />
 
 @if (showWeightPrompt()) {

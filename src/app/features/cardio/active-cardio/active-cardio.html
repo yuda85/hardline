@@ -1,0 +1,104 @@
+<div class="active">
+  <div class="active__map">
+    <div class="active__map-canvas" #mapContainer></div>
+    <div class="active__map-overlay">
+      <div class="active__pulse">
+        <div class="active__pulse-ring"></div>
+        <div class="active__pulse-dot"></div>
+      </div>
+    </div>
+  </div>
+
+  <header class="active__top">
+    <div class="active__gps" [attr.data-level]="accuracyTier().level">
+      <div class="active__gps-dots">
+        @for (i of [0, 1, 2]; track i) {
+          <div
+            class="active__gps-dot"
+            [class.active__gps-dot--on]="i < accuracyTier().dots"
+          ></div>
+        }
+      </div>
+      <span>{{ accuracyTier().label }}</span>
+      @if (wakeLockActive()) {
+        <span class="material-symbols-outlined active__sun">sunny</span>
+      }
+    </div>
+    <button class="active__exit" (click)="discard()" aria-label="Discard session">
+      <span class="material-symbols-outlined">close</span>
+    </button>
+  </header>
+
+  <main class="active__sheet">
+    <div class="active__handle"></div>
+
+    <div class="active__grid">
+      <app-metric-tile label="Distance" [value]="distance()" unit="km" />
+      <app-metric-tile label="Time" [value]="elapsed()" align="right" />
+      <app-metric-tile
+        [label]="speedOrPaceLabel()"
+        [value]="speedOrPace()"
+        [unit]="speedOrPaceUnit()"
+      />
+      <app-metric-tile
+        label="Elevation"
+        [value]="elevation().toString()"
+        unit="m ↑"
+        accent="tertiary"
+        align="right"
+      />
+    </div>
+
+    @if (recordingStatus() === 'auto-paused') {
+      <div class="active__autopause">
+        <span class="material-symbols-outlined">pause_circle</span>
+        Auto-paused — start moving to resume
+      </div>
+    }
+
+    <div class="active__controls">
+      <button class="ctrl ctrl--ghost" (click)="goFinish()">
+        <span class="ctrl__icon">
+          <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">stop</span>
+        </span>
+        <span class="ctrl__label">Finish</span>
+      </button>
+
+      <button class="ctrl ctrl--main" (click)="togglePause()">
+        <div class="ctrl__glow"></div>
+        <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">
+          {{ recordingStatus() === 'recording' ? 'pause' : 'play_arrow' }}
+        </span>
+      </button>
+
+      <button class="ctrl ctrl--ghost" (click)="discard()">
+        <span class="ctrl__icon">
+          <span class="material-symbols-outlined">delete</span>
+        </span>
+        <span class="ctrl__label">Discard</span>
+      </button>
+    </div>
+  </main>
+
+  @if (showWakeLockToast()) {
+    <div class="active__toast" (click)="reacquireWakeLock()">
+      <span class="material-symbols-outlined">light_mode</span>
+      <span>Screen lock released — tap to keep recording</span>
+    </div>
+  }
+
+  @if (showDiscardConfirm()) {
+    <div class="active__modal" role="dialog" aria-modal="true">
+      <div class="active__modal-card">
+        <h2 class="active__modal-title">Discard this session?</h2>
+        <p class="active__modal-body">
+          All GPS data captured so far will be removed.
+        </p>
+        <div class="active__modal-actions">
+          <button class="active__modal-btn active__modal-btn--ghost" (click)="cancelDiscard()">Keep recording</button>
+          <button class="active__modal-btn active__modal-btn--danger" (click)="confirmDiscard()">Discard</button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

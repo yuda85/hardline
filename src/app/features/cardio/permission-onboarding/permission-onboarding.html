@@ -1,0 +1,133 @@
+<div class="perm">
+  <header class="perm__header">
+    <button type="button" class="perm__back" (click)="back()" aria-label="Back">
+      <span class="material-symbols-outlined">chevron_left</span>
+    </button>
+    <span class="perm__brand">Permissions</span>
+    <div class="perm__spacer"></div>
+  </header>
+
+  <main class="perm__main">
+    <div class="perm__hero">
+      <span class="perm__overline">{{ activities[activityType()].label }}</span>
+      <h1 class="perm__title">Gear up.</h1>
+      <p class="perm__lede">
+        We need a few permissions to track your route with precision.
+      </p>
+    </div>
+
+    <div class="perm__steps">
+      <div class="step" [class.step--ok]="geoStatus() === 'granted'">
+        <div class="step__icon">
+          <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">
+            location_on
+          </span>
+        </div>
+        <div class="step__body">
+          <div class="step__row">
+            <h3 class="step__title">Allow location</h3>
+            <span class="step__num">Step 01</span>
+          </div>
+          <p class="step__hint">
+            Precision GPS tracking for your route, splits and elevation. Never shared.
+          </p>
+          @switch (geoStatus()) {
+            @case ('granted') {
+              <span class="step__ok">
+                <span class="material-symbols-outlined">check_circle</span> Granted
+              </span>
+            }
+            @case ('denied') {
+              <button type="button" class="step__btn step__btn--retry" (click)="grantGeo()">
+                Denied — retry
+              </button>
+            }
+            @case ('pending') {
+              <span class="step__pending">Requesting…</span>
+            }
+            @default {
+              <button type="button" class="step__btn" (click)="grantGeo()">
+                Grant access
+              </button>
+            }
+          }
+        </div>
+        <span class="step__decor">01</span>
+      </div>
+
+      <div class="step" [class.step--ok]="wakeStatus() === 'granted'">
+        <div class="step__icon">
+          <span class="material-symbols-outlined">smartphone</span>
+          <span class="material-symbols-outlined step__icon-mini" style="font-variation-settings: 'FILL' 1;">
+            light_mode
+          </span>
+        </div>
+        <div class="step__body">
+          <div class="step__row">
+            <h3 class="step__title">Keep screen on</h3>
+            <span class="step__num">Step 02</span>
+          </div>
+          <p class="step__hint">
+            The screen stays on during recording so GPS keeps running. Plug in for long rides.
+          </p>
+          @switch (wakeStatus()) {
+            @case ('granted') {
+              <span class="step__ok">
+                <span class="material-symbols-outlined">check_circle</span> Tested
+              </span>
+            }
+            @case ('unsupported') {
+              <span class="step__warn">
+                <span class="material-symbols-outlined">info</span>
+                Not supported on this browser. Keep your screen unlocked manually.
+              </span>
+            }
+            @case ('denied') {
+              <button type="button" class="step__btn step__btn--retry" (click)="grantWakeLock()">
+                Failed — retry
+              </button>
+            }
+            @case ('pending') {
+              <span class="step__pending">Testing…</span>
+            }
+            @default {
+              <button type="button" class="step__btn" (click)="grantWakeLock()">
+                Test wake lock
+              </button>
+            }
+          }
+        </div>
+        <span class="step__decor">02</span>
+      </div>
+
+      <div class="step step--final">
+        <div class="step__icon">
+          <span class="material-symbols-outlined">check_circle</span>
+        </div>
+        <div class="step__body">
+          <div class="step__row">
+            <h3 class="step__title">Ready to go</h3>
+            <span class="step__num step__num--final">Final</span>
+          </div>
+          <p class="step__hint">
+            All set. Tap Continue to start recording.
+          </p>
+        </div>
+        <span class="step__decor">03</span>
+      </div>
+    </div>
+  </main>
+
+  <footer class="perm__footer">
+    <button
+      type="button"
+      class="perm__cta"
+      [disabled]="!canContinue()"
+      (click)="continue()"
+    >
+      <span>Continue</span>
+      <span class="material-symbols-outlined">arrow_forward</span>
+    </button>
+    <p class="perm__fineprint">Recording runs in the foreground only</p>
+  </footer>
+</div>

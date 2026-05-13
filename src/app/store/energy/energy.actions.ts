@@ -50,6 +50,8 @@ export namespace Energy {
       distanceKm?: number;
       avgHeartRate?: number;
       caloriesBurned: number;
+      routeSessionId?: string;
+      elevationGainM?: number;
     }) {}
   }
 

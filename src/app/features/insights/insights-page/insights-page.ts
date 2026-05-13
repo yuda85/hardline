@@ -15,6 +15,9 @@ import {
   WeightMomentum,
   WeeklyCalories,
   WeeklyMuscleSets,
+  CardioTotalsBundle,
+  CardioTotal,
+  EMPTY_CARDIO_TOTALS,
 } from '../../../core/services/insights.service';
 
 type TimeRange = 'week' | 'month' | '3months';
@@ -41,6 +44,28 @@ export class InsightsPageComponent implements OnInit, AfterViewInit {
   protected readonly momentum = signal<WeightMomentum | null>(null);
   protected readonly weeklyCalories = signal<WeeklyCalories[]>([]);
   protected readonly weeklyMuscleSets = signal<WeeklyMuscleSets[]>([]);
+  protected readonly cardioTotals = signal<CardioTotalsBundle>(EMPTY_CARDIO_TOTALS);
+  protected readonly cardioBucket = signal<'week' | 'month' | 'threeMonths' | 'lifetime'>('week');
+
+  protected readonly cardioBuckets: Array<{ key: 'week' | 'month' | 'threeMonths' | 'lifetime'; label: string; sublabel: string }> = [
+    { key: 'week', label: 'Week', sublabel: 'Last 7 days' },
+    { key: 'month', label: 'Month', sublabel: 'Last 30 days' },
+    { key: 'threeMonths', label: '3 Months', sublabel: 'Last 90 days' },
+    { key: 'lifetime', label: 'Lifetime', sublabel: 'All sessions' },
+  ];
+
+  protected readonly currentCardioTotal = computed<CardioTotal>(() => {
+    return this.cardioTotals()[this.cardioBucket()];
+  });
+
+  protected readonly cardioMovingTimeLabel = computed(() => {
+    const mins = this.currentCardioTotal().movingMinutes;
+    if (mins === 0) return '—';
+    if (mins < 60) return `${mins}m`;
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    return m === 0 ? `${h}h` : `${h}h ${m}m`;
+  });
 
   protected readonly maxVolume = computed(() => {
     const vols = this.weeklyVolume().map(w => w.volume);
@@ -209,10 +234,15 @@ export class InsightsPageComponent implements OnInit, AfterViewInit {
     this.loadTimeRangeData();
   }
 
+  protected setCardioBucket(bucket: 'week' | 'month' | 'threeMonths' | 'lifetime') {
+    this.cardioBucket.set(bucket);
+  }
+
   private loadData() {
     this.insights.getRecoveryStatus().subscribe(data => this.recovery.set(data));
     this.insights.getPRBoard().subscribe(data => this.prBoard.set(data));
     this.insights.getWeightMomentum().subscribe(data => this.momentum.set(data));
+    this.insights.getCardioTotals().subscribe(data => this.cardioTotals.set(data));
     this.loadTimeRangeData();
 
     // Load all-time heatmap for the frequency calendar

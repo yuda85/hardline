@@ -153,6 +153,51 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'cardio',
+        children: [
+          {
+            path: '',
+            loadComponent: () =>
+              import('./features/cardio/cardio-hub/cardio-hub').then(m => m.CardioHubComponent),
+          },
+          {
+            path: 'start',
+            loadComponent: () =>
+              import('./features/cardio/activity-picker/activity-picker').then(
+                m => m.ActivityPickerComponent,
+              ),
+          },
+          {
+            path: 'permissions',
+            loadComponent: () =>
+              import('./features/cardio/permission-onboarding/permission-onboarding').then(
+                m => m.PermissionOnboardingComponent,
+              ),
+          },
+          {
+            path: 'active',
+            loadComponent: () =>
+              import('./features/cardio/active-cardio/active-cardio').then(
+                m => m.ActiveCardioComponent,
+              ),
+          },
+          {
+            path: 'finish',
+            loadComponent: () =>
+              import('./features/cardio/finish-confirm/finish-confirm').then(
+                m => m.FinishConfirmComponent,
+              ),
+          },
+          {
+            path: 'sessions/:sessionId',
+            loadComponent: () =>
+              import('./features/cardio/session-detail/session-detail').then(
+                m => m.SessionDetailComponent,
+              ),
+          },
+        ],
+      },
+      {
         path: 'profile',
         loadComponent: () =>
           import('./features/profile/profile-page/profile-page').then(m => m.ProfilePageComponent),

@@ -1,0 +1,14 @@
+<div class="tile" [class.tile--right]="align() === 'right'">
+  <span class="tile__label">
+    @if (icon(); as iconName) {
+      <span class="material-symbols-outlined tile__icon">{{ iconName }}</span>
+    }
+    {{ label() }}
+  </span>
+  <div class="tile__row">
+    <span class="tile__value" [class.tile__value--tertiary]="accent() === 'tertiary'">{{ value() }}</span>
+    @if (unit()) {
+      <span class="tile__unit">{{ unit() }}</span>
+    }
+  </div>
+</div>

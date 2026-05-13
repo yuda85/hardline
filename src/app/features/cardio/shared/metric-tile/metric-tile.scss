@@ -1,0 +1,60 @@
+:host {
+  display: block;
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+
+  &--right {
+    align-items: flex-end;
+    text-align: right;
+  }
+
+  &__label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-family: var(--font-label);
+    font-size: 0.625rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    color: var(--on-surface-variant);
+    text-transform: uppercase;
+  }
+
+  &__icon {
+    font-size: 0.875rem;
+    color: var(--tertiary);
+  }
+
+  &__row {
+    display: flex;
+    align-items: baseline;
+    gap: 0.4rem;
+  }
+
+  &__value {
+    font-family: var(--font-headline);
+    font-weight: 200;
+    font-size: clamp(2.5rem, 12vw, 3.75rem);
+    line-height: 1;
+    color: var(--on-surface);
+    text-shadow: 0 0 20px rgba(60, 215, 255, 0.15);
+    font-variant-numeric: tabular-nums;
+
+    &--tertiary {
+      color: var(--tertiary);
+    }
+  }
+
+  &__unit {
+    font-family: var(--font-headline);
+    font-weight: 800;
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--tertiary);
+  }
+}

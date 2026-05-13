@@ -1,5 +1,6 @@
 import { Component, inject, OnInit, OnDestroy, signal, computed, ElementRef, viewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Store } from '@ngxs/store';
 import { Workout } from '../../../store/workout/workout.actions';
@@ -19,6 +20,7 @@ import { EXERCISES } from '../exercise-data';
   standalone: true,
   imports: [
     FormsModule,
+    DecimalPipe,
     ExerciseListSheetComponent,
     ExerciseHistorySheetComponent,
     SessionStatsSheetComponent,

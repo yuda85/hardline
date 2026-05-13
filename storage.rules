@@ -1,0 +1,12 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // ── Cardio raw track blobs ──
+    // Path: cardio-tracks/{userId}/{sessionId}.json.gz
+    // Only the owner can read or write their own blobs.
+    match /cardio-tracks/{userId}/{allPaths=**} {
+      allow read, write: if request.auth != null
+        && request.auth.uid == userId;
+    }
+  }
+}

@@ -19,6 +19,7 @@ import { EnergyState } from './store/energy/energy.state';
 import { WorkoutState } from './store/workout/workout.state';
 import { WeightState } from './store/weight/weight.state';
 import { ShareState } from './store/share/share.state';
+import { CardioState } from './store/cardio/cardio.state';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -30,7 +31,7 @@ export const appConfig: ApplicationConfig = {
     provideFirestore(() => getFirestore()),
     provideStorage(() => getStorage()),
     provideStore(
-      [AuthState, ProfileState, EnergyState, WorkoutState, WeightState, ShareState],
+      [AuthState, ProfileState, EnergyState, WorkoutState, WeightState, ShareState, CardioState],
       { developmentMode: !environment.production },
       withNgxsStoragePlugin({ keys: ['auth.user'] }),
       ...(environment.production

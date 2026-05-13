@@ -1,0 +1,86 @@
+<div class="finish">
+  <header class="finish__header">
+    <button type="button" class="finish__back" (click)="back()" aria-label="Back to session">
+      <span class="material-symbols-outlined">chevron_left</span>
+    </button>
+    <span class="finish__brand">Session</span>
+    <div class="finish__spacer"></div>
+  </header>
+
+  @if (session(); as s) {
+    <main class="finish__main">
+      <div class="finish__hero">
+        <span class="finish__overline">{{ activityMeta()?.label }}</span>
+        <h1 class="finish__title">Nicely done.</h1>
+        <p class="finish__lede">Confirm the details and save your route.</p>
+      </div>
+
+      <div class="finish__stats">
+        <div class="finish__stat">
+          <span class="finish__stat-label">Distance</span>
+          <div class="finish__stat-row">
+            <span class="finish__stat-value">{{ distance() }}</span>
+            <span class="finish__stat-unit">km</span>
+          </div>
+        </div>
+        <div class="finish__stat">
+          <span class="finish__stat-label">Moving time</span>
+          <span class="finish__stat-value">{{ elapsed() }}</span>
+        </div>
+        <div class="finish__stat">
+          <span class="finish__stat-label">Elevation gain</span>
+          <div class="finish__stat-row">
+            <span class="finish__stat-value finish__stat-value--tertiary">{{ elevation() }}</span>
+            <span class="finish__stat-unit">m ↑</span>
+          </div>
+        </div>
+        <div class="finish__stat">
+          <span class="finish__stat-label">Auto-pauses</span>
+          <span class="finish__stat-value">{{ s.autoPauseCount }}</span>
+        </div>
+      </div>
+
+      <label class="finish__calories">
+        <span class="finish__calories-label">Calories burned</span>
+        <span class="finish__calories-row">
+          <input
+            type="number"
+            min="0"
+            class="finish__calories-input"
+            [(ngModel)]="calories"
+          />
+          <span class="finish__calories-unit">kcal</span>
+        </span>
+        <span class="finish__calories-hint">
+          MET-based estimate · adjust to match your perceived effort
+        </span>
+      </label>
+    </main>
+
+    <footer class="finish__footer">
+      @if (saving() || recordingStatus() === 'finishing') {
+        <div class="finish__progress">
+          <div class="finish__progress-bar"></div>
+          <span>Uploading route…</span>
+        </div>
+      }
+      <button
+        type="button"
+        class="finish__cta finish__cta--save"
+        [disabled]="saving() || recordingStatus() === 'finishing'"
+        (click)="save()"
+      >
+        <span class="material-symbols-outlined">save</span>
+        <span>Save session</span>
+      </button>
+      <button
+        type="button"
+        class="finish__cta finish__cta--discard"
+        [disabled]="saving() || recordingStatus() === 'finishing'"
+        (click)="discard()"
+      >
+        Discard
+      </button>
+    </footer>
+  }
+</div>

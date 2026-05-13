@@ -59,6 +59,61 @@
     </div>
   </app-card>
 
+  <!-- Cardio Totals (week / month / 3mo / lifetime) -->
+  <app-card [elevation]="2" padding="lg" accentBorder="primary">
+    <h2 class="insights__section-title">
+      <span class="material-symbols-outlined cardio-totals__title-icon">directions_bike</span>
+      Cardio Totals
+    </h2>
+
+    <div class="cardio-totals__bucket-row">
+      @for (b of cardioBuckets; track b.key) {
+        <button
+          type="button"
+          class="cardio-totals__bucket"
+          [class.cardio-totals__bucket--active]="cardioBucket() === b.key"
+          (click)="setCardioBucket(b.key)"
+        >
+          <span class="cardio-totals__bucket-label">{{ b.label }}</span>
+          <span class="cardio-totals__bucket-sub">{{ b.sublabel }}</span>
+        </button>
+      }
+    </div>
+
+    <div class="cardio-totals__hero">
+      <div class="cardio-totals__hero-row">
+        <span class="cardio-totals__hero-value">{{ currentCardioTotal().distanceKm | number: '1.1-1' }}</span>
+        <span class="cardio-totals__hero-unit">km</span>
+      </div>
+      <span class="cardio-totals__hero-label">
+        across {{ currentCardioTotal().sessions }} session{{ currentCardioTotal().sessions === 1 ? '' : 's' }}
+      </span>
+    </div>
+
+    <div class="cardio-totals__grid">
+      <div class="cardio-totals__cell">
+        <span class="cardio-totals__cell-label">Moving time</span>
+        <span class="cardio-totals__cell-value">{{ cardioMovingTimeLabel() }}</span>
+      </div>
+      <div class="cardio-totals__cell">
+        <span class="cardio-totals__cell-label">Elevation gain</span>
+        <span class="cardio-totals__cell-value cardio-totals__cell-value--tertiary">
+          {{ currentCardioTotal().elevationGainM | number: '1.0-0' }}<small>m</small>
+        </span>
+      </div>
+      <div class="cardio-totals__cell">
+        <span class="cardio-totals__cell-label">Calories burned</span>
+        <span class="cardio-totals__cell-value">
+          {{ currentCardioTotal().caloriesBurned | number: '1.0-0' }}<small>kcal</small>
+        </span>
+      </div>
+      <div class="cardio-totals__cell">
+        <span class="cardio-totals__cell-label">Sessions</span>
+        <span class="cardio-totals__cell-value">{{ currentCardioTotal().sessions }}</span>
+      </div>
+    </div>
+  </app-card>
+
   <!-- Card 2: Training Frequency (moved below recovery) -->
   <app-card [elevation]="1" padding="lg">
     <!-- Streak hero -->
