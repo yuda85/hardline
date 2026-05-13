@@ -1,0 +1,20 @@
+[     526ms] [WARNING] -------------- RxDB dev-mode warning -------------------------------
+you are seeing this because you use the RxDB dev-mode plugin https://rxdb.info/dev-mode.html?console=dev-mode 
+This is great in development mode, because it will run many checks to ensure
+that you use RxDB correct. If you see this in production mode,
+you did something wrong because the dev-mode plugin will decrease the performance.
+
+🤗 Hint: To get the most out of RxDB, check out the Premium Plugins
+to get access to faster storages and more professional features: https://rxdb.info/premium/?console=dev-mode 
+
+You can disable this warning by calling disableWarnings() from the dev-mode plugin.
+--------------------------------------------------------------------- @ http://localhost:4200/@fs/Users/yehudab/dev/C4I_FE/.angular/cache/21.0.3/Aeronous-C4I/vite/deps/rxdb_plugins_dev-mode.js?v=93762f21:1110
+[     578ms] [WARNING] [EntityIconResolverService] ⚠️ No schemas found — entities will NOT render until schemas arrive from backend @ http://localhost:4200/chunk-IIEPKPBL.js:4171
+[     579ms] [WARNING] [EntityIconResolverService] Available event types: [] @ http://localhost:4200/chunk-IIEPKPBL.js:4172
+[     588ms] [INFO] [CleanupScheduler] Started with Web Worker timers undefined @ http://localhost:4200/chunk-IIEPKPBL.js:6111
+[     588ms] [INFO] [AutoRefresh] Initialized {intervalHours: 6, idleMinutes: 60} @ http://localhost:4200/chunk-IIEPKPBL.js:6111
+[     623ms] [LOG] [EventsService] Subscribing to collection: events @ http://localhost:4200/chunk-JRS3H5OQ.js:1682
+[     625ms] [WARNING] [EntityIconResolverService] ⚠️ No schemas found — entities will NOT render until schemas arrive from backend @ http://localhost:4200/chunk-IIEPKPBL.js:4171
+[     625ms] [WARNING] [EntityIconResolverService] Available event types: [] @ http://localhost:4200/chunk-IIEPKPBL.js:4172
+[     639ms] [WARNING] [WakeLock] Video autoplay blocked: Failed to load because no supported source was found. @ http://localhost:4200/main.js:2596
+[     707ms] [WARNING] An iframe which has both allow-scripts and allow-same-origin for its sandbox attribute can escape its sandboxing. @ http://localhost:4200/assets/silent-check-sso.html#error=login_required&state=e253e441-e117-43b9-b89d-7e5729968b20&iss=https%3A%2F%2Fkeycloak.local.aeronous%3A8443%2Frealms%2Fauth-system:0

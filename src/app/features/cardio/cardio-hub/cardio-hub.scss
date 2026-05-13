@@ -2,12 +2,12 @@
   padding: 1.5rem 1.25rem 6rem;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1.25rem;
 
   &__header {
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
+    gap: 0.5rem;
   }
 
   &__overline {
@@ -19,19 +19,246 @@
     text-transform: uppercase;
   }
 
-  &__title-row {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-  }
-
   &__title {
+    margin: 0;
     font-family: var(--font-headline);
     font-weight: 800;
-    font-size: 2.75rem;
-    letter-spacing: -0.04em;
-    margin: 0;
+    font-size: 2.25rem;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
     color: var(--on-surface);
+  }
+
+  &__title-accent { color: var(--primary); }
+
+  &__resume-card {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    padding: 1.5rem;
+    background: linear-gradient(
+      135deg,
+      rgba(60, 215, 255, 0.18),
+      rgba(60, 215, 255, 0.04)
+    );
+    border: 1px solid rgba(60, 215, 255, 0.45);
+    border-radius: 1.25rem;
+    color: var(--on-surface);
+    text-decoration: none;
+    box-shadow: 0 16px 40px rgba(60, 215, 255, 0.12);
+  }
+
+  &__resume-top {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  &__resume-pulse {
+    width: 1rem;
+    height: 1rem;
+    border-radius: 50%;
+    background: var(--primary);
+    box-shadow: 0 0 0 6px rgba(60, 215, 255, 0.2);
+    animation: hub-pulse 1.5s ease-in-out infinite;
+    flex-shrink: 0;
+  }
+
+  &__resume-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+  }
+
+  &__resume-label {
+    font-family: var(--font-headline);
+    font-weight: 800;
+    font-size: 0.9375rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--primary);
+  }
+
+  &__resume-hint {
+    font-size: 0.8125rem;
+    color: var(--on-surface-variant);
+  }
+
+  &__resume-cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.875rem 1.25rem;
+    background: linear-gradient(135deg, var(--primary-fixed), var(--primary));
+    color: var(--on-primary);
+    border-radius: 9999px;
+    font-family: var(--font-headline);
+    font-weight: 800;
+    font-size: 0.875rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    box-shadow: 0 12px 32px rgba(60, 215, 255, 0.25);
+  }
+
+  &__discard {
+    appearance: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    background: transparent;
+    border: 1px solid rgba(255, 180, 171, 0.3);
+    color: var(--error);
+    border-radius: 9999px;
+    font-family: var(--font-label);
+    font-weight: 600;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 200ms ease;
+
+    &:hover {
+      background: rgba(255, 180, 171, 0.08);
+    }
+
+    & > .material-symbols-outlined { font-size: 1rem; }
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.875rem;
+  }
+
+  &__act {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 10rem;
+    padding: 1.25rem;
+    background: var(--surface-container-low);
+    border: 1px solid rgba(60, 73, 77, 0.5);
+    border-radius: 1.25rem;
+    color: var(--on-surface);
+    cursor: pointer;
+    transition: background 200ms ease, border-color 200ms ease, transform 200ms ease;
+    text-align: left;
+    font-family: inherit;
+
+    &:active {
+      transform: scale(0.98);
+    }
+
+    &--active {
+      background: var(--surface-container-high);
+      border-color: var(--primary);
+      box-shadow: 0 0 30px rgba(60, 215, 255, 0.18);
+    }
+  }
+
+  &__act-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+
+  &__act-icon {
+    font-size: 2rem;
+    color: var(--on-surface-variant);
+    transition: color 200ms ease;
+  }
+
+  &__act--active &__act-icon {
+    color: var(--primary);
+    font-variation-settings: 'FILL' 1;
+  }
+
+  &__act-dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: var(--primary);
+    box-shadow: 0 0 12px var(--primary);
+  }
+
+  &__act-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+  }
+
+  &__act-label {
+    font-family: var(--font-headline);
+    font-weight: 800;
+    font-size: 1rem;
+    line-height: 1.2;
+  }
+
+  &__act-tagline {
+    font-family: var(--font-label);
+    font-size: 0.625rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    color: var(--on-surface-variant);
+    text-transform: uppercase;
+  }
+
+  &__cta {
+    width: 100%;
+    padding: 1rem 1.5rem;
+    background: linear-gradient(135deg, var(--primary-fixed), var(--primary));
+    color: var(--on-primary);
+    border: none;
+    border-radius: 9999px;
+    font-family: var(--font-headline);
+    font-weight: 800;
+    font-size: 0.875rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    box-shadow: 0 12px 32px rgba(60, 215, 255, 0.2);
+    transition: transform 200ms ease, opacity 200ms ease;
+
+    &:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    &:not(:disabled):active {
+      transform: scale(0.97);
+    }
+  }
+
+  &__recent {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: 1rem;
+  }
+
+  &__recent-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+
+  &__recent-title {
+    margin: 0;
+    font-family: var(--font-headline);
+    font-weight: 800;
+    font-size: 0.875rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--on-surface-variant);
   }
 
   &__total {
@@ -44,91 +271,17 @@
   &__total-value {
     font-family: var(--font-headline);
     font-weight: 200;
-    font-size: 1.5rem;
+    font-size: 1.25rem;
+    color: var(--on-surface);
   }
 
   &__total-label {
     font-family: var(--font-label);
     font-size: 0.625rem;
     font-weight: 800;
-    letter-spacing: 0.2em;
+    letter-spacing: 0.18em;
     text-transform: uppercase;
     opacity: 0.6;
-  }
-
-  &__resume {
-    display: flex;
-    align-items: center;
-    gap: 0.875rem;
-    padding: 0.875rem 1rem;
-    background: linear-gradient(
-      135deg,
-      rgba(60, 215, 255, 0.15),
-      rgba(60, 215, 255, 0.05)
-    );
-    border: 1px solid rgba(60, 215, 255, 0.3);
-    border-radius: 0.75rem;
-    color: var(--on-surface);
-    text-decoration: none;
-
-    &-pulse {
-      width: 0.875rem;
-      height: 0.875rem;
-      border-radius: 50%;
-      background: var(--primary);
-      box-shadow: 0 0 0 4px rgba(60, 215, 255, 0.2);
-      animation: hub-pulse 1.5s ease-in-out infinite;
-      flex-shrink: 0;
-    }
-
-    &-label {
-      font-family: var(--font-headline);
-      font-weight: 800;
-      font-size: 0.875rem;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-      color: var(--primary);
-    }
-
-    &-hint {
-      font-size: 0.75rem;
-      color: var(--on-surface-variant);
-    }
-
-    &-chev {
-      margin-left: auto;
-      color: var(--primary);
-    }
-  }
-
-  &__empty {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    padding: 3rem 1rem;
-    gap: 0.75rem;
-    color: var(--on-surface-variant);
-  }
-
-  &__empty-icon {
-    font-size: 3.5rem;
-    color: var(--primary);
-    opacity: 0.7;
-  }
-
-  &__empty-title {
-    margin: 0;
-    font-family: var(--font-headline);
-    font-weight: 800;
-    font-size: 1.25rem;
-    color: var(--on-surface);
-  }
-
-  &__empty-hint {
-    max-width: 22rem;
-    margin: 0;
-    line-height: 1.5;
   }
 
   &__list {
@@ -200,7 +353,7 @@
   &__type-label {
     font-family: var(--font-body);
     font-weight: 600;
-    font-size: 1.0625rem;
+    font-size: 1rem;
   }
 
   &__chip {
@@ -236,7 +389,7 @@
   &__distance-value {
     font-family: var(--font-headline);
     font-weight: 800;
-    font-size: 3.5rem;
+    font-size: 3rem;
     line-height: 1;
     letter-spacing: -0.04em;
     color: var(--on-surface);

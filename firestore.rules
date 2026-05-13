@@ -67,6 +67,13 @@ service cloud.firestore {
             || request.resource.data.userId == resource.data.userId);
     }
 
+    // ── Active Cardio Session marker ──
+    // One doc per user, keyed by uid. Used to survive page reloads and
+    // restore an in-flight recording.
+    match /active-cardio/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
     // ── Shared Plans ──
     // Any authenticated user can read (needed for share links).
     // Only the plan owner can create. No updates. Owner can delete (revoke).

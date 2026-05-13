@@ -161,13 +161,6 @@ export const routes: Routes = [
               import('./features/cardio/cardio-hub/cardio-hub').then(m => m.CardioHubComponent),
           },
           {
-            path: 'start',
-            loadComponent: () =>
-              import('./features/cardio/activity-picker/activity-picker').then(
-                m => m.ActivityPickerComponent,
-              ),
-          },
-          {
             path: 'permissions',
             loadComponent: () =>
               import('./features/cardio/permission-onboarding/permission-onboarding').then(

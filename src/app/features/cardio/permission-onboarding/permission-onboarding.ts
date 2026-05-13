@@ -27,12 +27,29 @@ export class PermissionOnboardingComponent implements OnInit {
 
   protected readonly activities = CARDIO_ACTIVITIES;
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
     const type = this.route.snapshot.queryParamMap.get('type');
     if (type && type in CARDIO_ACTIVITIES) {
       this.activityType.set(type as CardioActivityType);
     }
     this.wakeStatus.set(this.wakeLock.isSupported() ? 'idle' : 'unsupported');
+
+    // Silent check: if geolocation is already granted, skip straight to recording.
+    if (await this.isGeolocationGranted()) {
+      this.geoStatus.set('granted');
+      this.store.dispatch(new Cardio.StartSession(this.activityType()));
+      this.router.navigate(['/cardio/active']);
+    }
+  }
+
+  private async isGeolocationGranted(): Promise<boolean> {
+    if (typeof navigator === 'undefined' || !navigator.permissions) return false;
+    try {
+      const status = await navigator.permissions.query({ name: 'geolocation' as PermissionName });
+      return status.state === 'granted';
+    } catch {
+      return false;
+    }
   }
 
   protected async grantGeo(): Promise<void> {
@@ -71,6 +88,6 @@ export class PermissionOnboardingComponent implements OnInit {
   }
 
   protected back(): void {
-    this.router.navigate(['/cardio/start']);
+    this.router.navigate(['/cardio']);
   }
 }

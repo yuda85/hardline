@@ -283,3 +283,22 @@ textarea {
 .transition-all {
   transition: all 200ms ease;
 }
+
+// --- Bottom nav defensive overrides ---
+// Ensure the global bottom nav is always reachable from every route on mobile.
+// Some component-scoped stacking contexts (filter, backdrop-filter, etc.) can
+// otherwise hide it.
+app-bottom-nav {
+  display: block;
+  @media (min-width: 1024px) {
+    display: none;
+  }
+}
+
+app-bottom-nav > nav.bottom-nav {
+  position: fixed !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  z-index: 1000 !important;
+}

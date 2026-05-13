@@ -10,6 +10,7 @@ import { Workout } from '../../../store/workout/workout.actions';
 import { WorkoutState } from '../../../store/workout/workout.state';
 import { Weight } from '../../../store/weight/weight.actions';
 import { WeightState } from '../../../store/weight/weight.state';
+import { Cardio } from '../../../store/cardio/cardio.actions';
 import { CardioState } from '../../../store/cardio/cardio.state';
 import { WeightPromptComponent } from '../../weight/weight-prompt/weight-prompt';
 import type { NavItem } from '../../../shared/components';
@@ -68,6 +69,7 @@ export class LayoutComponent implements OnInit {
   ngOnInit() {
     this.store.dispatch(new Weight.CheckToday());
     this.store.dispatch(new Workout.CheckActiveSession());
+    this.store.dispatch(new Cardio.CheckActiveSession());
   }
 
   protected resumeWorkout() {

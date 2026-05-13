@@ -8,6 +8,10 @@ export namespace Cardio {
     constructor(public activityType: CardioActivityType) {}
   }
 
+  export class CheckActiveSession {
+    static readonly type = '[Cardio] Check Active Session';
+  }
+
   export class PauseSession {
     static readonly type = '[Cardio] Pause Session';
   }

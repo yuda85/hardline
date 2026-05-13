@@ -150,6 +150,43 @@ export class RouteEncodingService {
   }
 
   /**
+   * Re-aggregate distance and elevation gain/loss from a sequence of points.
+   * Used when restoring an active session after a page reload.
+   */
+  aggregate(points: RawTrackPoint[]): {
+    distanceM: number;
+    elevationGainM: number;
+    elevationLossM: number;
+    maxSpeedMs: number;
+  } {
+    const ELE_FLOOR = 3;
+    const MAX_ACC = 30;
+    let distance = 0;
+    let elevGain = 0;
+    let elevLoss = 0;
+    let maxSpeed = 0;
+    let last: RawTrackPoint | null = null;
+    for (const p of points) {
+      if (p.spd && p.spd > maxSpeed) maxSpeed = p.spd;
+      if (p.acc > MAX_ACC || p.paused === 1) {
+        continue;
+      }
+      if (last) {
+        distance += this.haversineMeters(last, p);
+        if (p.ele !== null && last.ele !== null) {
+          const dEle = p.ele - last.ele;
+          if (Math.abs(dEle) >= ELE_FLOOR) {
+            if (dEle > 0) elevGain += dEle;
+            else elevLoss += -dEle;
+          }
+        }
+      }
+      last = p;
+    }
+    return { distanceM: distance, elevationGainM: elevGain, elevationLossM: elevLoss, maxSpeedMs: maxSpeed };
+  }
+
+  /**
    * Haversine distance in meters between two lat/lng pairs.
    */
   haversineMeters(a: { lat: number; lng: number }, b: { lat: number; lng: number }): number {

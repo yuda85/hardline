@@ -61,20 +61,30 @@ export class CesiumMapService {
 
   /**
    * Mount a battery-friendly live tracking viewer: 2D scene, ellipsoid terrain,
-   * OSM imagery, render-on-demand, no widgets.
+   * Bing aerial via Ion, render-on-demand, no widgets.
    */
   async mountLive(container: HTMLElement): Promise<LiveViewerHandle> {
     const C = await this.loadCesium();
 
-    const imagery = new C.UrlTemplateImageryProvider({
-      url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-      credit: '© OpenStreetMap contributors',
-      maximumLevel: 19,
-    });
+    // Wait until the container has a real layout box. Without this Cesium
+    // can initialise into a 0×0 canvas and stay invisible.
+    await this.waitForLayout(container);
+
+    let imagery: unknown;
+    try {
+      imagery = await C.IonImageryProvider.fromAssetId(2); // Bing Maps Aerial
+    } catch {
+      imagery = new C.UrlTemplateImageryProvider({
+        url: 'https://a.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        subdomains: ['a', 'b', 'c'],
+        maximumLevel: 19,
+      });
+    }
 
     const viewer = new C.Viewer(container, {
       terrainProvider: new C.EllipsoidTerrainProvider(),
       baseLayer: new C.ImageryLayer(imagery, {}),
+      sceneMode: C.SceneMode.SCENE2D,
       animation: false,
       timeline: false,
       fullscreenButton: false,
@@ -92,14 +102,29 @@ export class CesiumMapService {
     viewer.scene.fog.enabled = false;
     viewer.scene.skyAtmosphere.show = false;
     viewer.scene.globe.enableLighting = false;
-    viewer.scene.mode = C.SceneMode.SCENE2D;
+    viewer.scene.backgroundColor = C.Color.fromCssColorString('#050a0c');
     viewer.scene.screenSpaceCameraController.enableTilt = false;
     viewer.scene.screenSpaceCameraController.enableLook = false;
+    this.hideCesiumCredits(viewer);
+
+    // Sensible default view (world-ish) so the canvas is never blank.
+    viewer.camera.setView({
+      destination: C.Rectangle.fromDegrees(-30, 25, 50, 70),
+    });
+    viewer.scene.requestRender();
+
+    // Track container size changes (CSS transitions, orientation, etc.) and
+    // tell Cesium to resize so the canvas always fills its parent.
+    const ro = new ResizeObserver(() => {
+      viewer.resize();
+      viewer.scene.requestRender();
+    });
+    ro.observe(container);
 
     const positions: Array<{ lon: number; lat: number; alt: number }> = [];
     let cartesians: unknown[] = [];
 
-    const routeEntity = viewer.entities.add({
+    viewer.entities.add({
       polyline: {
         positions: new C.CallbackProperty(() => cartesians, false),
         width: 5,
@@ -111,48 +136,61 @@ export class CesiumMapService {
       },
     });
 
-    const playerEntity = viewer.entities.add({
-      position: new C.CallbackProperty(() => {
-        if (positions.length === 0) return undefined;
-        const last = positions[positions.length - 1];
-        return C.Cartesian3.fromDegrees(last.lon, last.lat, last.alt);
-      }, false),
+    const playerPositionProp = new C.CallbackProperty(() => {
+      if (positions.length === 0) return undefined;
+      const last = positions[positions.length - 1];
+      return C.Cartesian3.fromDegrees(last.lon, last.lat, last.alt);
+    }, false);
+
+    // Soft cyan halo around the player position.
+    viewer.entities.add({
+      position: playerPositionProp,
       point: {
-        pixelSize: 12,
-        color: C.Color.fromCssColorString('#3cd7ff'),
-        outlineColor: C.Color.fromCssColorString('#003642'),
-        outlineWidth: 2,
-        heightReference: C.HeightReference.CLAMP_TO_GROUND,
+        pixelSize: 36,
+        color: C.Color.fromCssColorString('#3cd7ff').withAlpha(0.18),
       },
     });
-    void routeEntity;
-    void playerEntity;
+
+    // Solid player dot.
+    viewer.entities.add({
+      position: playerPositionProp,
+      point: {
+        pixelSize: 16,
+        color: C.Color.fromCssColorString('#3cd7ff'),
+        outlineColor: C.Color.fromCssColorString('#003642'),
+        outlineWidth: 3,
+      },
+    });
 
     let initialized = false;
+    const ZOOM_M = 1200;
 
     return {
       push: ({ lat, lng, ele }) => {
         positions.push({ lon: lng, lat, alt: ele ?? 0 });
         cartesians = positions.map(p => C.Cartesian3.fromDegrees(p.lon, p.lat, p.alt));
-        viewer.scene.requestRender();
 
         if (!initialized) {
           viewer.camera.flyTo({
-            destination: C.Cartesian3.fromDegrees(lng, lat, 800),
-            duration: 0,
+            destination: C.Cartesian3.fromDegrees(lng, lat, ZOOM_M),
+            duration: 0.6,
           });
           initialized = true;
-        } else if (positions.length % 5 === 0) {
-          // Keep the camera roughly centered on the user, but don't fight a manual pan
-          // on every single point — sample every fifth update.
-          viewer.camera.lookAt(
-            C.Cartesian3.fromDegrees(lng, lat, 0),
-            new C.HeadingPitchRange(0, -Math.PI / 2, 800),
-          );
-          viewer.camera.lookAtTransform(C.Matrix4.IDENTITY);
+        } else if (positions.length % 3 === 0) {
+          // Keep camera roughly centred on the user without fighting a manual pan
+          // on every single tick.
+          viewer.camera.setView({
+            destination: C.Cartesian3.fromDegrees(lng, lat, ZOOM_M),
+          });
         }
+        viewer.scene.requestRender();
       },
       destroy: () => {
+        try {
+          ro.disconnect();
+        } catch {
+          /* noop */
+        }
         try {
           viewer.destroy();
         } catch {
@@ -160,6 +198,38 @@ export class CesiumMapService {
         }
       },
     };
+  }
+
+  /**
+   * Resolve once the element has a non-zero box, with a bail-out timeout. This
+   * is the most common cause of "Cesium renders into a 0×0 canvas and stays
+   * blank" — the viewer is created before flex/layout has placed its parent.
+   */
+  private waitForLayout(el: HTMLElement, timeoutMs = 1500): Promise<void> {
+    return new Promise(resolve => {
+      const start = performance.now();
+      const tick = () => {
+        if (el.clientWidth > 0 && el.clientHeight > 0) {
+          resolve();
+          return;
+        }
+        if (performance.now() - start > timeoutMs) {
+          resolve();
+          return;
+        }
+        requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    });
+  }
+
+  private hideCesiumCredits(viewer: { creditDisplay?: { container?: HTMLElement } }): void {
+    try {
+      const credits = viewer.creditDisplay?.container;
+      if (credits) credits.style.display = 'none';
+    } catch {
+      /* noop */
+    }
   }
 
   /**

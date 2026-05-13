@@ -56,6 +56,30 @@ export class ActiveCardioBufferService {
     this.ensureFlushTimer();
   }
 
+  /**
+   * Re-attach to an existing buffered session after a page reload.
+   * Resumes appending where the previous run left off so the polyline
+   * stays continuous.
+   */
+  async attach(sessionLocalId: string): Promise<void> {
+    this.currentSessionId = sessionLocalId;
+    this.pending = [];
+    const db = await this.openDb();
+    // Find the highest existing seq so new points don't collide.
+    this.seqCounter = await new Promise<number>((resolve, reject) => {
+      const tx = db.transaction(STORE, 'readonly');
+      const idx = tx.objectStore(STORE).index('sessionLocalId');
+      const req = idx.getAll(IDBKeyRange.only(sessionLocalId));
+      req.onsuccess = () => {
+        const rs = req.result as LiveBufferRecord[];
+        const max = rs.reduce((m, r) => (r.seq > m ? r.seq : m), -1);
+        resolve(max + 1);
+      };
+      req.onerror = () => reject(req.error);
+    });
+    this.ensureFlushTimer();
+  }
+
   append(point: RawTrackPoint): void {
     if (!this.currentSessionId) return;
     const record: LiveBufferRecord = {

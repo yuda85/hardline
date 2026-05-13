@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { Action, Selector, State, StateContext, Store } from '@ngxs/store';
-import { from, of } from 'rxjs';
+import { from } from 'rxjs';
 import { switchMap, take, tap } from 'rxjs/operators';
 
 import { CARDIO_STATE_DEFAULTS, CardioStateModel } from './cardio.model';
@@ -16,6 +16,10 @@ import {
   RawTrackPoint,
 } from '../../core/models/cardio-session.model';
 import { CardioSessionRepository } from '../../data/repositories/cardio-session.repository';
+import {
+  ActiveCardioRecord,
+  ActiveCardioRepository,
+} from '../../data/repositories/active-cardio.repository';
 import {
   ActiveCardioBufferService,
 } from '../../features/cardio/services/active-cardio-buffer.service';
@@ -43,7 +47,9 @@ export class CardioState {
   private readonly buffer = inject(ActiveCardioBufferService);
   private readonly encoder = inject(RouteEncodingService);
   private readonly sessionRepo = inject(CardioSessionRepository);
+  private readonly activeRepo = inject(ActiveCardioRepository);
   private readonly blobService = inject(CardioTrackBlobService);
+  private lastTouchAt = 0;
 
   // ── Selectors ──
 
@@ -91,6 +97,7 @@ export class CardioState {
 
   @Action(Cardio.StartSession)
   async startSession(ctx: StateContext<CardioStateModel>, action: Cardio.StartSession) {
+    const uid = this.store.selectSnapshot(AuthState.uid);
     const now = Date.now();
     const sessionLocalId = this.generateLocalId();
     const active: ActiveCardioSession = {
@@ -117,6 +124,31 @@ export class CardioState {
       error: null,
     });
     await this.buffer.start(sessionLocalId, action.activityType);
+    if (uid) {
+      void this.activeRepo.upsert({
+        userId: uid,
+        sessionLocalId,
+        activityType: action.activityType,
+        startedAt: now,
+        lastSeenAt: now,
+      });
+      this.lastTouchAt = now;
+    }
+  }
+
+  @Action(Cardio.CheckActiveSession)
+  checkActiveSession(ctx: StateContext<CardioStateModel>) {
+    const uid = this.store.selectSnapshot(AuthState.uid);
+    if (!uid) return;
+    if (ctx.getState().activeSession) return;
+
+    return this.activeRepo.watch(uid).pipe(
+      take(1),
+      tap(record => {
+        if (!record) return;
+        void this.restoreActiveSession(ctx, record);
+      }),
+    );
   }
 
   @Action(Cardio.PauseSession)
@@ -195,6 +227,17 @@ export class CardioState {
       activeSession: updated,
       weakSignal: action.tick.weakSignal,
     });
+
+    // Heartbeat to Firestore at most once every 20s so a refresh after a long
+    // break still surfaces a "stale session" within a sensible window.
+    const now = Date.now();
+    if (now - this.lastTouchAt > 20_000) {
+      const uid = this.store.selectSnapshot(AuthState.uid);
+      if (uid) {
+        this.lastTouchAt = now;
+        void this.activeRepo.touch(uid, now);
+      }
+    }
   }
 
   @Action(Cardio.TickTime)
@@ -216,6 +259,7 @@ export class CardioState {
   @Action(Cardio.DiscardSession)
   async discardSession(ctx: StateContext<CardioStateModel>) {
     const active = ctx.getState().activeSession;
+    const uid = this.store.selectSnapshot(AuthState.uid);
     if (active) {
       try {
         await this.buffer.clear(active.sessionLocalId);
@@ -223,6 +267,10 @@ export class CardioState {
         /* noop */
       }
     }
+    if (uid) {
+      void this.activeRepo.clear(uid);
+    }
+    this.lastTouchAt = 0;
     ctx.patchState({
       recordingStatus: 'idle',
       activeSession: null,
@@ -242,6 +290,8 @@ export class CardioState {
 
     return from(this.persistSession(uid, active, action.overrides?.caloriesBurned)).pipe(
       tap(() => {
+        void this.activeRepo.clear(uid);
+        this.lastTouchAt = 0;
         ctx.patchState({
           recordingStatus: 'idle',
           activeSession: null,
@@ -382,6 +432,65 @@ export class CardioState {
       .toPromise();
 
     await this.buffer.clear(active.sessionLocalId);
+  }
+
+  /**
+   * Rebuild the in-memory active session from a Firestore active-cardio doc
+   * and the IndexedDB point buffer. Called after a page reload.
+   */
+  private async restoreActiveSession(
+    ctx: StateContext<CardioStateModel>,
+    record: ActiveCardioRecord,
+  ): Promise<void> {
+    const ageHours = (Date.now() - record.lastSeenAt) / 3_600_000;
+    if (ageHours > 6) {
+      // Stale: nuke the marker and any orphaned buffer.
+      void this.activeRepo.clear(record.userId);
+      try {
+        await this.buffer.clear(record.sessionLocalId);
+      } catch {
+        /* noop */
+      }
+      return;
+    }
+
+    let points: RawTrackPoint[] = [];
+    try {
+      points = await this.buffer.readAll(record.sessionLocalId);
+    } catch {
+      points = [];
+    }
+    await this.buffer.attach(record.sessionLocalId);
+
+    const aggregates = this.encoder.aggregate(points);
+    const lastWith = [...points].reverse().find(p => p.lat !== undefined);
+    const lastPoint = lastWith ? { lat: lastWith.lat, lng: lastWith.lng } : null;
+    const now = Date.now();
+    const totalSec = Math.max(0, Math.floor((now - record.startedAt) / 1000));
+
+    const active: ActiveCardioSession = {
+      sessionLocalId: record.sessionLocalId,
+      activityType: record.activityType,
+      startedAt: record.startedAt,
+      movingTimeSec: totalSec,
+      totalTimeSec: totalSec,
+      distanceM: aggregates.distanceM,
+      elevationGainM: aggregates.elevationGainM,
+      elevationLossM: aggregates.elevationLossM,
+      currentSpeedMs: null,
+      currentElevationM: lastWith?.ele ?? null,
+      lastPoint,
+      currentAccuracyM: lastWith?.acc ?? null,
+      pointCount: points.length,
+      autoPauseCount: 0,
+      lastAutoPauseAt: null,
+    };
+    this.lastTouchAt = now;
+    ctx.patchState({
+      recordingStatus: 'paused',
+      activeSession: active,
+      weakSignal: false,
+    });
   }
 
   private computeBounds(points: RawTrackPoint[]): CardioBounds {
