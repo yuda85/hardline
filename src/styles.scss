@@ -300,5 +300,7 @@ app-bottom-nav > nav.bottom-nav {
   bottom: 0 !important;
   left: 0 !important;
   right: 0 !important;
-  z-index: 1000 !important;
+  // Stay above page chrome but below modal sheets / floating action bars,
+  // which live in the 99–200 range.
+  z-index: 50 !important;
 }
